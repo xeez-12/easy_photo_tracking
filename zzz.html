@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background: #fff;
+        }
+        .search-container {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            z-index: 1000;
+            display: flex;
+            gap: 6px;
+        }
+        .search-box {
+            flex-grow: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            height: 36px;
+        }
+        .search-box i {
+            font-size: 14px;
+            color: #666;
+            margin-right: 6px;
+        }
+        .search-box input {
+            border: none;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            outline: none;
+            font-size: 14px;
+            color: #333;
+            background: transparent;
+        }
+        .add-button {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            background: black;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .profile-button {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            background: #7F97A6;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px 16px 0 0;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 85vh;
+            touch-action: none;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+        }
+        .bottom-sheet.show {
+            transform: translateY(60%);
+        }
+        .bottom-sheet.expanded {
+            transform: translateY(0);
+        }
+        .bottom-sheet-header {
+            padding: 8px 0 0;
+            background: white;
+            border-radius: 16px 16px 0 0;
+        }
+        .bottom-sheet-drag {
+            width: 36px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin: 4px auto;
+        }
+        .bottom-tabs {
+            display: flex;
+            background: #f5f5f5;
+            margin: 12px 20px;
+            border-radius: 12px;
+            padding: 4px;
+        }
+        .bottom-tab {
+            flex: 1;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .bottom-tab.active {
+            color: #000;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .location-content {
+            padding: 0 20px;
+        }
+        .location-preview {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .location-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f5f5f5;
+            flex-shrink: 0;
+        }
+        .location-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .location-info {
+            flex-grow: 1;
+        }
+        .location-info-primary {
+            margin-bottom: 16px;
+        }
+        .location-info-secondary {
+            display: flex;
+            gap: 24px;
+        }
+        .location-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        .location-info-label {
+            font-size: 13px;
+            color: #666;
+        }
+        .location-info-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        .button-container {
+            display: flex;
+            gap: 4%;
+            margin: 0 0 16px;
+        }
+        .new-search-button, .street-view-button {
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            width: 48%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .new-search-button.show, .street-view-button.show {
+            display: flex;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 0 20px 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .result-item {
+            aspect-ratio: 1;
+            background: #f5f5f5;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .result-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #f8f9fa;
+        }
+        .file-input {
+            display: none;
+        }
+        .location-marker {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            overflow: hidden;
+            cursor: pointer;
+            transform-origin: center bottom;
+        }
+        .location-marker img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        #streetview-container {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+        #streetview {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <label for="fileInput" class="add-button">
+            <i class="bi bi-plus"></i>
+        </label>
+        <input type="file" id="fileInput" class="file-input" accept="image/*">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Cari lokasi" readonly>
+        </div>
+        <button class="profile-button">F</button>
+    </div>
+
+    <div id="map"></div>
+    <div id="streetview-container">
+        <iframe id="streetview"></iframe>
+    </div>
+
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="bottom-sheet-header">
+            <div class="bottom-sheet-drag"></div>
+            <div class="bottom-tabs">
+                <div class="bottom-tab active" data-tab="results">Hasil</div>
+                <div class="bottom-tab" data-tab="similar">Gambar Serupa</div>
+            </div>
+            <div class="location-content" id="resultsContent">
+                <div class="location-preview">
+                    <div class="location-image">
+                        <img id="previewImage" src="" alt="Location">
+                    </div>
+                    <div class="location-info">
+                        <div class="location-info-primary">
+                            <div class="location-info-item">
+                                <div class="location-info-label">Kota:</div>
+                                <div class="location-info-value" id="cityValue">(Unknown)</div>
+                            </div>
+                            <div class="location-info-item">
+                                <div class="location-info-label">Negara:</div>
+                                <div class="location-info-value" id="countryValue">(Unknown)</div>
+                            </div>
+                        </div>
+                        <div class="location-info-secondary">
+                            <div class="location-info-item">
+                                <div class="location-info-label">Lintang:</div>
+                                <div class="location-info-value" id="latValue">(Unknown)</div>
+                            </div>
+                            <div class="location-info-item">
+                                <div class="location-info-label">Bujur:</div>
+                                <div class="location-info-value" id="lngValue">(Unknown)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <button class="new-search-button" id="newSearchButton">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        New Search
+                    </button>
+                    <button class="street-view-button" id="streetViewButton">
+                        <i class="bi bi-geo-alt"></i>
+                        Street View
+                    </button>
+                </div>
+            </div>
+            <div class="location-content" id="similarContent" style="display: none;">
+                <div class="results-grid" id="resultsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        // Mapbox and Gemini API keys
+        const MAPBOX_TOKEN = 'pk.eyJ1IjoiYXZpb3BvcnRvbGFubyIsImEiOiJja212cmRrd2QwN3dzMnZuMXV2d25xbWsxIn0.x3y36v9arY9wmBOCZlCXUA';
+        const GEMINI_API_KEY = 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI'; // Replace with your actual Gemini API key
+
+        // Initialize Mapbox map
+        mapboxgl.accessToken = MAPBOX_TOKEN;
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [-81.7800, 24.5551],
+            zoom: 1,
+        });
+
+        // Initialize marker
+        const markerElement = document.createElement('div');
+        markerElement.className = 'location-marker';
+        const markerImage = document.createElement('img');
+        markerElement.appendChild(markerImage);
+        const marker = new mapboxgl.Marker({
+            element: markerElement,
+            draggable: false
+        }).setLngLat([-81.7800, 24.5551]);
+
+        // DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const bottomSheet = document.getElementById('bottomSheet');
+        const newSearchButton = document.getElementById('newSearchButton');
+        const streetViewButton = document.getElementById('streetViewButton');
+        const previewImage = document.getElementById('previewImage');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const resultsContent = document.getElementById('resultsContent');
+        const similarContent = document.getElementById('similarContent');
+        const cityValue = document.getElementById('cityValue');
+        const countryValue = document.getElementById('countryValue');
+        const latValue = document.getElementById('latValue');
+        const lngValue = document.getElementById('lngValue');
+        const streetviewContainer = document.getElementById('streetview-container');
+        const streetviewIframe = document.getElementById('streetview');
+
+        // Track last coordinates
+        let lastMatchedCoord = { lat: -81.7800, lng: 24.5551 };
+
+        // Bottom sheet drag functionality
+        let startY, currentY, initialY, isDragging = false;
+        bottomSheet.addEventListener('touchstart', e => {
+            startY = e.touches[0].clientY;
+            initialY = bottomSheet.getBoundingClientRect().top;
+            bottomSheet.style.transition = 'none';
+            isDragging = true;
+        });
+        bottomSheet.addEventListener('touchmove', e => {
+            if (!isDragging) return;
+            currentY = e.touches[0].clientY;
+            const diffY = currentY - startY;
+            const newY = initialY + diffY;
+            const maxY = window.innerHeight * 0.6;
+            const minY = 0;
+            if (newY >= minY && newY <= maxY) {
+                bottomSheet.style.transform = `translateY(${newY}px)`;
+            }
+        });
+        bottomSheet.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            bottomSheet.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            const currentPosition = bottomSheet.getBoundingClientRect().top;
+            const threshold = window.innerHeight * 0.3;
+            if (currentPosition > threshold) {
+                bottomSheet.classList.remove('expanded');
+                bottomSheet.classList.add('show');
+            } else {
+                bottomSheet.classList.remove('show');
+                bottomSheet.classList.add('expanded');
+            }
+        });
+
+        // Tab switching
+        document.querySelectorAll('.bottom-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                resultsContent.style.display = tab.dataset.tab === 'results' ? 'block' : 'none';
+                similarContent.style.display = tab.dataset.tab === 'similar' ? 'block' : 'none';
+            });
+        });
+
+        // Convert image to base64
+        function imageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Analyze photo with Gemini API
+        async function analyzePhotoWithGemini(photoBlob) {
+            try {
+                const base64Image = await imageToBase64(photoBlob);
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [
+                                {
+                                    parts: [
+                                        {
+                                            text: 'Analyze the provided Google Street View link or image to determine the exact location depicted with 100% accuracy to within 1 meter, using only outdoor Street View data and excluding any indoor imagery. Extract latitude and longitude (decimal degrees, 8+ decimal places for sub-meter precision), city, country, and a comprehensive description including notable outdoor landmarks (e.g., buildings, statues, bridges), geographical features (e.g., rivers, mountains, vegetation), and cultural or historical significance. Identify visual cues such as street signs, architectural styles, road layouts, or natural elements, and cross-reference with geospatial databases, high-resolution mapping, or real-time web/X searches to ensure precision. If the location cannot be pinpointed (e.g., invalid link, ambiguous cues, or no image), provide the most accurate estimation, explain the reasoning, and detail limitations. Return results in JSON format with fields: latitude, longitude, city, country, description. Populate all fields, using "Unknown" for unavailable data, with a detailed explanation in description outlining the analysis process and any challenges.'
+                                        },
+                                        {
+                                            inlineData: {
+                                                mimeType: photoBlob.type,
+                                                data: base64Image,
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                        }),
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Gemini API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                let resultText = data.candidates[0].content.parts[0].text;
+                resultText = resultText.replace(/```json\n|\n```/g, '').trim();
+
+                let locationData;
+                try {
+                    locationData = JSON.parse(resultText);
+                } catch (parseError) {
+                    console.error('Failed to parse Gemini response as JSON:', parseError);
+                    throw new Error('Invalid JSON response from Gemini API');
+                }
+
+                if (!locationData.latitude || !locationData.longitude) {
+                    throw new Error('Missing latitude or longitude in Gemini response');
+                }
+
+                return {
+                    lat: parseFloat(locationData.latitude) || 0,
+                    lng: parseFloat(locationData.longitude) || 0,
+                    city: locationData.city || '(Unknown)',
+                    country: locationData.country || '(Unknown)',
+                    description: locationData.description || '(Unknown)',
+                };
+            } catch (error) {
+                console.error('Error analyzing photo with Gemini:', error);
+                alert('Failed to analyze image with Gemini API. Using default location.');
+                return {
+                    lat: -81.7800,
+                    lng: 24.5551,
+                    city: '(Unknown)',
+                    country: '(Unknown)',
+                    description: '(Unknown)',
+                };
+            }
+        }
+
+        // Fetch similar images with Gemini API
+        async function fetchSimilarImagesWithGemini(photoBlob) {
+            try {
+                const base64Image = await imageToBase64(photoBlob);
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [
+                                {
+                                    parts: [
+                                        {
+                                            text: 'Describe the content of this image in detail and generate a list of 6 URLs for similar images that could be found on the web. The URLs should be realistic and point to images that match the description (e.g., from stock photo sites, public domains, or common web sources). Return the response in JSON format with a field "image_urls" containing an array of URLs.'
+                                        },
+                                        {
+                                            inlineData: {
+                                                mimeType: photoBlob.type,
+                                                data: base64Image,
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                        }),
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Gemini API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                let resultText = data.candidates[0].content.parts[0].text;
+                resultText = resultText.replace(/```json\n|\n```/g, '').trim();
+
+                let similarData;
+                try {
+                    similarData = JSON.parse(resultText);
+                } catch (parseError) {
+                    console.error('Failed to parse Gemini similar images response as JSON:', parseError);
+                    throw new Error('Invalid JSON response for similar images');
+                }
+
+                // Validate and return image URLs
+                return similarData.image_urls && similarData.image_urls.length >= 6
+                    ? similarData.image_urls.slice(0, 6)
+                    : [
+                          'https://via.placeholder.com/150?text=Similar+Image+1',
+                          'https://via.placeholder.com/150?text=Similar+Image+2',
+                          'https://via.placeholder.com/150?text=Similar+Image+3',
+                          'https://via.placeholder.com/150?text=Similar+Image+4',
+                          'https://via.placeholder.com/150?text=Similar+Image+5',
+                          'https://via.placeholder.com/150?text=Similar+Image+6',
+                      ];
+            } catch (error) {
+                console.error('Error fetching similar images with Gemini:', error);
+                alert('Failed to fetch similar images. Using placeholder images.');
+                return [
+                    'https://via.placeholder.com/150?text=Similar+Image+1',
+                    'https://via.placeholder.com/150?text=Similar+Image+2',
+                    'https://via.placeholder.com/150?text=Similar+Image+3',
+                    'https://via.placeholder.com/150?text=Similar+Image+4',
+                    'https://via.placeholder.com/150?text=Similar+Image+5',
+                    'https://via.placeholder.com/150?text=Similar+Image+6',
+                ];
+            }
+        }
+
+        // Handle image upload
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            loadingOverlay.style.display = 'flex';
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const imageUrl = e.target.result;
+                markerImage.src = imageUrl;
+                previewImage.src = imageUrl;
+
+                // Analyze photo with Gemini API
+                const locationData = await analyzePhotoWithGemini(file);
+                lastMatchedCoord = { lat: locationData.lat, lng: locationData.lng };
+
+                // Update UI with location data
+                cityValue.textContent = locationData.city;
+                countryValue.textContent = locationData.country;
+                latValue.textContent = `${locationData.lat.toFixed(5)}° ${locationData.lat >= 0 ? 'N' : 'S'}`;
+                lngValue.textContent = `${locationData.lng.toFixed(5)}° ${locationData.lng >= 0 ? 'E' : 'W'}`;
+
+                // Update map and marker
+                marker.setLngLat([locationData.lng, locationData.lat]).addTo(map);
+                map.flyTo({
+                    center: [locationData.lng, locationData.lat],
+                    zoom: 15,
+                    essential: true,
+                });
+
+                // Fetch and display similar images
+                const similarImages = await fetchSimilarImagesWithGemini(file);
+                resultsGrid.innerHTML = '';
+                similarImages.forEach(imgSrc => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    resultItem.appendChild(img);
+                    resultsGrid.appendChild(resultItem);
+                });
+
+                // Show bottom sheet and buttons
+                bottomSheet.classList.add('show');
+                newSearchButton.classList.add('show');
+                streetViewButton.classList.add('show');
+                loadingOverlay.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // New search button
+        newSearchButton.addEventListener('click', () => {
+            marker.remove();
+            bottomSheet.classList.remove('show');
+            bottomSheet.classList.remove('expanded');
+            newSearchButton.classList.remove('show');
+            streetViewButton.classList.remove('show');
+            fileInput.value = '';
+            previewImage.src = '';
+            cityValue.textContent = '(Unknown)';
+            countryValue.textContent = '(Unknown)';
+            latValue.textContent = '(Unknown)';
+            lngValue.textContent = '(Unknown)';
+            resultsGrid.innerHTML = '';
+            streetviewContainer.style.display = 'none';
+            map.getContainer().style.display = 'block';
+            map.flyTo({
+                center: [-81.7800, 24.5551],
+                zoom: 15,
+                essential: true,
+            });
+        });
+
+        // Street View button
+        streetViewButton.addEventListener('click', () => {
+            const lat = lastMatchedCoord.lat;
+            const lng = lastMatchedCoord.lng;
+            const streetViewUrl = `https://www.google.com/maps/embed?pb=!4v0!6m8!1m7!1sCAoSLEFGMVFpcE1pVUlONllYeXpHdXVpUjd4cjlHcWxGQVZ2cnlyT1I5NmFwTE9B!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`;
+            streetviewIframe.src = streetViewUrl;
+            streetviewContainer.style.display = 'block';
+            map.getContainer().style.display = 'none';
+        });
+    </script>
+</body>
+</html>
