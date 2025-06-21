@@ -20,7 +20,8 @@
             height: 100vh;
             overflow: hidden;
             position: relative;
-            background: #000;
+            background: #000; /* Background gelap */
+            color: #333; /* Teks utama cerah */
         }
         .search-container {
             position: absolute;
@@ -37,49 +38,23 @@
             flex-direction: column;
             gap: 6px;
         }
-        .add-button {
+        .add-button, .quick-search-button, .profile-button {
             width: 36px;
             height: 36px;
             min-width: 36px;
-            background: black;
+            background: #fff; /* Ikon cerah */
             border: none;
             border-radius: 8px;
-            color: white;
+            color: #000; /* Ikon gelap */
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: background 0.3s;
         }
-        .quick-search-button {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            background: black;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .profile-button {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            background: black;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-size: 16px;
-            font-weight: 500;
+        .add-button:hover, .quick-search-button:hover, .profile-button:hover {
+            background: #e0e0e0;
         }
         .quick-search-modal {
             position: fixed;
@@ -94,31 +69,32 @@
             z-index: 2000;
         }
         .quick-search-content {
-            background: #1a1a1a;
+            background: #fff;
             border-radius: 16px;
             width: 90%;
             max-width: 400px;
             max-height: 80vh;
             overflow-y: auto;
-            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .quick-search-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #eee;
         }
         .quick-search-header h3 {
             margin: 0;
             font-size: 18px;
+            color: #333;
         }
         .close-modal {
             background: none;
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #ccc;
+            color: #666;
         }
         .quick-search-body {
             padding: 20px;
@@ -126,19 +102,19 @@
         .quick-search-body input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #333;
+            border: 2px solid #eee;
             border-radius: 8px;
             font-size: 14px;
             margin-bottom: 16px;
             outline: none;
-            background: #222;
-            color: #fff;
+            background: #f9f9f9;
+            color: #333;
         }
         .quick-search-body input:focus {
             border-color: #007AFF;
         }
         .upload-area {
-            border: 2px dashed #444;
+            border: 2px dashed #ccc;
             border-radius: 8px;
             padding: 40px 20px;
             text-align: center;
@@ -150,24 +126,24 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: #222;
+            background: #f9f9f9;
         }
         .upload-area:hover {
             border-color: #007AFF;
-            background: #2a2a2a;
+            background: #f0f0f0;
         }
         .upload-area.image-uploaded {
-            background: #1a1a1a;
-            border-color: #444;
+            background: #fff;
+            border-color: #ccc;
             padding: 8px;
         }
         .upload-area i {
             font-size: 32px;
-            color: #ccc;
+            color: #666;
             margin-bottom: 8px;
         }
         .upload-area p {
-            color: #ccc;
+            color: #666;
             font-size: 14px;
         }
         .upload-preview {
@@ -176,7 +152,7 @@
             border-radius: 8px;
             overflow: hidden;
             margin: 0;
-            background: #1a1a1a;
+            background: #fff;
         }
         .upload-preview img {
             width: 100%;
@@ -196,21 +172,24 @@
             font-size: 16px;
             font-weight: 500;
             cursor: pointer;
+            transition: background 0.3s;
+        }
+        .analyze-button:hover {
+            background: #005bb5;
         }
         .bottom-sheet {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #1a1a1a;
+            background: #fff;
             border-radius: 16px 16px 0 0;
             z-index: 1000;
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 85vh;
             touch-action: none;
-            box-shadow: 0 -4px 16px rgba(0,0,0,0.5);
-            color: #fff;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
         }
         .bottom-sheet.show {
             transform: translateY(60%);
@@ -220,19 +199,19 @@
         }
         .bottom-sheet-header {
             padding: 8px 0 0;
-            background: #1a1a1a;
+            background: #fff;
             border-radius: 16px 16px 0 0;
         }
         .bottom-sheet-drag {
             width: 36px;
             height: 4px;
-            background: #444;
+            background: #e0e0e0;
             border-radius: 2px;
             margin: 4px auto;
         }
         .bottom-tabs {
             display: flex;
-            background: #222;
+            background: #f5f5f5;
             margin: 12px 20px;
             border-radius: 12px;
             padding: 4px;
@@ -241,7 +220,7 @@
             flex: 1;
             padding: 8px 0;
             font-size: 14px;
-            color: #ccc;
+            color: #666;
             cursor: pointer;
             font-weight: 500;
             text-align: center;
@@ -249,9 +228,9 @@
             transition: all 0.2s;
         }
         .bottom-tab.active {
-            color: #fff;
-            background: #333;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            color: #000;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .location-content {
             padding: 0 20px;
@@ -266,7 +245,7 @@
             height: 120px;
             border-radius: 12px;
             overflow: hidden;
-            background: #222;
+            background: #f5f5f5;
             flex-shrink: 0;
         }
         .location-image img {
@@ -292,11 +271,11 @@
         }
         .location-info-label {
             font-size: 13px;
-            color: #ccc;
+            color: #666;
         }
         .location-info-value {
             font-size: 15px;
-            color: #fff;
+            color: #333;
             font-weight: 500;
         }
         .button-container {
@@ -318,25 +297,29 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
+            transition: background 0.3s;
         }
         .new-search-button.show, .street-view-button.show {
             display: flex;
         }
+        .new-search-button:hover, .street-view-button:hover {
+            background: #005bb5;
+        }
         .interpretation-text {
             padding: 20px;
             line-height: 1.6;
-            color: #ccc;
+            color: #333;
         }
         .interpretation-text p {
             margin-bottom: 12px;
         }
         .interpretation-text strong {
-            color: #fff;
+            color: #000;
         }
         #map {
             width: 100%;
             height: 100%;
-            background: #1a1a1a;
+            background: #1a1a1a; /* Background peta gelap */
         }
         .file-input {
             display: none;
@@ -346,7 +329,7 @@
             height: 60px;
             border-radius: 50%;
             border: 3px solid #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             overflow: hidden;
             cursor: pointer;
             transform-origin: center bottom;
@@ -362,7 +345,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.8);
             display: none;
             flex-direction: column;
             justify-content: center;
