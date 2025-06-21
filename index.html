@@ -20,8 +20,7 @@
             height: 100vh;
             overflow: hidden;
             position: relative;
-            background: #000; /* Background gelap */
-            color: #333; /* Teks utama cerah */
+            background: #000;
         }
         .search-container {
             position: absolute;
@@ -38,23 +37,49 @@
             flex-direction: column;
             gap: 6px;
         }
-        .add-button, .quick-search-button, .profile-button {
+        .add-button {
             width: 36px;
             height: 36px;
             min-width: 36px;
-            background: #fff; /* Ikon cerah */
+            background: black;
             border: none;
             border-radius: 8px;
-            color: #000; /* Ikon gelap */
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: background 0.3s;
         }
-        .add-button:hover, .quick-search-button:hover, .profile-button:hover {
-            background: #e0e0e0;
+        .quick-search-button {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            background: black;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .profile-button {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            background: black;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 16px;
+            font-weight: 500;
         }
         .quick-search-modal {
             position: fixed;
@@ -69,32 +94,31 @@
             z-index: 2000;
         }
         .quick-search-content {
-            background: #fff;
+            background: #1a1a1a;
             border-radius: 16px;
             width: 90%;
             max-width: 400px;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            color: #fff;
         }
         .quick-search-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #333;
         }
         .quick-search-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #333;
         }
         .close-modal {
             background: none;
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #666;
+            color: #ccc;
         }
         .quick-search-body {
             padding: 20px;
@@ -102,19 +126,19 @@
         .quick-search-body input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #eee;
+            border: 2px solid #333;
             border-radius: 8px;
             font-size: 14px;
             margin-bottom: 16px;
             outline: none;
-            background: #f9f9f9;
-            color: #333;
+            background: #222;
+            color: #fff;
         }
         .quick-search-body input:focus {
             border-color: #007AFF;
         }
         .upload-area {
-            border: 2px dashed #ccc;
+            border: 2px dashed #444;
             border-radius: 8px;
             padding: 40px 20px;
             text-align: center;
@@ -126,24 +150,24 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: #f9f9f9;
+            background: #222;
         }
         .upload-area:hover {
             border-color: #007AFF;
-            background: #f0f0f0;
+            background: #2a2a2a;
         }
         .upload-area.image-uploaded {
-            background: #fff;
-            border-color: #ccc;
+            background: #1a1a1a;
+            border-color: #444;
             padding: 8px;
         }
         .upload-area i {
             font-size: 32px;
-            color: #666;
+            color: #ccc;
             margin-bottom: 8px;
         }
         .upload-area p {
-            color: #666;
+            color: #ccc;
             font-size: 14px;
         }
         .upload-preview {
@@ -152,7 +176,7 @@
             border-radius: 8px;
             overflow: hidden;
             margin: 0;
-            background: #fff;
+            background: #1a1a1a;
         }
         .upload-preview img {
             width: 100%;
@@ -172,24 +196,21 @@
             font-size: 16px;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.3s;
-        }
-        .analyze-button:hover {
-            background: #005bb5;
         }
         .bottom-sheet {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #fff;
+            background: #1a1a1a;
             border-radius: 16px 16px 0 0;
             z-index: 1000;
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 85vh;
             touch-action: none;
-            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.5);
+            color: #fff;
         }
         .bottom-sheet.show {
             transform: translateY(60%);
@@ -199,19 +220,19 @@
         }
         .bottom-sheet-header {
             padding: 8px 0 0;
-            background: #fff;
+            background: #1a1a1a;
             border-radius: 16px 16px 0 0;
         }
         .bottom-sheet-drag {
             width: 36px;
             height: 4px;
-            background: #e0e0e0;
+            background: #444;
             border-radius: 2px;
             margin: 4px auto;
         }
         .bottom-tabs {
             display: flex;
-            background: #f5f5f5;
+            background: #222;
             margin: 12px 20px;
             border-radius: 12px;
             padding: 4px;
@@ -220,7 +241,7 @@
             flex: 1;
             padding: 8px 0;
             font-size: 14px;
-            color: #666;
+            color: #ccc;
             cursor: pointer;
             font-weight: 500;
             text-align: center;
@@ -228,9 +249,9 @@
             transition: all 0.2s;
         }
         .bottom-tab.active {
-            color: #000;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #fff;
+            background: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         .location-content {
             padding: 0 20px;
@@ -245,7 +266,7 @@
             height: 120px;
             border-radius: 12px;
             overflow: hidden;
-            background: #f5f5f5;
+            background: #222;
             flex-shrink: 0;
         }
         .location-image img {
@@ -271,11 +292,11 @@
         }
         .location-info-label {
             font-size: 13px;
-            color: #666;
+            color: #ccc;
         }
         .location-info-value {
             font-size: 15px;
-            color: #333;
+            color: #fff;
             font-weight: 500;
         }
         .button-container {
@@ -297,29 +318,25 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            transition: background 0.3s;
         }
         .new-search-button.show, .street-view-button.show {
             display: flex;
         }
-        .new-search-button:hover, .street-view-button:hover {
-            background: #005bb5;
-        }
         .interpretation-text {
             padding: 20px;
             line-height: 1.6;
-            color: #333;
+            color: #ccc;
         }
         .interpretation-text p {
             margin-bottom: 12px;
         }
         .interpretation-text strong {
-            color: #000;
+            color: #fff;
         }
         #map {
             width: 100%;
             height: 100%;
-            background: #1a1a1a; /* Background peta gelap */
+            background: #1a1a1a;
         }
         .file-input {
             display: none;
@@ -329,7 +346,7 @@
             height: 60px;
             border-radius: 50%;
             border: 3px solid #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
             overflow: hidden;
             cursor: pointer;
             transform-origin: center bottom;
@@ -345,7 +362,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -486,7 +503,7 @@
         mapboxgl.accessToken = MAPBOX_TOKEN;
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
+            style: 'mapbox://styles/mapbox/streets-v12',
             center: [-81.7800, 24.5551],
             zoom: 1,
         });
