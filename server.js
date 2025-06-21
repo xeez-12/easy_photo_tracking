@@ -2,20 +2,20 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-// Hanya layani file statis untuk aset tertentu (misalnya CSS, JS, gambar)
+// Serve static files for assets (e.g., CSS, JS, images)
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-// Rute utama langsung ke home.html
+// Serve index.html for the root route
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'home.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Rute eksplisit ke index.html
+// Explicit route for index.html
 app.get('/index.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Tangani rute lain dengan redirect ke home
+// Redirect all other routes to the root (index.html)
 app.get('*', (req, res) => {
     res.redirect('/');
 });
