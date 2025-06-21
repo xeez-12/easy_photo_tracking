@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoSpy - Location Tracker</title>
+    <title>GeoLocation Spy - Location Tracker</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet" />
@@ -20,7 +20,7 @@
             height: 100vh;
             overflow: hidden;
             position: relative;
-            background: #fff;
+            background: #000;
         }
         .search-container {
             position: absolute;
@@ -94,31 +94,31 @@
             z-index: 2000;
         }
         .quick-search-content {
-            background: white;
+            background: #1a1a1a;
             border-radius: 16px;
             width: 90%;
             max-width: 400px;
             max-height: 80vh;
             overflow-y: auto;
+            color: #fff;
         }
         .quick-search-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #333;
         }
         .quick-search-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #333;
         }
         .close-modal {
             background: none;
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #666;
+            color: #ccc;
         }
         .quick-search-body {
             padding: 20px;
@@ -126,17 +126,19 @@
         .quick-search-body input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #eee;
+            border: 2px solid #333;
             border-radius: 8px;
             font-size: 14px;
             margin-bottom: 16px;
             outline: none;
+            background: #222;
+            color: #fff;
         }
         .quick-search-body input:focus {
             border-color: #007AFF;
         }
         .upload-area {
-            border: 2px dashed #ccc;
+            border: 2px dashed #444;
             border-radius: 8px;
             padding: 40px 20px;
             text-align: center;
@@ -148,23 +150,24 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            background: #222;
         }
         .upload-area:hover {
             border-color: #007AFF;
-            background: #f8f9ff;
+            background: #2a2a2a;
         }
         .upload-area.image-uploaded {
-            background: white;
-            border-color: #ccc;
+            background: #1a1a1a;
+            border-color: #444;
             padding: 8px;
         }
         .upload-area i {
             font-size: 32px;
-            color: #666;
+            color: #ccc;
             margin-bottom: 8px;
         }
         .upload-area p {
-            color: #666;
+            color: #ccc;
             font-size: 14px;
         }
         .upload-preview {
@@ -173,7 +176,7 @@
             border-radius: 8px;
             overflow: hidden;
             margin: 0;
-            background: white;
+            background: #1a1a1a;
         }
         .upload-preview img {
             width: 100%;
@@ -185,7 +188,7 @@
         }
         .analyze-button {
             width: 100%;
-            background: black;
+            background: #007AFF;
             color: white;
             border: none;
             border-radius: 8px;
@@ -199,14 +202,15 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
+            background: #1a1a1a;
             border-radius: 16px 16px 0 0;
             z-index: 1000;
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 85vh;
             touch-action: none;
-            box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.5);
+            color: #fff;
         }
         .bottom-sheet.show {
             transform: translateY(60%);
@@ -216,19 +220,19 @@
         }
         .bottom-sheet-header {
             padding: 8px 0 0;
-            background: white;
+            background: #1a1a1a;
             border-radius: 16px 16px 0 0;
         }
         .bottom-sheet-drag {
             width: 36px;
             height: 4px;
-            background: #e0e0e0;
+            background: #444;
             border-radius: 2px;
             margin: 4px auto;
         }
         .bottom-tabs {
             display: flex;
-            background: #f5f5f5;
+            background: #222;
             margin: 12px 20px;
             border-radius: 12px;
             padding: 4px;
@@ -237,7 +241,7 @@
             flex: 1;
             padding: 8px 0;
             font-size: 14px;
-            color: #666;
+            color: #ccc;
             cursor: pointer;
             font-weight: 500;
             text-align: center;
@@ -245,9 +249,9 @@
             transition: all 0.2s;
         }
         .bottom-tab.active {
-            color: #000;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #fff;
+            background: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         .location-content {
             padding: 0 20px;
@@ -262,7 +266,7 @@
             height: 120px;
             border-radius: 12px;
             overflow: hidden;
-            background: #f5f5f5;
+            background: #222;
             flex-shrink: 0;
         }
         .location-image img {
@@ -288,11 +292,11 @@
         }
         .location-info-label {
             font-size: 13px;
-            color: #666;
+            color: #ccc;
         }
         .location-info-value {
             font-size: 15px;
-            color: #333;
+            color: #fff;
             font-weight: 500;
         }
         .button-container {
@@ -301,7 +305,7 @@
             margin: 0 0 16px;
         }
         .new-search-button, .street-view-button {
-            background: #000;
+            background: #007AFF;
             color: white;
             border: none;
             border-radius: 12px;
@@ -321,18 +325,18 @@
         .interpretation-text {
             padding: 20px;
             line-height: 1.6;
-            color: #333;
+            color: #ccc;
         }
         .interpretation-text p {
             margin-bottom: 12px;
         }
         .interpretation-text strong {
-            color: #333;
+            color: #fff;
         }
         #map {
             width: 100%;
             height: 100%;
-            background: #f8f9fa;
+            background: #1a1a1a;
         }
         .file-input {
             display: none;
@@ -341,8 +345,8 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
             overflow: hidden;
             cursor: pointer;
             transform-origin: center bottom;
@@ -358,7 +362,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -394,72 +398,6 @@
         .confidence-high { background: #d4edda; color: #155724; }
         .confidence-medium { background: #fff3cd; color: #856404; }
         .confidence-low { background: #f8d7da; color: #721c24; }
-        .house-analysis-result {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        }
-        .property-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-        .architectural-analysis {
-            background: #e8f4f8;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-        .arch-grid, .sv-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-        .arch-grid div, .sv-grid div {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border-left: 4px solid #007bff;
-        }
-        .street-view-section {
-            background: #f0f8f0;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 12px 0;
-        }
-        .street-view-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .street-view-btn {
-            padding: 8px 16px;
-            background: #28a745;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-        .street-view-btn:hover {
-            background: #218838;
-        }
-        .street-view-btn.satellite {
-            background: #6f42c1;
-        }
-        .street-view-btn.satellite:hover {
-            background: #5a32a3;
-        }
-        .street-view-analysis {
-            background: #fff8e1;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-        }
     </style>
 </head>
 <body>
@@ -479,7 +417,6 @@
         </button>
     </div>
 
-    <!-- Quick Search Modal -->
     <div id="quickSearchModal" class="quick-search-modal">
         <div class="quick-search-content">
             <div class="quick-search-header">
@@ -566,7 +503,7 @@
         mapboxgl.accessToken = MAPBOX_TOKEN;
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
+            style: 'mapbox://styles/mapbox/dark-v11',
             center: [-81.7800, 24.5551],
             zoom: 1,
         });
@@ -725,7 +662,6 @@
                 lngValue.textContent = `${locationData.lng.toFixed(5)}° ${locationData.lng >= 0 ? 'E' : 'W'}`;
                 marker.setLngLat([locationData.lng, locationData.lat]).addTo(map);
                 map.flyTo({ center: [locationData.lng, locationData.lat], zoom: 15, essential: true });
-                const similarImages = await fetchSimilarImagesWithGemini(file);
                 interpretationText.innerHTML = `<p><strong>Deskripsi:</strong> ${locationData.description}</p><p><strong>Confidence:</strong> <span class="confidence-${locationData.confidence}">${locationData.confidence}</span></p>`;
                 bottomSheet.classList.add('show');
                 newSearchButton.classList.add('show');
