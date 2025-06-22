@@ -1,825 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Peta Foto Geotag Super Akurat</title>
-  <!-- Bootstrap Icons -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet" />
-  <!-- Mapbox -->
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-  <!-- localForage untuk penyimpanan modern -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Geolocation SPY</title>
+  <!-- Mapbox GL JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <!-- EXIF JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
     }
     body {
-      width: 100vw;
+      width: 100%;
       height: 100vh;
       overflow: hidden;
+      background-color: #121212;
+      color: #fff;
+    }
+    #app-container {
       position: relative;
-      background: #fff;
-    }
-    body.dark {
-      background: #1a1a1a;
-    }
-    .top-bar {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .add-button, .menu-button, .accurate-button {
-      width: 36px;
-      height: 36px;
-      background: black;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 2000;
-    }
-    body.dark .add-button, body.dark .menu-button, body.dark .accurate-button {
-      background: #333;
-      color: #fff;
-    }
-    .loading-indicator {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: none;
-      z-index: 3000;
-    }
-    .loading-indicator.show {
-      display: block;
-    }
-    .spinner {
-      border: 4px solid rgba(0,0,0,0.1);
-      border-top: 4px solid #000;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-    }
-    body.dark .spinner {
-      border: 4px solid rgba(255,255,255,0.1);
-      border-top: 4px solid #fff;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .info-panel {
-      position: absolute;
-      background: rgba(230, 240, 250, 0.8);
-      border-radius: 12px;
-      z-index: 1000;
-      width: 220px;
-      padding: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      transform-origin: top left;
-    }
-    body.dark .info-panel {
-      background: rgba(40, 40, 40, 0.8);
-      box-shadow: 0 4px 12px rgba(255,255,255,0.1);
-    }
-    .info-panel.show {
-      opacity: 1;
-    }
-    .location-preview {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      align-items: center;
-    }
-    .location-image {
-      width: 40px;
-      height: 40px;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #f5f5f5;
-      flex-shrink: 0;
-    }
-    body.dark .location-image {
-      background: #333;
-    }
-    .location-image img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .location-info {
-      flex-grow: 1;
-    }
-    .location-info-item {
-      margin-bottom: 6px;
-    }
-    .location-info-label {
-      font-size: 10px;
-      color: #666;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-    body.dark .location-info-label {
-      color: #aaa;
-    }
-    .location-info-value {
-      font-size: 12px;
-      color: #333;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    body.dark .location-info-value {
-      color: #fff;
-    }
-    .location-coordinates {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 12px;
-    }
-    .location-explanation-label {
-      font-size: 10px;
-      color: #666;
-      font-weight: 500;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    body.dark .location-explanation-label {
-      color: #aaa;
-    }
-    .location-explanation {
-      font-size: 11px;
-      color: #333;
-      margin-bottom: 12px;
-      line-height: 1.4;
-    }
-    body.dark .location-explanation {
-      color: #ddd;
-    }
-    .button-container {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-    .maps-button, .street-view-button {
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 8px;
-      font-size: 12px;
-      font-weight: 500;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-    body.dark .maps-button, body.dark .street-view-button {
-      background: #333;
-    }
-    .export-button {
-      background: #f5f5f5;
-      color: #333;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 8px;
-      font-size: 12px;
-      font-weight: 500;
-      width: 100%;
-      margin-bottom: 0;
-      cursor: pointer;
-      text-align: center;
-      text-transform: uppercase;
-    }
-    body.dark .export-button {
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
+      height: 100vh;
     }
     #map {
       width: 100%;
       height: 100%;
-      background: #f8f9fa;
     }
-    body.dark #map {
-      background: #222;
-    }
-    #streetviewContainer {
-      width: 100%;
-      height: 100%;
+    #streetview-container {
       display: none;
-    }
-    #streetviewIframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    .file-input {
-      display: none;
-    }
-    .location-marker {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 2px solid white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      overflow: hidden;
-      cursor: pointer;
-      position: absolute;
-      transform: translate(-50%, -100%);
-      transform-origin: center bottom;
-    }
-    body.dark .location-marker {
-      border: 2px solid #ddd;
-      box-shadow: 0 2px 8px rgba(255,255,255,0.2);
-    }
-    .location-marker img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .accurate-panel {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      z-index: 1500;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      padding: 30px;
-      transition: opacity 0.3s ease;
+      z-index: 20;
     }
-    body.dark .accurate-panel {
-      background: rgba(30, 30, 30, 0.95);
-    }
-    .accurate-panel.show {
-      display: flex;
-    }
-    .accurate-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 30px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    body.dark .accurate-title {
-      color: #fff;
-    }
-    .accurate-coordinates {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-bottom: 30px;
+    #streetview {
       width: 100%;
-      max-width: 600px;
+      height: 100%;
+      border: none;
     }
-    .accurate-coordinate-set {
-      display: flex;
-      gap: 20px;
-      justify-content: space-between;
-      background: #f5f5f5;
+    #info-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 300px;
+      background-color: rgba(18,18,18,0.95);
       padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 200;
+    }
+    #search-container {
+      display: flex;
+      align-items: center;
+      background-color: #242424;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 20px;
+    }
+    #search-container svg {
+      margin-right: 8px;
+      opacity: 0.7;
+    }
+    #search-input {
+      background: none;
+      border: none;
+      color: #fff;
+      outline: none;
+      width: 100%;
+      font-size: 14px;
+    }
+    #image-preview {
+      width: 100%;
+      aspect-ratio: 1/1;
+      background-color: #242424;
       border-radius: 8px;
+      margin-bottom: 15px;
+      overflow: hidden;
+      position: relative;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    body.dark .accurate-coordinate-set {
-      background: #333;
+    #image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    .accurate-coordinate-set:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    body.dark .accurate-coordinate-set:hover {
-      box-shadow: 0 4px 12px rgba(255,255,255,0.1);
-    }
-    .accurate-info-item {
+    #upload-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-    }
-    .accurate-info-label {
-      font-size: 12px;
-      color: #666;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-    body.dark .accurate-info-label {
-      color: #aaa;
-    }
-    .accurate-info-value {
-      font-size: 14px;
-      color: #333;
-      font-weight: 600;
-    }
-    body.dark .accurate-info-value {
-      color: #fff;
-    }
-    .accurate-back-button {
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 500;
+      background-color: rgba(36,36,36,0.8);
       cursor: pointer;
-      text-transform: uppercase;
-      margin-top: 20px;
     }
-    body.dark .accurate-back-button {
-      background: #333;
+    #upload-overlay.hidden {
+      display: none;
     }
-    .accurate-close-button {
+    #upload-icon {
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+    #upload-text {
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+    .location-info {
+      margin-bottom: 15px;
+    }
+    .location-label {
+      color: #999;
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+    .location-value {
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    #action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background-color: #242424;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .action-btn:hover {
+      background-color: #333;
+    }
+    .enterprise-badge {
       position: absolute;
       top: 20px;
       right: 20px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: #333;
-      cursor: pointer;
+      background-color: rgba(0,0,0,0.5);
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      z-index: 200;
     }
-    body.dark .accurate-close-button {
-      color: #fff;
+    .enterprise-text {
+      margin-right: 10px;
+    }
+    .enterprise-badge .title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .enterprise-badge .subtitle {
+      font-size: 12px;
+      color: #ccc;
+    }
+    .badge-link {
+      display: flex;
+      align-items: center;
+      color: white;
+      text-decoration: none;
+    }
+    .floating-info {
+      position: absolute;
+      background-color: rgba(0,0,0,0.7);
+      border-radius: 6px;
+      padding: 10px 12px;
+      z-index: 200;
+      color: white;
+      font-size: 13px;
+    }
+    #location-name {
+      top: 20px;
+      left: 340px;
+    }
+    #location-name .title {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    #location-name .subtitle {
+      display: none;
+    }
+    #neighborhood-info {
+      position: absolute;
+      bottom: 30px;
+      left: 20px;
+      background-color: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #ccc;
+      z-index: 999;
+    }
+    .attribution {
+      display: none;
+    }
+    .mapboxgl-canvas {
+      outline: none;
+    }
+    .mapboxgl-ctrl-logo {
+      display: none !important;
+    }
+    #file-input {
+      display: none;
+    }
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>
 <body>
-  <div class="loading-indicator" id="loadingIndicator">
-    <div class="spinner"></div>
-  </div>
-  <div class="top-bar">
-    <label for="fileInput" class="add-button">
-      <i class="bi bi-plus"></i>
-    </label>
-    <input type="file" id="fileInput" class="file-input" accept="image/*" />
-    <button class="menu-button" id="themeButton" title="Theme">
-      <i class="bi bi-sun"></i>
-    </button>
-    <button class="accurate-button" id="accurateButton" title="Top Accurate">
-      <i class="bi bi-geo-alt"></i>
-    </button>
-    <button class="menu-button" title="Settings">
-      <i class="bi bi-gear"></i>
-    </button>
-  </div>
-  <div id="map"></div>
-  <div id="streetviewContainer">
-    <iframe id="streetviewIframe" src=""></iframe>
-  </div>
-  <div class="info-panel" id="infoPanel">
-    <div class="location-preview">
-      <div class="location-image">
-        <img id="previewImage" src="" alt="Location" />
+  <div id="app-container">
+    <div id="map"></div>
+    <div id="streetview-container">
+      <iframe id="streetview"></iframe>
+    </div>
+    <div id="info-panel">
+      <div id="search-container">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="search-input" placeholder="New search" />
+      </div>
+      <div id="image-preview">
+        <img id="preview-img" src="" style="display: none;" />
+        <div id="upload-overlay">
+          <svg id="upload-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <p id="upload-text">Click to upload an image</p>
+        </div>
       </div>
       <div class="location-info">
-        <div class="location-info-item">
-          <div class="location-info-label">CITY:</div>
-          <div class="location-info-value" id="cityValue">(Unknown)</div>
-        </div>
-        <div class="location-info-item">
-          <div class="location-info-label">COUNTRY:</div>
-          <div class="location-info-value" id="countryValue">(Unknown)</div>
-        </div>
+        <div class="location-label">Detail</div>
+        <div class="location-value" id="detail-value">unknown</div>
+        <div class="location-label">Negara</div>
+        <div class="location-value" id="country-value">unknown</div>
+        <div class="location-label">Kota</div>
+        <div class="location-value" id="city-value">unknown</div>
+        <div class="location-label">Kordinator</div>
+        <div class="location-value" id="coord-value">unknown</div>
+      </div>
+      <div id="action-buttons">
+        <div class="action-btn" id="map-btn">Map</div>
+        <div class="action-btn" id="share-geospy">Street View</div>
       </div>
     </div>
-    <div class="location-coordinates">
-      <div class="location-info-item">
-        <div class="location-info-label">LATITUDE:</div>
-        <div class="location-info-value" id="latValue">0</div>
+    <div class="enterprise-badge">
+      <div class="enterprise-text">
+        <div class="title">Enterprise?</div>
+        <div class="subtitle">Partner with us</div>
       </div>
-      <div class="location-info-item">
-        <div class="location-info-label">LONGITUDE:</div>
-        <div class="location-info-value" id="lngValue">0</div>
-      </div>
+      <a href="#" class="badge-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
     </div>
-    <div>
-      <div class="location-explanation-label">EXPLANATION:</div>
-      <div class="location-explanation" id="explanationValue">
-        (Explanation will appear here)
-      </div>
+    <div class="floating-info" id="location-name">
+      <div class="title">Geolocation SPY</div>
     </div>
-    <div class="button-container">
-      <button class="maps-button" id="mapsButton">
-        MAPS
-      </button>
-      <button class="street-view-button" id="streetViewButton">
-        STREET VIEW
-      </button>
-    </div>
-    <button class="export-button" id="exportButton">
-      EXPORT PDF
-    </button>
+    <div id="neighborhood-info">sweet geolocation</div>
   </div>
-  <div class="accurate-panel" id="accuratePanel">
-    <button class="accurate-close-button" id="accurateCloseButton">X</button>
-    <div class="accurate-title">Top Accurate Coordinates</div>
-    <div class="accurate-coordinates">
-      <div class="accurate-coordinate-set" data-index="0">
-        <div class="accurate-info-item">
-          <div class="accurate-info-label">LATITUDE 1</div>
-          <div class="accurate-info-value" id="accurateLatValue1">0</div>
-        </div>
-        <div class="accurate-info-item">
-          <div class="accurate-info-label">LONGITUDE 1</div>
-          <div class="accurate-info-value" id="accurateLngValue1">0</div>
-        </div>
-      </div>
-      <div class="accurate-coordinate-set" data-index="1">
-        <div class="accurate-info-item">
-          <div class="accurate-info-label">LATITUDE 2</div>
-          <div class="accurate-info-value" id="accurateLatValue2">0</div>
-        </div>
-        <div class="accurate-info-item">
-          <div class="accurate-info-label">LONGITUDE 2</div>
-          <div class="accurate-info-value" id="accurateLngValue2">0</div>
-        </div>
-      </div>
-      <div class="accurate-coordinate-set" data-index="2">
-        <div class="accurate-info-item">
-          <div class="accurate-info-label">LATITUDE 3</div>
-          <div class="accurate-info-value" id="accurateLatValue3">0</div>
-        </div>
-        <div class="accurate-info-item">
-          <div class="accurate-info-label">LONGITUDE 3</div>
-          <div class="accurate-info-value" id="accurateLngValue3">0</div>
-        </div>
-      </div>
-    </div>
-    <button class="accurate-back-button" id="accurateBackButton">Back to Map</button>
+  <input type="file" id="file-input" accept="image/*" />
+  <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
   </div>
+
   <script>
-    mapboxgl.accessToken = "pk.eyJ1IjoiYXZpb3BvcnRvbGFubyIsImEiOiJja212cmRrd2QwN3dzMnZuMXV2d25xbWsxIn0.x3y36v9arY9wmBOCZlCXUA";
+    const MAPBOX_TOKEN = "pk.eyJ1IjoiYXZpb3BvcnRvbGFubyIsImEiOiJja212cmRrd2QwN3dzMnZuMXV2d25xbWsxIn0.x3y36v9arY9wmBOCZlCXUA";
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    const GEMINI_API_KEY = "AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI"; // Replace with your actual Gemini API key
+
     const map = new mapboxgl.Map({
       container: "map",
-      style: "mapbox://styles/mapbox/streets-v11",
-      center: [-81.7800, 24.5551],
-      zoom: 1,
-    });
-    let markersArray = [];
-    let currentImage = null;
-    let selectedMarker = null;
-    let lastMatchedCoord = null;
-    let topAccurateCoords = [
-      { lat: 0, lng: 0 },
-      { lat: 0, lng: 0 },
-      { lat: 0, lng: 0 }
-    ];
-    const fileInput = document.getElementById("fileInput");
-    const infoPanel = document.getElementById("infoPanel");
-    const mapsButton = document.getElementById("mapsButton");
-    const streetViewButton = document.getElementById("streetViewButton");
-    const previewImage = document.getElementById("previewImage");
-    const loadingIndicator = document.getElementById("loadingIndicator");
-    const streetviewContainer = document.getElementById("streetviewContainer");
-    const streetviewIframe = document.getElementById("streetviewIframe");
-    const themeButton = document.getElementById("themeButton");
-    const accurateButton = document.getElementById("accurateButton");
-    const accuratePanel = document.getElementById("accuratePanel");
-    const accurateBackButton = document.getElementById("accurateBackButton");
-    const accurateCloseButton = document.getElementById("accurateCloseButton");
-    const accurateLatValue1 = document.getElementById("accurateLatValue1");
-    const accurateLngValue1 = document.getElementById("accurateLngValue1");
-    const accurateLatValue2 = document.getElementById("accurateLatValue2");
-    const accurateLngValue2 = document.getElementById("accurateLngValue2");
-    const accurateLatValue3 = document.getElementById("accurateLatValue3");
-    const accurateLngValue3 = document.getElementById("accurateLngValue3");
-
-    // Theme toggle functionality
-    let isDarkTheme = false;
-    themeButton.addEventListener("click", () => {
-      isDarkTheme = !isDarkTheme;
-      document.body.classList.toggle("dark");
-      themeButton.innerHTML = `<i class="bi ${isDarkTheme ? 'bi-sun' : 'bi-moon'}"></i>`;
-      map.setStyle(`mapbox://styles/mapbox/${isDarkTheme ? 'dark-v10' : 'streets-v11'}`);
-      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+      style: "mapbox://styles/mapbox/dark-v11",
+      center: [0, 0],
+      zoom: 2,
+      pitch: 0,
     });
 
-    // Load saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      isDarkTheme = true;
-      document.body.classList.add("dark");
-      themeButton.innerHTML = `<i class="bi bi-sun"></i>`;
-      map.setStyle("mapbox://styles/mapbox/dark-v10");
-    }
+    let trackingMarker = null;
+    let lastMatchedCoord = { lat: 0, lng: 0 };
 
-    // Function to save data to localStorage
-    function saveLocationData(imageUrl, lng, lat, explanation) {
-      const locationData = {
-        imageUrl: imageUrl,
-        longitude: lng,
-        latitude: lat,
-        explanation: explanation
-      };
-      localStorage.setItem('locationData', JSON.stringify(locationData));
-    }
+    const fileInput = document.getElementById("file-input");
+    const previewImg = document.getElementById("preview-img");
+    const uploadOverlay = document.getElementById("upload-overlay");
+    const loadingOverlay = document.getElementById("loading-overlay");
 
-    // Function to load data from localStorage
-    function loadLocationData() {
-      const savedData = localStorage.getItem('locationData');
-      return savedData ? JSON.parse(savedData) : null;
-    }
-
-    function compressImage(imageUrl, callback) {
-      const img = new Image();
-      img.onload = function() {
-        const maxWidth = 800;
-        const maxHeight = 600;
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = height * (maxWidth / width);
-          width = maxWidth;
-        }
-        if (height > maxHeight) {
-          width = width * (maxHeight / height);
-          height = maxHeight;
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.6);
-        callback(compressedDataUrl);
-      };
-      img.src = imageUrl;
-    }
-
-    function updateLocationInfo(lng, lat, imageUrl) {
-      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`)
-        .then((res) => res.json())
-        .then((data) => {
-          const cityFeature = data.features.find((f) => f.place_type.includes("place"));
-          const countryFeature = data.features.find((f) => f.place_type.includes("country"));
-          const city = cityFeature ? cityFeature.text : "(Unknown)";
-          const country = countryFeature ? countryFeature.text : "(Unknown)";
-          let explanation = "";
-          if (data.features.length > 0) {
-            const feature = data.features[0];
-            explanation = feature.place_name || "Location details not available.";
-          } else {
-            explanation = "No specific location details available.";
-          }
-          document.getElementById("countryValue").textContent = country.toUpperCase();
-          document.getElementById("cityValue").textContent = city.toUpperCase();
-          document.getElementById("latValue").textContent = lat.toFixed(4);
-          document.getElementById("lngValue").textContent = lng.toFixed(4);
-          document.getElementById("explanationValue").textContent = explanation;
-          if (imageUrl) {
-            previewImage.src = imageUrl;
-          }
-        })
-        .catch((err) => {
-          console.error("Geocoding error:", err);
-          document.getElementById("explanationValue").textContent = "Error retrieving location details.";
-        });
-    }
-
-    function updateAccuratePanel(coords) {
-      accurateLatValue1.textContent = coords[0].lat.toFixed(4);
-      accurateLngValue1.textContent = coords[0].lng.toFixed(4);
-      accurateLatValue2.textContent = coords[1].lat.toFixed(4);
-      accurateLngValue2.textContent = coords[1].lng.toFixed(4);
-      accurateLatValue3.textContent = coords[2].lat.toFixed(4);
-      accurateLngValue3.textContent = coords[2].lng.toFixed(4);
-    }
-
-    accurateButton.addEventListener("click", () => {
-      if (lastMatchedCoord) {
-        topAccurateCoords = [
-          { lat: lastMatchedCoord.lat, lng: lastMatchedCoord.lng },
-          { lat: lastMatchedCoord.lat + 0.001, lng: lastMatchedCoord.lng + 0.001 },
-          { lat: lastMatchedCoord.lat - 0.001, lng: lastMatchedCoord.lng - 0.001 }
-        ];
-        updateAccuratePanel(topAccurateCoords);
-        accuratePanel.classList.add("show");
-        map.getContainer().style.display = 'none';
-        document.querySelector('.top-bar').style.display = 'none';
-        infoPanel.classList.remove("show");
-      } else {
-        alert("No location data available for Top Accurate view.");
-      }
-    });
-
-    accurateBackButton.addEventListener("click", () => {
-      accuratePanel.classList.remove("show");
-      map.getContainer().style.display = 'block';
-      document.querySelector('.top-bar').style.display = 'flex';
-      if (lastMatchedCoord) {
-        map.flyTo({ center: [lastMatchedCoord.lng, lastMatchedCoord.lat], zoom: 14 });
-      }
-    });
-
-    accurateCloseButton.addEventListener("click", () => {
-      accuratePanel.classList.remove("show");
-      map.getContainer().style.display = 'block';
-      document.querySelector('.top-bar').style.display = 'flex';
-      if (lastMatchedCoord) {
-        map.flyTo({ center: [lastMatchedCoord.lng, lastMatchedCoord.lat], zoom: 14 });
-      }
-    });
-
-    document.querySelectorAll('.accurate-coordinate-set').forEach((set, index) => {
-      set.addEventListener('click', () => {
-        const coords = topAccurateCoords[index];
-        if (coords) {
-          accuratePanel.classList.remove("show");
-          map.getContainer().style.display = 'block';
-          document.querySelector('.top-bar').style.display = 'flex';
-          map.flyTo({ center: [coords.lng, coords.lat], zoom: 14 });
-          lastMatchedCoord = coords;
-          updateLocationInfo(coords.lng, coords.lat, currentImage);
-          infoPanel.classList.add("show");
-          const markerPosition = map.project([coords.lng, coords.lat]);
-          infoPanel.style.position = 'absolute';
-          infoPanel.style.left = `${markerPosition.x + 20}px`;
-          infoPanel.style.top = `${markerPosition.y}px`;
-        }
+    function imageToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-    });
+    }
 
-    fileInput.addEventListener("change", async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-      loadingIndicator.classList.add('show');
+    async function analyzePhotoWithGemini(photoBlob) {
       try {
-        const formData = new FormData();
-        formData.append('photo', file);
-        const response = await fetch('/predict', {
-          method: 'POST',
-          body: formData
-        });
-        let latitude, longitude;
+        const base64Image = await imageToBase64(photoBlob);
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: "Analyze this image and provide the location details, including latitude, longitude, city, country, and a detailed description of the location. Return the response in JSON format with fields: latitude, longitude, city, country, description."
+                    },
+                    {
+                      inlineData: {
+                        mimeType: photoBlob.type,
+                        data: base64Image,
+                      },
+                    },
+                  ],
+                },
+              ],
+            }),
+          }
+        );
+
         if (!response.ok) {
-          console.warn(`HTTP error! Status: ${response.status}, using example coordinates.`);
-          latitude = 40.7128;
-          longitude = -74.0060;
-        } else {
-          const result = await response.json();
-          if (result.error) {
-            console.warn(`Prediction error: ${result.error}, using example coordinates.`);
-            latitude = 40.7128;
-            longitude = -74.0060;
-          } else {
-            latitude = result.latitude;
-            longitude = result.longitude;
-          }
+          throw new Error(`Gemini API error: ${response.statusText}`);
         }
-        lastMatchedCoord = { lat: latitude, lng: longitude };
-        loadingIndicator.classList.remove('show');
-        compressImage(URL.createObjectURL(file), function(compressedDataUrl) {
-          currentImage = compressedDataUrl;
-          localStorage.removeItem('locationData');
-          saveLocationData(currentImage, longitude, latitude, "");
-          if (selectedMarker) {
-            selectedMarker.remove();
-            markersArray = markersArray.filter(marker => marker !== selectedMarker);
-            selectedMarker = null;
-          }
-          map.flyTo({ center: [longitude, latitude], zoom: 14 });
-          const markerElement = document.createElement("div");
-          markerElement.className = "location-marker";
-          const markerImg = document.createElement("img");
-          markerImg.src = currentImage;
-          markerElement.appendChild(markerImg);
-          selectedMarker = new mapboxgl.Marker({
-            element: markerElement,
-            draggable: false,
-          })
-            .setLngLat([longitude, latitude])
-            .addTo(map);
-          markersArray.push(selectedMarker);
-          const markerPosition = map.project([longitude, latitude]);
-          infoPanel.style.position = 'absolute';
-          infoPanel.style.left = `${markerPosition.x + 20}px`;
-          infoPanel.style.top = `${markerPosition.y}px`;
-          infoPanel.classList.add("show");
-          markerElement.addEventListener("click", (ev) => {
-            ev.stopPropagation();
-            const savedData = loadLocationData();
-            if (savedData) {
-              updateLocationInfo(savedData.longitude, savedData.latitude, savedData.imageUrl);
-            }
-            infoPanel.classList.add("show");
-          });
-          updateLocationInfo(longitude, latitude, currentImage);
-          currentImage = null;
-        });
+
+        const data = await response.json();
+        let resultText = data.candidates[0].content.parts[0].text;
+
+        // Clean Markdown code blocks
+        resultText = resultText.replace(/```json\n|\n```/g, '').trim();
+
+        // Parse the cleaned JSON
+        let locationData;
+        try {
+          locationData = JSON.parse(resultText);
+        } catch (parseError) {
+          console.error("Failed to parse Gemini response as JSON:", parseError);
+          throw new Error("Invalid JSON response from Gemini API");
+        }
+
+        // Validate required fields
+        if (!locationData.latitude || !locationData.longitude) {
+          throw new Error("Missing latitude or longitude in Gemini response");
+        }
+
+        return {
+          lat: parseFloat(locationData.latitude) || 0,
+          lng: parseFloat(locationData.longitude) || 0,
+          city: locationData.city || "unknown",
+          country: locationData.country || "unknown",
+          description: locationData.description || "unknown",
+        };
       } catch (error) {
-        loadingIndicator.classList.remove('show');
-        console.error('Error:', error);
-        const latitude = 40.7128;
-        const longitude = -74.0060;
-        lastMatchedCoord = { lat: latitude, lng: longitude };
-        compressImage(URL.createObjectURL(file), function(compressedDataUrl) {
-          currentImage = compressedDataUrl;
-          localStorage.removeItem('locationData');
-          saveLocationData(currentImage, longitude, latitude, "");
-          if (selectedMarker) {
-            selectedMarker.remove();
-            markersArray = markersArray.filter(marker => marker !== selectedMarker);
-            selectedMarker = null;
-          }
-          map.flyTo({ center: [longitude, latitude], zoom: 14 });
-          const markerElement = document.createElement("div");
-          markerElement.className = "location-marker";
-          const markerImg = document.createElement("img");
-          markerImg.src = currentImage;
-          markerElement.appendChild(markerImg);
-          selectedMarker = new mapboxgl.Marker({
-            element: markerElement,
-            draggable: false,
-          })
-            .setLngLat([longitude, latitude])
-            .addTo(map);
-          markersArray.push(selectedMarker);
-          const markerPosition = map.project([longitude, latitude]);
-          infoPanel.style.position = 'absolute';
-          infoPanel.style.left = `${markerPosition.x + 20}px`;
-          infoPanel.style.top = `${markerPosition.y}px`;
-          infoPanel.classList.add("show");
-          markerElement.addEventListener("click", (ev) => {
-            ev.stopPropagation();
-            const savedData = loadLocationData();
-            if (savedData) {
-              updateLocationInfo(savedData.longitude, savedData.latitude, savedData.imageUrl);
-            }
-            infoPanel.classList.add("show");
+        console.error("Error analyzing photo with Gemini:", error);
+        alert("Failed to analyze image with Gemini API. Using default location.");
+        return {
+          lat: 0,
+          lng: 0,
+          city: "unknown",
+          country: "unknown",
+          description: "unknown",
+        };
+      }
+    }
+
+    async function reverseGeocode(lat, lng) {
+      try {
+        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`;
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        let detail = "unknown", country = "unknown", city = "unknown";
+        if (data.features && data.features.length > 0) {
+          detail = data.features[0].place_name || "unknown";
+          data.features.forEach(f => {
+            if (f.place_type.includes("country")) country = f.text;
+            if (f.place_type.includes("place")) city = f.text;
           });
-          updateLocationInfo(longitude, latitude, currentImage);
-          currentImage = null;
+        }
+        return { detail, country, city };
+      } catch (error) {
+        console.error("Error in reverse geocoding:", error);
+        return { detail: "unknown", country: "unknown", city: "unknown" };
+      }
+    }
+
+    document.getElementById("image-preview").addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      loadingOverlay.style.display = "flex";
+
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const imageData = evt.target.result;
+        previewImg.src = imageData;
+        previewImg.style.display = "block";
+        uploadOverlay.classList.add("hidden");
+
+        const locationData = await analyzePhotoWithGemini(file);
+        lastMatchedCoord = { lat: locationData.lat, lng: locationData.lng };
+
+        let info = {
+          detail: locationData.description,
+          country: locationData.country,
+          city: locationData.city,
+        };
+
+        if (info.detail === "unknown" || info.country === "unknown" || info.city === "unknown") {
+          const geocodedInfo = await reverseGeocode(locationData.lat, locationData.lng);
+          info = {
+            detail: info.detail !== "unknown" ? info.detail : geocodedInfo.detail,
+            country: info.country !== "unknown" ? info.country : geocodedInfo.country,
+            city: info.city !== "unknown" ? info.city : geocodedInfo.city,
+          };
+        }
+
+        document.getElementById("detail-value").textContent = info.detail;
+        document.getElementById("country-value").textContent = info.country;
+        document.getElementById("city-value").textContent = info.city;
+        document.getElementById("coord-value").textContent =
+          locationData.lat.toFixed(5) + ", " + locationData.lng.toFixed(5);
+
+        if (trackingMarker) trackingMarker.remove();
+        const markerEl = document.createElement("img");
+        markerEl.src = imageData;
+        markerEl.style.width = "60px";
+        markerEl.style.height = "60px";
+        markerEl.style.borderRadius = "50%";
+        markerEl.style.border = "2px solid white";
+        trackingMarker = new mapboxgl.Marker(markerEl)
+          .setLngLat([locationData.lng, locationData.lat])
+          .addTo(map);
+        map.flyTo({
+          center: [locationData.lng, locationData.lat],
+          zoom: 14,
+          essential: true,
         });
-      }
+
+        loadingOverlay.style.display = "none";
+      };
+      reader.readAsDataURL(file);
     });
 
-    mapsButton.addEventListener("click", () => {
-      streetviewContainer.style.display = 'none';
-      map.getContainer().style.display = 'block';
-      infoPanel.classList.remove("show");
+    document.getElementById("map-btn").addEventListener("click", () => {
+      document.getElementById("streetview-container").style.display = "none";
+      document.getElementById("map").style.display = "block";
     });
 
-    streetViewButton.addEventListener('click', () => {
-      if (lastMatchedCoord) {
-        const lat = lastMatchedCoord.lat;
-        const lng = lastMatchedCoord.lng;
-        const streetViewUrl = `https://www.google.com/maps/embed?pb=!4v0!6m8!1m7!1sCAoSLEFGMVFpcE1pVUlONllYeHpHdXVpUjd4cjlHcWxGQVZ2cnlyT1I5NmFwTE9B!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`;
-        streetviewIframe.src = streetViewUrl;
-        streetviewContainer.style.display = 'block';
-        map.getContainer().style.display = 'none';
-        document.querySelector('.top-bar').style.display = 'flex';
-      } else {
-        alert("No location selected for Street View.");
-      }
+    document.getElementById("share-geospy").addEventListener("click", () => {
+      const lat = lastMatchedCoord.lat;
+      const lng = lastMatchedCoord.lng;
+      const streetViewUrl = `https://www.google.com/maps/embed?pb=!4v0!6m8!1m7!1sCAoSLEFGMVFpcE1pVUlONllYeXpHdXVpUjd4cjlHcWxGQVZ2cnlyT1I5NmFwTE9B!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`;
+      document.getElementById("streetview").src = streetViewUrl;
+      document.getElementById("streetview-container").style.display = "block";
+      document.getElementById("map").style.display = "none";
     });
 
-    map.on('move', () => {
-      if (selectedMarker && lastMatchedCoord) {
-        const markerPosition = map.project([lastMatchedCoord.lng, lastMatchedCoord.lat]);
-        infoPanel.style.left = `${markerPosition.x + 20}px`;
-        infoPanel.style.top = `${markerPosition.y}px`;
-        selectedMarker.setLngLat([lastMatchedCoord.lng, lastMatchedCoord.lat]);
-        selectedMarker.getElement().style.transform = 'translate(-50%, -100%)';
-        infoPanel.style.transform = 'none';
-      }
-    });
-
-    map.on("click", function(e) {
-      if (!currentImage) {
-        infoPanel.classList.remove("show");
-        document.getElementById("countryValue").textContent = "(Unknown)";
-        document.getElementById("cityValue").textContent = "(Unknown)";
-        document.getElementById("latValue").textContent = "0";
-        document.getElementById("lngValue").textContent = "0";
-        document.getElementById("explanationValue").textContent = "(Explanation will appear here)";
-        previewImage.src = "";
-      }
+    document.querySelector(".badge-link").addEventListener("click", () => {
+      alert("Enterprise link clicked!");
     });
   </script>
 </body>
