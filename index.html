@@ -339,6 +339,49 @@
       });
     }
 
+    // GEO Cell Partitioning Algorithm
+    function createGeoCells(lat, lng, confidence) {
+      const cellSize = confidence > 0.8 ? 0.01 : confidence > 0.5 ? 0.1 : 1.0; // Smaller cells for high confidence
+      const cells = [];
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          cells.push({
+            center: {
+              lat: lat + i * cellSize,
+              lng: lng + j * cellSize,
+            },
+            bounds: {
+              minLat: lat + i * cellSize - cellSize / 2,
+              maxLat: lat + i * cellSize + cellSize / 2,
+              minLng: lng + j * cellSize - cellSize / 2,
+              maxLng: lng + j * cellSize + cellSize / 2,
+            },
+          });
+        }
+      }
+      return cells;
+    }
+
+    async function refineLocationWithGeoCells(initialLat, initialLng, description, city, country) {
+      const confidence = description.includes("Low confidence") ? 0.3 : description.includes("Moderate confidence") ? 0.6 : 0.9;
+      const cells = createGeoCells(initialLat, initialLng, confidence);
+      let bestMatch = { lat: initialLat, lng: initialLng, score: 0 };
+
+      for (const cell of cells) {
+        const geocodedInfo = await reverseGeocode(cell.center.lat, cell.center.lng);
+        let score = 0;
+        if (geocodedInfo.city === city && city !== "unknown") score += 0.5;
+        if (geocodedInfo.country === country && country !== "unknown") score += 0.3;
+        if (geocodedInfo.detail !== "unknown") score += 0.2;
+
+        if (score > bestMatch.score) {
+          bestMatch = { lat: cell.center.lat, lng: cell.center.lng, score };
+        }
+      }
+
+      return bestMatch;
+    }
+
     async function analyzePhotoWithGemini(photoBlob) {
       try {
         const base64Image = await imageToBase64(photoBlob);
@@ -354,14 +397,13 @@
                 {
                   parts: [
                     {
-                      text: `Analyze this image with high precision to determine its geolocation, focusing on architectural styles, landmarks, and contextual clues. Provide the following in JSON format:
+                      text: `Analyze this image with high precision to determine its geolocation, even for photos of houses or images without distinct landmarks. Provide the following in JSON format:
                       - latitude (float, precise to 6 decimal places)
                       - longitude (float, precise to 6 decimal places)
                       - city (string, most specific possible)
                       - country (string)
-                      - in-depth analysis of angles, lighting, architecture, infrastructure, road
-                      - description (string, one-sentence summary of the location, e.g., "Near Gothic cathedral in Barcelona")
-                      Deeply analyze architectural details (e.g., Gothic, Baroque, modern, materials, ornamentation), landmarks, street signs, license plates, vegetation, and cultural elements to ensure accurate coordinates. If coordinates are uncertain, estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure all fields are filled; use "unknown" if data is unavailable.`
+                      - description (string, one-sentence summary of the location, e.g., "Residential area with colonial-style houses in Jakarta")
+                      Deeply analyze architectural details (e.g., roof types, window styles, building materials, ornamentation), environmental context (e.g., vegetation, street layout, weather, utility poles, fence designs), and subtle cultural elements (e.g., clothing, signage, vehicle types) to ensure accurate coordinates. Cross-reference with global architectural and environmental patterns. If coordinates are uncertain, estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure all fields are filled; use "unknown" if data is unavailable.`
                     },
                     {
                       inlineData: {
@@ -400,15 +442,24 @@
           throw new Error("Missing latitude or longitude in Gemini response");
         }
 
-        // Validate coordinates against reverse geocoding
-        const geocodedInfo = await reverseGeocode(locationData.latitude, locationData.longitude);
+        // Refine coordinates using GEO cell partitioning
+        const refinedCoord = await refineLocationWithGeoCells(
+          parseFloat(locationData.latitude),
+          parseFloat(locationData.longitude),
+          locationData.description,
+          locationData.city,
+          locationData.country
+        );
+
+        // Validate against reverse geocoding
+        const geocodedInfo = await reverseGeocode(refinedCoord.lat, refinedCoord.lng);
         if (geocodedInfo.city !== "unknown" && locationData.city !== geocodedInfo.city) {
-          locationData.description += " (Coordinates may be imprecise; verified city: " + geocodedInfo.city + ")";
+          locationData.description += " (Coordinates refined; verified city: " + geocodedInfo.city + ")";
         }
 
         return {
-          lat: parseFloat(locationData.latitude) || 0,
-          lng: parseFloat(locationData.longitude) || 0,
+          lat: refinedCoord.lat || 0,
+          lng: refinedCoord.lng || 0,
           city: locationData.city || "unknown",
           country: locationData.country || "unknown",
           description: locationData.description || "unknown",
