@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024 } }); // Batas 10MB
 
 // Middleware untuk parsing JSON dan CORS
 app.use(express.json());
@@ -29,12 +29,12 @@ if (fs.existsSync(assetsPath)) {
   fs.mkdirSync(assetsPath, { recursive: true });
 }
 
-// Sajikan index.html untuk rute root
-app.get(['/', '/index.html'], (req, res) => {
+// Sajikan index.html untuk rute root dengan fallback
+app.get(['/', '/index.html'], async (req, res) => {
   const indexPath = path.join(__dirname, 'index.html');
   if (!fs.existsSync(indexPath)) {
     console.error('Error: index.html tidak ditemukan di', indexPath);
-    return res.status(404).json({ error: 'index.html tidak ditemukan' });
+    return res.status(404).send('Error: index.html tidak ditemukan. Pastikan file ada di direktori proyek.');
   }
   res.sendFile(indexPath);
 });
@@ -46,49 +46,64 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('Direktori uploads dibuat di', uploadsDir);
 }
 
-// Load model GeoClip saat server mulai
-let vision_model, location_model, processor;
-async function loadModels() {
-  const model_id = 'Xenova/geoclip-large-patch14';
-  const cacheDir = process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, 'cache');
-  console.log('Memuat vision model...');
-  vision_model = await AutoModel.from_pretrained(model_id, { model_file_name: 'vision_model', cache_dir: cacheDir });
-  console.log('Vision model dimuat.');
-  console.log('Memuat location model...');
-  location_model = await AutoModel.from_pretrained(model_id, { model_file_name: 'location_model', quantized: false, cache_dir: cacheDir });
-  console.log('Location model dimuat.');
-  console.log('Memuat processor...');
-  processor = await AutoProcessor.from_pretrained(model_id, { cache_dir: cacheDir });
-  console.log('Processor dimuat.');
-}
+// Status inisialisasi
+let isInitialized = false;
 
-// Load koordinat GPS dari file lokal
-let gps_data;
-async function loadGPSData() {
-  const gpsDataPath = path.join(__dirname, 'coordinates_100K.json');
-  console.log('Memuat koordinat GPS dari', gpsDataPath);
-  try {
-    gps_data = JSON.parse(fs.readFileSync(gpsDataPath)).slice(0, 10000); // Gunakan 10K untuk performa
-    console.log(`Berhasil memuat ${gps_data.length} koordinat GPS.`);
-  } catch (error) {
-    console.error('Gagal memuat koordinat GPS:', error.message);
-    throw new Error('Gagal memuat koordinat GPS');
-  }
-}
-
-// Inisialisasi model dan GPS data
+// Load model GeoClip dan koordinat GPS
+let vision_model, location_model, processor, gps_data;
 async function initialize() {
   try {
-    await Promise.all([loadModels(), loadGPSData()]);
+    const model_id = 'Xenova/geoclip-large-patch14';
+    const cacheDir = process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, 'cache');
+
+    console.log('Memulai inisialisasi model dan data...');
+    const [vision, location, proc] = await Promise.all([
+      AutoModel.from_pretrained(model_id, { model_file_name: 'vision_model', cache_dir }),
+      AutoModel.from_pretrained(model_id, { model_file_name: 'location_model', quantized: false, cache_dir }),
+      AutoProcessor.from_pretrained(model_id, { cache_dir }),
+    ]);
+    vision_model = vision;
+    location_model = location;
+    processor = proc;
+
+    console.log('Memuat koordinat GPS...');
+    const gpsDataPath = path.join(__dirname, 'coordinates_100K.json');
+    if (!fs.existsSync(gpsDataPath)) {
+      throw new Error('coordinates_100K.json tidak ditemukan');
+    }
+    gps_data = JSON.parse(fs.readFileSync(gpsDataPath)).slice(0, 10000); // 10K untuk performa
+    console.log(`Berhasil memuat ${gps_data.length} koordinat GPS.`);
+
+    isInitialized = true;
+    console.log('Inisialisasi selesai.');
   } catch (error) {
     console.error('Gagal menginisialisasi server:', error.message);
-    process.exit(1); // Hentikan server jika inisialisasi gagal
+    isInitialized = false;
+    throw error; // Akan dihandle oleh server startup
   }
 }
-initialize();
 
-// Endpoint untuk memprediksi lokasi dari gambar
+// Jalankan inisialisasi saat startup
+const startServer = async () => {
+  try {
+    await initialize();
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server berjalan di http://0.0.0.0:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Server gagal start karena:', error.message);
+    process.exit(1); // Hentikan jika inisialisasi gagal
+  }
+};
+startServer();
+
+// Endpoint untuk memprediksi lokasi
 app.post('/predict', upload.single('photo'), async (req, res) => {
+  if (!isInitialized) {
+    return res.status(503).json({ error: 'Server belum siap. Tunggu inisialisasi selesai.' });
+  }
+
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'Tidak ada file yang diunggah' });
@@ -96,17 +111,21 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
 
     const imagePath = path.join(__dirname, req.file.path);
     if (!fs.existsSync(imagePath)) {
-      return res.status(500).json({ error: 'File gambar tidak ditemukan' });
+      return res.status(500).json({ error: 'File gambar tidak ditemukan di server' });
     }
 
     const image = await RawImage.read(imagePath);
+    if (!image) {
+      return res.status(400).json({ error: 'Gambar tidak dapat diproses' });
+    }
 
-    // Proses gambar
     const vision_inputs = await processor(image);
     const { image_embeds } = await vision_model(vision_inputs);
+    if (!image_embeds || !image_embeds.data) {
+      return res.status(500).json({ error: 'Gagal menghasilkan embedding gambar' });
+    }
     const norm_image_embeds = image_embeds.normalize().data;
 
-    // Batch processing koordinat
     const coordinate_batch_size = 1000;
     const exp_logit_scale = Math.exp(4.5);
     const scores = [];
@@ -124,7 +143,6 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
       }
     }
 
-    // Ambil top 10 prediksi
     const top_k = 10;
     const results = softmax(scores)
       .map((x, i) => [x, i])
@@ -132,7 +150,6 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
       .slice(0, top_k)
       .map(([score, index]) => ({ index, gps: gps_data[index], score }));
 
-    // Hitung rata-rata tertimbang
     let weighted_lat = 0, weighted_lng = 0, total_weight = 0;
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
@@ -153,7 +170,6 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
       })),
     };
 
-    // Hapus file sementara
     try {
       fs.unlinkSync(imagePath);
     } catch (unlinkError) {
@@ -162,7 +178,7 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
 
     res.json(final_result);
   } catch (error) {
-    console.error('Error memproses gambar:', error.message);
+    console.error('Error memproses prediksi:', error.message);
     if (req.file && req.file.path) {
       try {
         fs.unlinkSync(path.join(__dirname, req.file.path));
@@ -170,17 +186,11 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
         console.warn('Peringatan: Gagal menghapus file sementara setelah error:', unlinkError.message);
       }
     }
-    res.status(500).json({ error: 'Gagal memproses gambar' });
+    res.status(500).json({ error: 'Gagal memproses gambar: ' + error.message });
   }
 });
 
 // Tangani rute yang tidak ditemukan
 app.use((req, res) => {
-  res.status(404).json({ error: 'Rute tidak ditemukan, akses / untuk UI' });
-});
-
-// Jalankan server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server berjalan di http://0.0.0.0:${PORT}`);
+  res.status(404).json({ error: 'Rute tidak ditemukan. Coba / untuk UI atau /predict untuk prediksi.' });
 });
