@@ -339,27 +339,55 @@
       });
     }
 
-    // GEO Cell Partitioning Algorithm
-    function createGeoCells(lat, lng, confidence) {
-      const cellSize = confidence > 0.8 ? 0.01 : confidence > 0.5 ? 0.1 : 1.0; // Smaller cells for high confidence
+    // Advanced GEO Cell Partitioning Algorithm
+    function createGeoCells(lat, lng, confidence, depth = 0, maxDepth = 3) {
+      const baseCellSize = confidence > 0.9 ? 0.005 : confidence > 0.6 ? 0.05 : 0.5; // Dynamic cell size
+      const cellSize = baseCellSize / Math.pow(2, depth); // Shrink cells with depth
       const cells = [];
+
       for (let i = -1; i <= 1; i++) {
         for (let j = -1; j <= 1; j++) {
+          const cellLat = lat + i * cellSize;
+          const cellLng = lng + j * cellSize;
           cells.push({
-            center: {
-              lat: lat + i * cellSize,
-              lng: lng + j * cellSize,
-            },
+            center: { lat: cellLat, lng: cellLng },
             bounds: {
-              minLat: lat + i * cellSize - cellSize / 2,
-              maxLat: lat + i * cellSize + cellSize / 2,
-              minLng: lng + j * cellSize - cellSize / 2,
-              maxLng: lng + j * cellSize + cellSize / 2,
+              minLat: cellLat - cellSize / 2,
+              maxLat: cellLat + cellSize / 2,
+              minLng: cellLng - cellSize / 2,
+              maxLng: cellLng + cellSize / 2,
             },
+            depth: depth,
           });
         }
       }
+
+      if (depth < maxDepth && confidence < 0.9) {
+        // Recursively refine low-confidence cells
+        const subCells = [];
+        for (const cell of cells) {
+          subCells.push(...createGeoCells(cell.center.lat, cell.center.lng, confidence, depth + 1, maxDepth));
+        }
+        return subCells;
+      }
+
       return cells;
+    }
+
+    async function findNearestStreet(lat, lng) {
+      try {
+        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=address&access_token=${MAPBOX_TOKEN}`;
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        if (data.features && data.features.length > 0) {
+          const streetCoord = data.features[0].geometry.coordinates;
+          return { lat: streetCoord[1], lng: streetCoord[0] };
+        }
+        return { lat, lng }; // Fallback to original if no street found
+      } catch (error) {
+        console.error("Error finding nearest street:", error);
+        return { lat, lng };
+      }
     }
 
     async function refineLocationWithGeoCells(initialLat, initialLng, description, city, country) {
@@ -368,14 +396,16 @@
       let bestMatch = { lat: initialLat, lng: initialLng, score: 0 };
 
       for (const cell of cells) {
-        const geocodedInfo = await reverseGeocode(cell.center.lat, cell.center.lng);
+        const streetCoord = await findNearestStreet(cell.center.lat, cell.center.lng);
+        const geocodedInfo = await reverseGeocode(streetCoord.lat, streetCoord.lng);
         let score = 0;
-        if (geocodedInfo.city === city && city !== "unknown") score += 0.5;
+        if (geocodedInfo.city === city && city !== "unknown") score += 0.4;
         if (geocodedInfo.country === country && country !== "unknown") score += 0.3;
-        if (geocodedInfo.detail !== "unknown") score += 0.2;
+        if (geocodedInfo.detail.includes("street") || geocodedInfo.detail.includes("road")) score += 0.2;
+        score += (1 - cell.depth / 3) * 0.1; // Prefer shallower cells
 
         if (score > bestMatch.score) {
-          bestMatch = { lat: cell.center.lat, lng: cell.center.lng, score };
+          bestMatch = { lat: streetCoord.lat, lng: streetCoord.lng, score };
         }
       }
 
@@ -397,13 +427,13 @@
                 {
                   parts: [
                     {
-                      text: `Analyze this image with high precision to determine its geolocation, even for photos of houses or images without distinct landmarks. Provide the following in JSON format:
+                      text: `Analyze this image with extreme precision to determine its geolocation, ensuring coordinates are on a public street (not inside houses or private properties). Provide the following in JSON format:
                       - latitude (float, precise to 6 decimal places)
                       - longitude (float, precise to 6 decimal places)
                       - city (string, most specific possible)
                       - country (string)
-                      - description (string, one-sentence summary of the location, e.g., "Residential area with colonial-style houses in Jakarta")
-                      Deeply analyze architectural details (e.g., roof types, window styles, building materials, ornamentation), environmental context (e.g., vegetation, street layout, weather, utility poles, fence designs), and subtle cultural elements (e.g., clothing, signage, vehicle types) to ensure accurate coordinates. Cross-reference with global architectural and environmental patterns. If coordinates are uncertain, estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure all fields are filled; use "unknown" if data is unavailable.`
+                      - description (string, one-sentence summary of the location, e.g., "On a street near colonial-style houses in Bandung")
+                      Deeply analyze architectural details (e.g., roof pitch, window styles, cladding materials, ornamentation), environmental context (e.g., tree species, street patterns, weather, utility poles, mailbox styles), and cultural indicators (e.g., road markings, vehicle types, signage). Cross-reference with global architectural and environmental patterns to accurately geolocate even generic house photos or scenes without landmarks. If coordinates are uncertain, estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure coordinates are on a public street suitable for Street View. Ensure all fields are filled; use "unknown" if data is unavailable.`
                     },
                     {
                       inlineData: {
@@ -451,15 +481,16 @@
           locationData.country
         );
 
-        // Validate against reverse geocoding
-        const geocodedInfo = await reverseGeocode(refinedCoord.lat, refinedCoord.lng);
+        // Ensure coordinates are on a street
+        const streetCoord = await findNearestStreet(refinedCoord.lat, refinedCoord.lng);
+        const geocodedInfo = await reverseGeocode(streetCoord.lat, streetCoord.lng);
         if (geocodedInfo.city !== "unknown" && locationData.city !== geocodedInfo.city) {
-          locationData.description += " (Coordinates refined; verified city: " + geocodedInfo.city + ")";
+          locationData.description += " (Coordinates refined to street; verified city: " + geocodedInfo.city + ")";
         }
 
         return {
-          lat: refinedCoord.lat || 0,
-          lng: refinedCoord.lng || 0,
+          lat: streetCoord.lat || 0,
+          lng: streetCoord.lng || 0,
           city: locationData.city || "unknown",
           country: locationData.country || "unknown",
           description: locationData.description || "unknown",
@@ -513,24 +544,41 @@
         previewImg.style.display = "block";
         uploadOverlay.classList.add("hidden");
 
-        // Check EXIF for GPS data
-        let exifLat = 0, exifLng = 0;
+        // Enhanced EXIF and Metadata Extraction
+        let exifData = { lat: 0, lng: 0, timestamp: null, device: null, altitude: null };
         EXIF.getData(file, async function() {
-          const gpsLat = EXIF.getTag(this, "GPSLatitude");
-          const gpsLng = EXIF.getTag(this, "GPSLongitude");
-          const latRef = EXIF.getTag(this, "GPSLatitudeRef") || "N";
-          const lngRef = EXIF.getTag(this, "GPSLongitudeRef") || "E";
+          try {
+            const gpsLat = EXIF.getTag(this, "GPSLatitude");
+            const gpsLng = EXIF.getTag(this, "GPSLongitude");
+            const latRef = EXIF.getTag(this, "GPSLatitudeRef") || "N";
+            const lngRef = EXIF.getTag(this, "GPSLongitudeRef") || "E";
+            exifData.timestamp = EXIF.getTag(this, "DateTimeOriginal") || null;
+            exifData.device = EXIF.getTag(this, "Model") || null;
+            exifData.altitude = EXIF.getTag(this, "GPSAltitude") || null;
 
-          if (gpsLat && gpsLng) {
-            const lat = gpsLat[0] + gpsLat[1]/60 + gpsLat[2]/3600;
-            const lng = gpsLng[0] + gpsLng[1]/60 + gpsLng[2]/3600;
-            exifLat = latRef === "N" ? lat : -lat;
-            exifLng = lngRef === "E" ? lng : -lng;
+            if (gpsLat && gpsLng) {
+              const lat = gpsLat[0] + gpsLat[1]/60 + gpsLat[2]/3600;
+              const lng = gpsLng[0] + gpsLng[1]/60 + gpsLng[2]/3600;
+              exifData.lat = latRef === "N" ? lat : -lat;
+              exifData.lng = lngRef === "E" ? lng : -lng;
+            }
+          } catch (exifError) {
+            console.error("Error parsing EXIF data:", exifError);
+          }
+
+          // Fallback metadata analysis
+          if (!exifData.lat && !exifData.lng) {
+            try {
+              const fileCreationDate = file.lastModifiedDate || new Date();
+              exifData.timestamp = exifData.timestamp || fileCreationDate.toISOString();
+            } catch (metaError) {
+              console.error("Error extracting file metadata:", metaError);
+            }
           }
 
           // Analyze with Gemini if no EXIF GPS
-          const locationData = exifLat && exifLng ? 
-            { lat: exifLat, lng: exifLng, city: "unknown", country: "unknown", description: "From EXIF data" } : 
+          const locationData = exifData.lat && exifData.lng ? 
+            { lat: exifData.lat, lng: exifData.lng, city: "unknown", country: "unknown", description: "From EXIF data" } : 
             await analyzePhotoWithGemini(file);
           lastMatchedCoord = { lat: locationData.lat, lng: locationData.lng };
 
