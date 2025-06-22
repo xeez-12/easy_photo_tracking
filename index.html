@@ -311,8 +311,8 @@
 
   <script>
     const MAPBOX_TOKEN = "pk.eyJ1IjoiYXZpb3BvcnRvbGFubyIsImEiOiJja212cmRrd2QwN3dzMnZuMXV2d25xbWsxIn0.x3y36v9arY9wmBOCZlCXUA";
-    const GEMINI_API_KEY = "AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI"; // Replace with your actual Gemini API key
     mapboxgl.accessToken = MAPBOX_TOKEN;
+    const GEMINI_API_KEY = "AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI"; // Replace with your actual Gemini API key
 
     const map = new mapboxgl.Map({
       container: "map",
@@ -339,91 +339,11 @@
       });
     }
 
-    // Advanced GEO Cell Partitioning Algorithm
-    function createGeoCells(lat, lng, confidence) {
-      const baseCellSize = confidence > 0.9 ? 0.002 : confidence > 0.6 ? 0.01 : 0.05; // Tighter cells
-      const maxRadius = 0.1; // Limit exploration to 0.1° (~11 km)
-      const cells = [];
-      const steps = 5; // 5x5 grid for finer granularity
-
-      for (let i = -2; i <= 2; i++) {
-        for (let j = -2; j <= 2; j++) {
-          const cellLat = lat + i * baseCellSize;
-          const cellLng = lng + j * baseCellSize;
-          // Skip cells outside max radius
-          if (Math.hypot(cellLat - lat, cellLng - lng) <= maxRadius) {
-            cells.push({
-              center: { lat: cellLat, lng: cellLng },
-              bounds: {
-                minLat: cellLat - baseCellSize / 2,
-                maxLat: cellLat + baseCellSize / 2,
-                minLng: cellLng - baseCellSize / 2,
-                maxLng: cellLng + baseCellSize / 2,
-              },
-            });
-          }
-        }
-      }
-      return cells;
-    }
-
-    async function findNearestStreet(lat, lng) {
-      try {
-        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=address&access_token=${MAPBOX_TOKEN}`;
-        const res = await fetch(endpoint);
-        const data = await res.json();
-        if (data.features && data.features.length > 0) {
-          const streetCoord = data.features[0].geometry.coordinates;
-          return { lat: streetCoord[1], lng: streetCoord[0], isStreet: true };
-        }
-        return { lat, lng, isStreet: false };
-      } catch (error) {
-        console.error("Error finding nearest street:", error);
-        return { lat, lng, isStreet: false };
-      }
-    }
-
-    async function refineLocationWithGeoCells(initialLat, initialLng, exifLat, exifLng, description, city, country) {
-      const confidence = description.includes("Low confidence") ? 0.3 : description.includes("Moderate confidence") ? 0.6 : 0.9;
-      let bestMatch = { lat: initialLat, lng: initialLng, score: 0, isStreet: false };
-
-      // Prioritize EXIF coordinates if available and valid
-      if (exifLat && exifLng && Math.hypot(exifLat - initialLat, exifLng - initialLng) < 0.1) {
-        const streetCoord = await findNearestStreet(exifLat, exifLng);
-        if (streetCoord.isStreet) {
-          bestMatch = { lat: streetCoord.lat, lng: streetCoord.lng, score: 1.0, isStreet: true };
-        }
-      }
-
-      // Only proceed with GEO cells if no valid EXIF street coordinates
-      if (!bestMatch.isStreet) {
-        const cells = createGeoCells(initialLat, initialLng, confidence);
-        for (const cell of cells) {
-          const streetCoord = await findNearestStreet(cell.center.lat, cell.center.lng);
-          const geocodedInfo = await reverseGeocode(streetCoord.lat, streetCoord.lng);
-          let score = 0;
-          if (geocodedInfo.city === city && city !== "unknown") score += 0.5;
-          if (geocodedInfo.country === country && country !== "unknown") score += 0.3;
-          if (streetCoord.isStreet) score += 0.2;
-
-          // Penalize large deviations
-          const distance = Math.hypot(cell.center.lat - initialLat, cell.center.lng - initialLng);
-          score -= distance * 0.1; // Reduce score for farther cells
-
-          if (score > bestMatch.score) {
-            bestMatch = { lat: streetCoord.lat, lng: streetCoord.lng, score, isStreet: streetCoord.isStreet };
-          }
-        }
-      }
-
-      return bestMatch;
-    }
-
     async function analyzePhotoWithGemini(photoBlob) {
       try {
         const base64Image = await imageToBase64(photoBlob);
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
           {
             method: "POST",
             headers: {
@@ -434,13 +354,7 @@
                 {
                   parts: [
                     {
-                      text: `Analyze this image with extreme precision to determine its geolocation, ensuring coordinates are on a public street (not inside houses or private properties). Provide the following in JSON format:
-                      - latitude (float, precise to 6 decimal places)
-                      - longitude (float, precise to 6 decimal places)
-                      - city (string, most specific possible)
-                      - country (string)
-                      - description (string, one-sentence summary of the location, e.g., "On a street near colonial-style houses in Bandung")
-                      Perform an in-depth analysis of architectural details (e.g., roof pitch, window styles, cladding materials, ornamentation), environmental context (e.g., tree species, street patterns, weather conditions, utility poles, mailbox styles), and cultural indicators (e.g., road markings, vehicle types, signage fonts). Cross-reference with global architectural and environmental patterns to accurately geolocate generic scenes or house photos without landmarks. If coordinates are uncertain, provide a best estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure coordinates are on a public street suitable for Street View, validated against road networks. Ensure all fields are filled; use "unknown" if data is unavailable.`
+                      text: "Analyze this image and provide the location details, including latitude, longitude, city, country, and a detailed description of the location. Return the response in JSON format with fields: latitude, longitude, city, country, description."
                     },
                     {
                       inlineData: {
@@ -479,7 +393,13 @@
           throw new Error("Missing latitude or longitude in Gemini response");
         }
 
-        return locationData;
+        return {
+          lat: parseFloat(locationData.latitude) || 0,
+          lng: parseFloat(locationData.longitude) || 0,
+          city: locationData.city || "unknown",
+          country: locationData.country || "unknown",
+          description: locationData.description || "unknown",
+        };
       } catch (error) {
         console.error("Error analyzing photo with Gemini:", error);
         alert("Failed to analyze image with Gemini API. Using default location.");
@@ -529,101 +449,47 @@
         previewImg.style.display = "block";
         uploadOverlay.classList.add("hidden");
 
-        // Enhanced EXIF and Metadata Extraction
-        let exifData = { lat: null, lng: null, timestamp: null, device: null, altitude: null };
-        EXIF.getData(file, async function() {
-          try {
-            const gpsLat = EXIF.getTag(this, "GPSLatitude");
-            const gpsLng = EXIF.getTag(this, "GPSLongitude");
-            const latRef = EXIF.getTag(this, "GPSLatitudeRef") || "N";
-            const lngRef = EXIF.getTag(this, "GPSLongitudeRef") || "E";
-            exifData.timestamp = EXIF.getTag(this, "DateTimeOriginal") || null;
-            exifData.device = EXIF.getTag(this, "Model") || null;
-            exifData.altitude = EXIF.getTag(this, "GPSAltitude") || null;
+        const locationData = await analyzePhotoWithGemini(file);
+        lastMatchedCoord = { lat: locationData.lat, lng: locationData.lng };
 
-            if (gpsLat && gpsLng) {
-              const lat = gpsLat[0] + gpsLat[1]/60 + gpsLat[2]/3600;
-              const lng = gpsLng[0] + gpsLng[1]/60 + gpsLng[2]/3600;
-              exifData.lat = latRef === "N" ? lat : -lat;
-              exifData.lng = lngRef === "E" ? lng : -lng;
-            }
-          } catch (exifError) {
-            console.error("Error parsing EXIF data:", exifError);
-          }
+        let info = {
+          detail: locationData.description,
+          country: locationData.country,
+          city: locationData.city,
+        };
 
-          // Fallback metadata analysis
-          if (!exifData.lat && !exifData.lng) {
-            try {
-              const fileCreationDate = file.lastModifiedDate || new Date();
-              exifData.timestamp = exifData.timestamp || fileCreationDate.toISOString();
-            } catch (metaError) {
-              console.error("Error extracting file metadata:", metaError);
-            }
-          }
-
-          // Analyze with Gemini
-          const locationData = await analyzePhotoWithGemini(file);
-          // Refine coordinates using GEO cell partitioning
-          const refinedCoord = await refineLocationWithGeoCells(
-            parseFloat(locationData.latitude),
-            parseFloat(locationData.longitude),
-            exifData.lat,
-            exifData.lng,
-            locationData.description,
-            locationData.city,
-            locationData.country
-          );
-
-          // Ensure street coordinates
-          const streetCoord = refinedCoord.isStreet
-            ? refinedCoord
-            : await findNearestStreet(refinedCoord.lat, refinedCoord.lng);
-
-          let info = {
-            detail: locationData.description,
-            country: locationData.country,
-            city: locationData.city,
+        if (info.detail === "unknown" || info.country === "unknown" || info.city === "unknown") {
+          const geocodedInfo = await reverseGeocode(locationData.lat, locationData.lng);
+          info = {
+            detail: info.detail !== "unknown" ? info.detail : geocodedInfo.detail,
+            country: info.country !== "unknown" ? info.country : geocodedInfo.country,
+            city: info.city !== "unknown" ? info.city : geocodedInfo.city,
           };
+        }
 
-          // Fallback to reverse geocoding if needed
-          if (info.detail === "unknown" || info.country === "unknown" || info.city === "unknown") {
-            const geocodedInfo = await reverseGeocode(streetCoord.lat, streetCoord.lng);
-            info = {
-              detail: info.detail !== "unknown" ? info.detail : geocodedInfo.detail,
-              country: info.country !== "unknown" ? info.country : geocodedInfo.country,
-              city: info.city !== "unknown" ? info.city : geocodedInfo.city,
-            };
-            if (geocodedInfo.city !== "unknown" && locationData.city !== geocodedInfo.city) {
-              info.detail += " (Coordinates refined to street; verified city: " + geocodedInfo.city + ")";
-            }
-          }
+        document.getElementById("detail-value").textContent = info.detail;
+        document.getElementById("country-value").textContent = info.country;
+        document.getElementById("city-value").textContent = info.city;
+        document.getElementById("coord-value").textContent =
+          locationData.lat.toFixed(5) + ", " + locationData.lng.toFixed(5);
 
-          lastMatchedCoord = { lat: streetCoord.lat, lng: streetCoord.lng };
-
-          document.getElementById("detail-value").textContent = info.detail;
-          document.getElementById("country-value").textContent = info.country;
-          document.getElementById("city-value").textContent = info.city;
-          document.getElementById("coord-value").textContent =
-            streetCoord.lat.toFixed(6) + ", " + streetCoord.lng.toFixed(6);
-
-          if (trackingMarker) trackingMarker.remove();
-          const markerEl = document.createElement("img");
-          markerEl.src = imageData;
-          markerEl.style.width = "60px";
-          markerEl.style.height = "60px";
-          markerEl.style.borderRadius = "50%";
-          markerEl.style.border = "2px solid white";
-          trackingMarker = new mapboxgl.Marker(markerEl)
-            .setLngLat([streetCoord.lng, streetCoord.lat])
-            .addTo(map);
-          map.flyTo({
-            center: [streetCoord.lng, streetCoord.lat],
-            zoom: 15, // Closer zoom for street-level
-            essential: true,
-          });
-
-          loadingOverlay.style.display = "none";
+        if (trackingMarker) trackingMarker.remove();
+        const markerEl = document.createElement("img");
+        markerEl.src = imageData;
+        markerEl.style.width = "60px";
+        markerEl.style.height = "60px";
+        markerEl.style.borderRadius = "50%";
+        markerEl.style.border = "2px solid white";
+        trackingMarker = new mapboxgl.Marker(markerEl)
+          .setLngLat([locationData.lng, locationData.lat])
+          .addTo(map);
+        map.flyTo({
+          center: [locationData.lng, locationData.lat],
+          zoom: 14,
+          essential: true,
         });
+
+        loadingOverlay.style.display = "none";
       };
       reader.readAsDataURL(file);
     });
