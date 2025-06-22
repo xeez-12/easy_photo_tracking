@@ -311,8 +311,8 @@
 
   <script>
     const MAPBOX_TOKEN = "pk.eyJ1IjoiYXZpb3BvcnRvbGFubyIsImEiOiJja212cmRrd2QwN3dzMnZuMXV2d25xbWsxIn0.x3y36v9arY9wmBOCZlCXUA";
-    mapboxgl.accessToken = MAPBOX_TOKEN;
     const GEMINI_API_KEY = "AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI"; // Replace with your actual Gemini API key
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
     const map = new mapboxgl.Map({
       container: "map",
@@ -354,7 +354,13 @@
                 {
                   parts: [
                     {
-                      text: "Analyze this image and provide the location details, including latitude, longitude, city, country, and a detailed description of the location. Return the response in JSON format with fields: latitude, longitude, city, country, description."
+                      text: `Analyze this image with high precision to determine its geolocation. Provide the following in JSON format:
+                      - latitude (float, precise to 6 decimal places)
+                      - longitude (float, precise to 6 decimal places)
+                      - city (string, most specific possible)
+                      - country (string)
+                      - description (string, one-sentence summary of the location, e.g., "Near Eiffel Tower in Paris")
+                      Use visual clues like landmarks, street signs, architectural styles, license plates, or text to ensure accurate coordinates. If coordinates are uncertain, estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure all fields are filled; use "unknown" if data is unavailable.`
                     },
                     {
                       inlineData: {
@@ -391,6 +397,12 @@
         // Validate required fields
         if (!locationData.latitude || !locationData.longitude) {
           throw new Error("Missing latitude or longitude in Gemini response");
+        }
+
+        // Validate coordinates against reverse geocoding
+        const geocodedInfo = await reverseGeocode(locationData.latitude, locationData.longitude);
+        if (geocodedInfo.city !== "unknown" && locationData.city !== geocodedInfo.city) {
+          locationData.description += " (Coordinates may be imprecise; verified city: " + geocodedInfo.city + ")";
         }
 
         return {
@@ -449,47 +461,67 @@
         previewImg.style.display = "block";
         uploadOverlay.classList.add("hidden");
 
-        const locationData = await analyzePhotoWithGemini(file);
-        lastMatchedCoord = { lat: locationData.lat, lng: locationData.lng };
+        // Check EXIF for GPS data
+        let exifLat = 0, exifLng = 0;
+        EXIF.getData(file, async function() {
+          const gpsLat = EXIF.getTag(this, "GPSLatitude");
+          const gpsLng = EXIF.getTag(this, "GPSLongitude");
+          const latRef = EXIF.getTag(this, "GPSLatitudeRef") || "N";
+          const lngRef = EXIF.getTag(this, "GPSLongitudeRef") || "E";
 
-        let info = {
-          detail: locationData.description,
-          country: locationData.country,
-          city: locationData.city,
-        };
+          if (gpsLat && gpsLng) {
+            const lat = gpsLat[0] + gpsLat[1]/60 + gpsLat[2]/3600;
+            const lng = gpsLng[0] + gpsLng[1]/60 + gpsLng[2]/3600;
+            exifLat = latRef === "N" ? lat : -lat;
+            exifLng = lngRef === "E" ? lng : -lng;
+          }
 
-        if (info.detail === "unknown" || info.country === "unknown" || info.city === "unknown") {
-          const geocodedInfo = await reverseGeocode(locationData.lat, locationData.lng);
-          info = {
-            detail: info.detail !== "unknown" ? info.detail : geocodedInfo.detail,
-            country: info.country !== "unknown" ? info.country : geocodedInfo.country,
-            city: info.city !== "unknown" ? info.city : geocodedInfo.city,
+          // Analyze with Gemini if no EXIF GPS
+          const locationData = exifLat && exifLng ? 
+            { lat: exifLat, lng: exifLng, city: "unknown", country: "unknown", description: "From EXIF data" } : 
+            await analyzePhotoWithGemini(file);
+          lastMatchedCoord = { lat: locationData.lat, lng: locationData.lng };
+
+          let info = {
+            detail: locationData.description,
+            country: locationData.country,
+            city: locationData.city,
           };
-        }
 
-        document.getElementById("detail-value").textContent = info.detail;
-        document.getElementById("country-value").textContent = info.country;
-        document.getElementById("city-value").textContent = info.city;
-        document.getElementById("coord-value").textContent =
-          locationData.lat.toFixed(5) + ", " + locationData.lng.toFixed(5);
+          // Fallback to reverse geocoding if needed
+          if (info.detail === "unknown" || info.country === "unknown" || info.city === "unknown") {
+            const geocodedInfo = await reverseGeocode(locationData.lat, locationData.lng);
+            info = {
+              detail: info.detail !== "unknown" ? info.detail : geocodedInfo.detail,
+              country: info.country !== "unknown" ? info.country : geocodedInfo.country,
+              city: info.city !== "unknown" ? info.city : geocodedInfo.city,
+            };
+          }
 
-        if (trackingMarker) trackingMarker.remove();
-        const markerEl = document.createElement("img");
-        markerEl.src = imageData;
-        markerEl.style.width = "60px";
-        markerEl.style.height = "60px";
-        markerEl.style.borderRadius = "50%";
-        markerEl.style.border = "2px solid white";
-        trackingMarker = new mapboxgl.Marker(markerEl)
-          .setLngLat([locationData.lng, locationData.lat])
-          .addTo(map);
-        map.flyTo({
-          center: [locationData.lng, locationData.lat],
-          zoom: 14,
-          essential: true,
+          document.getElementById("detail-value").textContent = info.detail;
+          document.getElementById("country-value").textContent = info.country;
+          document.getElementById("city-value").textContent = info.city;
+          document.getElementById("coord-value").textContent =
+            locationData.lat.toFixed(6) + ", " + locationData.lng.toFixed(6);
+
+          if (trackingMarker) trackingMarker.remove();
+          const markerEl = document.createElement("img");
+          markerEl.src = imageData;
+          markerEl.style.width = "60px";
+          markerEl.style.height = "60px";
+          markerEl.style.borderRadius = "50%";
+          markerEl.style.border = "2px solid white";
+          trackingMarker = new mapboxgl.Marker(markerEl)
+            .setLngLat([locationData.lng, locationData.lat])
+            .addTo(map);
+          map.flyTo({
+            center: [locationData.lng, locationData.lat],
+            zoom: 14,
+            essential: true,
+          });
+
+          loadingOverlay.style.display = "none";
         });
-
-        loadingOverlay.style.display = "none";
       };
       reader.readAsDataURL(file);
     });
