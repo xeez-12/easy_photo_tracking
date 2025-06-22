@@ -354,13 +354,13 @@
                 {
                   parts: [
                     {
-                      text: `Analyze this image with high precision to determine its geolocation. Provide the following in JSON format:
+                      text: `Analyze this image with high precision to determine its geolocation, focusing on architectural styles, landmarks, and contextual clues. Provide the following in JSON format:
                       - latitude (float, precise to 6 decimal places)
                       - longitude (float, precise to 6 decimal places)
                       - city (string, most specific possible)
                       - country (string)
-                      - description (string, one-sentence summary of the location, e.g., "Near Eiffel Tower in Paris")
-                      Use visual clues like landmarks, street signs, architectural styles, license plates, or text to ensure accurate coordinates. If coordinates are uncertain, estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure all fields are filled; use "unknown" if data is unavailable.`
+                      - description (string, one-sentence summary of the location, e.g., "Near Gothic cathedral in Barcelona")
+                      Deeply analyze architectural details (e.g., Gothic, Baroque, modern, materials, ornamentation), landmarks, street signs, license plates, vegetation, and cultural elements to ensure accurate coordinates. If coordinates are uncertain, estimate based on contextual evidence and note confidence level in the description (e.g., "Low confidence estimate"). Ensure all fields are filled; use "unknown" if data is unavailable.`
                     },
                     {
                       inlineData: {
