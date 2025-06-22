@@ -20,17 +20,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Sajikan file statis dari folder assets
-const assetsPath = path.join(__dirname, 'assets');
-if (fs.existsSync(assetsPath)) {
-  app.use('/assets', express.static(assetsPath));
-} else {
-  console.warn('Folder assets tidak ditemukan, membuat folder kosong...');
-  fs.mkdirSync(assetsPath, { recursive: true });
-}
-
-// Sajikan index.html untuk rute root dengan fallback
-app.get(['/', '/index.html'], async (req, res) => {
+// Sajikan index.html untuk rute root dengan pengecekan
+app.get(['/', '/index.html'], (req, res) => {
   const indexPath = path.join(__dirname, 'index.html');
   if (!fs.existsSync(indexPath)) {
     console.error('Error: index.html tidak ditemukan di', indexPath);
@@ -46,17 +37,18 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('Direktori uploads dibuat di', uploadsDir);
 }
 
-// Status inisialisasi
-let isInitialized = false;
-
-// Load model GeoClip dan koordinat GPS
+// Variabel global untuk status dan data
+let isReady = false;
 let vision_model, location_model, processor, gps_data;
+
+// Fungsi inisialisasi
 async function initialize() {
   try {
+    console.log('Memulai inisialisasi model dan data...');
     const model_id = 'Xenova/geoclip-large-patch14';
     const cacheDir = process.env.RAILWAY_VOLUME_MOUNT_PATH || path.join(__dirname, 'cache');
 
-    console.log('Memulai inisialisasi model dan data...');
+    // Muat model secara paralel
     const [vision, location, proc] = await Promise.all([
       AutoModel.from_pretrained(model_id, { model_file_name: 'vision_model', cache_dir }),
       AutoModel.from_pretrained(model_id, { model_file_name: 'location_model', quantized: false, cache_dir }),
@@ -66,25 +58,25 @@ async function initialize() {
     location_model = location;
     processor = proc;
 
-    console.log('Memuat koordinat GPS...');
+    // Muat koordinat GPS
     const gpsDataPath = path.join(__dirname, 'coordinates_100K.json');
     if (!fs.existsSync(gpsDataPath)) {
-      throw new Error('coordinates_100K.json tidak ditemukan');
+      throw new Error('coordinates_100K.json tidak ditemukan di ' + gpsDataPath);
     }
     gps_data = JSON.parse(fs.readFileSync(gpsDataPath)).slice(0, 10000); // 10K untuk performa
     console.log(`Berhasil memuat ${gps_data.length} koordinat GPS.`);
 
-    isInitialized = true;
-    console.log('Inisialisasi selesai.');
+    isReady = true;
+    console.log('Inisialisasi selesai. Server siap.');
   } catch (error) {
-    console.error('Gagal menginisialisasi server:', error.message);
-    isInitialized = false;
-    throw error; // Akan dihandle oleh server startup
+    console.error('Gagal inisialisasi:', error.message);
+    isReady = false;
+    throw error;
   }
 }
 
-// Jalankan inisialisasi saat startup
-const startServer = async () => {
+// Mulai server setelah inisialisasi selesai
+async function startServer() {
   try {
     await initialize();
     const PORT = process.env.PORT || 5000;
@@ -92,15 +84,15 @@ const startServer = async () => {
       console.log(`Server berjalan di http://0.0.0.0:${PORT}`);
     });
   } catch (error) {
-    console.error('Server gagal start karena:', error.message);
-    process.exit(1); // Hentikan jika inisialisasi gagal
+    console.error('Gagal memulai server:', error.message);
+    process.exit(1); // Hentikan jika gagal
   }
-};
+}
 startServer();
 
-// Endpoint untuk memprediksi lokasi
+// Endpoint untuk prediksi lokasi
 app.post('/predict', upload.single('photo'), async (req, res) => {
-  if (!isInitialized) {
+  if (!isReady) {
     return res.status(503).json({ error: 'Server belum siap. Tunggu inisialisasi selesai.' });
   }
 
@@ -115,11 +107,11 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
     }
 
     const image = await RawImage.read(imagePath);
-    if (!image) {
-      return res.status(400).json({ error: 'Gambar tidak dapat diproses' });
+    if (!image || !image.data) {
+      return res.status(400).json({ error: 'Gambar tidak dapat dibaca atau korup' });
     }
 
-    const vision_inputs = await processor(image);
+    const vision_inputs = await processor(image, { return_tensors: 'pt' });
     const { image_embeds } = await vision_model(vision_inputs);
     if (!image_embeds || !image_embeds.data) {
       return res.status(500).json({ error: 'Gagal menghasilkan embedding gambar' });
@@ -135,12 +127,19 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
       const { location_embeds } = await location_model({
         location: new Tensor('float32', chunk.flat(), [chunk.length, 2]),
       });
+      if (!location_embeds || !location_embeds.data) {
+        continue; // Lewati batch jika gagal
+      }
       const norm_location_embeds = location_embeds.normalize().tolist();
 
       for (const embed of norm_location_embeds) {
         const score = exp_logit_scale * dot(norm_image_embeds, embed);
         scores.push(score);
       }
+    }
+
+    if (scores.length === 0) {
+      return res.status(500).json({ error: 'Gagal menghitung skor prediksi' });
     }
 
     const top_k = 10;
@@ -157,6 +156,10 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
       weighted_lat += result.gps[0] * weight;
       weighted_lng += result.gps[1] * weight;
       total_weight += weight;
+    }
+
+    if (total_weight === 0) {
+      return res.status(500).json({ error: 'Gagal menghitung koordinat akhir' });
     }
 
     const final_result = {
@@ -178,12 +181,12 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
 
     res.json(final_result);
   } catch (error) {
-    console.error('Error memproses prediksi:', error.message);
+    console.error('Error prediksi:', error.message);
     if (req.file && req.file.path) {
       try {
         fs.unlinkSync(path.join(__dirname, req.file.path));
       } catch (unlinkError) {
-        console.warn('Peringatan: Gagal menghapus file sementara setelah error:', unlinkError.message);
+        console.warn('Peringatan: Gagal menghapus file sementara:', unlinkError.message);
       }
     }
     res.status(500).json({ error: 'Gagal memproses gambar: ' + error.message });
@@ -192,5 +195,5 @@ app.post('/predict', upload.single('photo'), async (req, res) => {
 
 // Tangani rute yang tidak ditemukan
 app.use((req, res) => {
-  res.status(404).json({ error: 'Rute tidak ditemukan. Coba / untuk UI atau /predict untuk prediksi.' });
+  res.status(404).json({ error: 'Rute tidak ditemukan. Gunakan / untuk UI atau /predict untuk prediksi.' });
 });
