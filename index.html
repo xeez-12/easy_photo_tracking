@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSINT Username Search</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .container {
+      flex: 1;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #00aaff;
+      text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+    }
+
+    .search-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 600px;
+      background: #2a2a2a;
+      border-radius: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .search-container:hover {
+      box-shadow: 0 6px 25px rgba(0, 170, 255, 0.3);
+    }
+
+    #search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e0e0e0;
+      font-size: 1rem;
+      padding: 10px 15px;
+    }
+
+    #search-button {
+      background: #00aaff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #search-button:hover {
+      background: #0088cc;
+    }
+
+    #results {
+      margin-top: 20px;
+    }
+
+    .result-card {
+      background: #2a2a2a;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .result-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(0, 170, 255, 0.2);
+    }
+
+    .result-card h3 {
+      color: #00aaff;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+    }
+
+    .result-card p {
+      font-size: 0.9rem;
+      color: #b0b0b0;
+      margin-bottom: 5px;
+    }
+
+    .result-card a {
+      color: #00aaff;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .result-card a:hover {
+      text-decoration: underline;
+    }
+
+    .platform {
+      font-weight: bold;
+      color: #ff5555;
+    }
+
+    .loading {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #00aaff;
+      display: none;
+    }
+
+    .error {
+      text-align: center;
+      color: #ff5555;
+      font-size: 1rem;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .search-container {
+        width: 95%;
+      }
+
+      #search-input {
+        font-size: 0.9rem;
+      }
+
+      #search-button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OSINT Username Search</h1>
+    <div id="results"></div>
+    <div class="loading" id="loading">Searching...</div>
+    <div class="error" id="error"></div>
+  </div>
+  <div class="search-container">
+    <input type="text" id="search-input" placeholder="Enter username to search..." autocomplete="off">
+    <button id="search-button">Search</button>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const resultsDiv = document.getElementById('results');
+    const loadingDiv = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+
+    searchButton.addEventListener('click', search);
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') search();
+    });
+
+    async function search() {
+      const username = searchInput.value.trim();
+      if (username.length < 3) {
+        showError('Username must be at least 3 characters long');
+        return;
+      }
+
+      showLoading(true);
+      clearResults();
+      hideError();
+
+      try {
+        const response = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username }),
+        });
+
+        const data = await response.json();
+        showLoading(false);
+
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+
+        displayResults(data.results);
+      } catch (error) {
+        showLoading(false);
+        showError('Failed to fetch results. Please try again.');
+      }
+    }
+
+    function displayResults(results) {
+      if (results.length === 0) {
+        showError('No results found.');
+        return;
+      }
+
+      results.forEach((result) => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `
+          <h3>${result.title}</h3>
+          <p><span class="platform">${result.platform}</span> - ${result.snippet}</p>
+          <a href="${result.link}" target="_blank">${result.link}</a>
+        `;
+        resultsDiv.appendChild(card);
+      });
+    }
+
+    function showLoading(show) {
+      loadingDiv.style.display = show ? 'block' : 'none';
+    }
+
+    function showError(message) {
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+
+    function hideError() {
+      errorDiv.style.display = 'none';
+    }
+
+    function clearResults() {
+      resultsDiv.innerHTML = '';
+    }
+  </script>
+</body>
+</html>
