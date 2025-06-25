@@ -8,7 +8,7 @@ const fs = require('fs').promises;
 
 const app = express();
 const cache = new NodeCache({ stdTTL: 3600 }); // Cache selama 1 jam
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY';
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -16,14 +16,19 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.post('/search', async (req, res) => {
-    const form = formidable({ multiples: false });
+app.post('/search', (req, res) => {
+    const form = formidable({
+        multiples: false,
+        uploadDir: path.join(__dirname, '/tmp'),
+        keepExtensions: true
+    });
+
     form.parse(req, async (err, fields, files) => {
         if (err) {
             return res.status(500).json({ error: 'Error parsing image' });
         }
 
-        const image = files.image[0];
+        const image = files.image;
         if (!image) {
             return res.status(400).json({ error: 'No image provided' });
         }
@@ -31,7 +36,7 @@ app.post('/search', async (req, res) => {
         try {
             // Baca file gambar sebagai base64
             const imageData = await fs.readFile(image.filepath, { encoding: 'base64' });
-            const cacheKey = Buffer.from(imageData).toString('base64').slice(0, 50); // Gunakan hash singkat sebagai kunci cache
+            const cacheKey = Buffer.from(imageData).toString('base64').slice(0, 50); // Kunci cache
 
             // Cek cache
             const cachedResult = cache.get(cacheKey);
@@ -93,5 +98,6 @@ app.post('/search', async (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080; // Sesuaikan dengan port yang digunakan
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
