@@ -1,89 +1,96 @@
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const cors = require('cors');
-const { exec } = require('child_process');
-const dns = require('dns').promises;
-const whois = require('whois-json');
-const { RateLimiterMemory } = require('rate-limiter-flexible');
+const NodeCache = require('node-cache');
+const formidable = require('formidable');
+const path = require('path');
+const fs = require('fs').promises;
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public')); // Serve static files (index.html)
+const cache = new NodeCache({ stdTTL: 3600 }); // Cache selama 1 jam
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY';
 
-// Rate limiter
-const rateLimiter = new RateLimiterMemory({ points: 10, duration: 60 });
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Ping command
-app.get('/api/ping', async (req, res) => {
-    try {
-        await rateLimiter.consume(req.ip);
-        const ip = req.query.ip;
-        if (!ip) return res.status(400).json({ error: 'IP is required' });
-
-        exec(`ping -c 10 ${ip}`, (error, stdout, stderr) => {
-            if (error) return res.status(500).json({ error: `Ping failed: ${error.message}` });
-            res.json({ result: stdout });
-        });
-    } catch (error) {
-        res.status(500).json({ error: `Failed to process ping: ${error.message}` });
-    }
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// WHOIS lookup
-app.get('/api/whois', async (req, res) => {
-    try {
-        await rateLimiter.consume(req.ip);
-        const domain = req.query.domain;
-        if (!domain) return res.status(400).json({ error: 'Domain is required' });
+app.post('/search', async (req, res) => {
+    const form = formidable({ multiples: false });
+    form.parse(req, async (err, fields, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error parsing image' });
+        }
 
-        const results = await whois(domain);
-        const result = `Registrar: ${results.registrar || 'N/A'}\nCreated: ${results.creationDate || 'N/A'}\nExpires: ${results.expiryDate || 'N/A'}`;
-        res.json({ result });
-    } catch (error) {
-        res.status(500).json({ error: `Failed to fetch WHOIS: ${error.message}` });
-    }
-});
+        const image = files.image[0];
+        if (!image) {
+            return res.status(400).json({ error: 'No image provided' });
+        }
 
-// DNS lookup
-app.get('/api/dns', async (req, res) => {
-    try {
-        await rateLimiter.consume(req.ip);
-        const domain = req.query.domain;
-        if (!domain) return res.status(400).json({ error: 'Domain is required' });
+        try {
+            // Baca file gambar sebagai base64
+            const imageData = await fs.readFile(image.filepath, { encoding: 'base64' });
+            const cacheKey = Buffer.from(imageData).toString('base64').slice(0, 50); // Gunakan hash singkat sebagai kunci cache
 
-        const records = await dns.resolveAny(domain);
-        const result = records.map(r => `${r.type}: ${r.value || r.address || r.entries.join(', ')}`).join('\n');
-        res.json({ result });
-    } catch (error) {
-        res.status(500).json({ error: `Failed to fetch DNS: ${error.message}` });
-    }
-});
+            // Cek cache
+            const cachedResult = cache.get(cacheKey);
+            if (cachedResult) {
+                return res.json(cachedResult);
+            }
 
-// Scrape web data
-app.get('/api/scrape', async (req, res) => {
-    try {
-        await rateLimiter.consume(req.ip);
-        const url = req.query.url;
-        if (!url) return res.status(400).json({ error: 'URL is required' });
+            // Analisis gambar dengan Gemini API
+            const analysisResponse = await axios.post(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+                {
+                    contents: [{
+                        parts: [{
+                            inlineData: {
+                                mimeType: image.mimetype,
+                                data: imageData
+                            }
+                        }, {
+                            text: 'Describe this image in detail to help identify similar images.'
+                        }]
+                    }]
+                },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
 
-        const { data } = await axios.get(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-            timeout: 10000
-        });
-        const $ = cheerio.load(data);
-        const title = $('title').text();
-        const links = [];
-        $('a').each((i, el) => {
-            const href = $(el).attr('href');
-            if (href) links.push(href);
-        });
+            const description = analysisResponse.data.candidates[0].content.parts[0].text;
 
-        res.json({ title, links: links.slice(0, 10) });
-    } catch (error) {
-        res.status(500).json({ error: `Failed to scrape: ${error.message}` });
-    }
+            // Cari gambar serupa di Bing
+            const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
+            const searchResponse = await axios.get('https://www.bing.com/images/search', {
+                params: { q: description },
+                headers: { 'User-Agent': userAgent }
+            });
+
+            const $ = cheerio.load(searchResponse.data);
+            const images = [];
+            $('.iusc').each((i, el) => {
+                const imgUrl = $(el).attr('m') ? JSON.parse($(el).attr('m')).turl : null;
+                if (imgUrl && images.length < 12) {
+                    images.push({
+                        url: imgUrl,
+                        description: $(el).find('.inflnk').attr('aria-label') || 'Similar Image'
+                    });
+                }
+            });
+
+            // Simpan ke cache
+            const result = { images };
+            cache.set(cacheKey, result);
+
+            // Hapus file sementara
+            await fs.unlink(image.filepath);
+
+            res.json(result);
+        } catch (error) {
+            console.error('Server error:', error);
+            res.status(500).json({ error: 'Failed to process image' });
+        }
+    });
 });
 
 const PORT = process.env.PORT || 3000;
