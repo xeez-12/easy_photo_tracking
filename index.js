@@ -14,7 +14,7 @@ app.use(express.static('public'));
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 50, // Conservative limit to avoid blocks
+    max: 50,
   })
 );
 
@@ -124,28 +124,28 @@ async function getProfilePicture(url) {
 
 // Social media platforms (20+)
 const platforms = [
-  { name: 'X', domain: 'x.com', query: `site:x.com "${username}" -inurl:(signup | login | explore | trends | premium | settings)` },
-  { name: 'GitHub', domain: 'github.com', query: `site:github.com "${username}" -inurl:(signup | login | join | auth)` },
-  { name: 'Reddit', domain: 'reddit.com', query: `site:reddit.com "${username}" -inurl:(signup | login | register | oauth)` },
-  { name: 'Instagram', domain: 'instagram.com', query: `site:instagram.com "${username}" -inurl:(signup | login | accounts | help)` },
-  { name: 'LinkedIn', domain: 'linkedin.com', query: `site:linkedin.com "${username}" -inurl:(signup | login | join | auth)` },
-  { name: 'TikTok', domain: 'tiktok.com', query: `site:tiktok.com "${username}" -inurl:(signup | login | creator | support)` },
-  { name: 'Facebook', domain: 'facebook.com', query: `site:facebook.com "${username}" -inurl:(signup | login | account | help)` },
-  { name: 'YouTube', domain: 'youtube.com', query: `site:youtube.com "${username}" -inurl:(signup | login | account)` },
-  { name: 'Twitch', domain: 'twitch.tv', query: `site:twitch.tv "${username}" -inurl:(signup | login | auth)` },
-  { name: 'Discord', domain: 'discord.com', query: `site:discord.com "${username}" -inurl:(signup | login | invite | nitro)` },
-  { name: 'Pinterest', domain: 'pinterest.com', query: `site:pinterest.com "${username}" -inurl:(signup | login | account)` },
-  { name: 'Snapchat', domain: 'snapchat.com', query: `site:snapchat.com "${username}" -inurl:(signup | login | support)` },
-  { name: 'Medium', domain: 'medium.com', query: `site:medium.com "${username}" -inurl:(signup | login | signin)` },
-  { name: 'Quora', domain: 'quora.com', query: `site:quora.com "${username}" -inurl:(signup | login | join)` },
-  { name: 'StackOverflow', domain: 'stackoverflow.com', query: `site:stackoverflow.com "${username}" -inurl:(signup | login | auth)` },
-  { name: 'Behance', domain: 'behance.net', query: `site:behance.net "${username}" -inurl:(signup | login | join)` },
-  { name: 'Dribbble', domain: 'dribbble.com', query: `site:dribbble.com "${username}" -inurl:(signup | login | join)` },
-  { name: 'Vimeo', domain: 'vimeo.com', query: `site:vimeo.com "${username}" -inurl:(signup | login | join)` },
-  { name: 'SoundCloud', domain: 'soundcloud.com', query: `site:soundcloud.com "${username}" -inurl:(signup | login | auth)` },
-  { name: 'Flickr', domain: 'flickr.com', query: `site:flickr.com "${username}" -inurl:(signup | login | join)` },
-  { name: 'Mastodon', domain: 'mastodon.social', query: `site:mastodon.social "${username}" -inurl:(signup | login | auth)` },
-  { name: 'Bluesky', domain: 'bsky.app', query: `site:bsky.app "${username}" -inurl:(signup | login | join)` },
+  { name: 'X', domain: 'x.com', query: `site:x.com "${username}" -inurl:(signup | login | explore | trends | premium | settings | help)` },
+  { name: 'GitHub', domain: 'github.com', query: `site:github.com "${username}" -inurl:(signup | login | join | auth | enterprise)` },
+  { name: 'Reddit', domain: 'reddit.com', query: `site:reddit.com "${username}" -inurl:(signup | login | register | oauth | premium)` },
+  { name: 'Instagram', domain: 'instagram.com', query: `site:instagram.com "${username}" -inurl:(signup | login | accounts | help | reels)` },
+  { name: 'LinkedIn', domain: 'linkedin.com', query: `site:linkedin.com "${username}" -inurl:(signup | login | join | auth | sales)` },
+  { name: 'TikTok', domain: 'tiktok.com', query: `site:tiktok.com "${username}" -inurl:(signup | login | creator | support | foryou)` },
+  { name: 'Facebook', domain: 'facebook.com', query: `site:facebook.com "${username}" -inurl:(signup | login | account | help | marketplace)` },
+  { name: 'YouTube', domain: 'youtube.com', query: `site:youtube.com "${username}" -inurl:(signup | login | account | watch | shorts)` },
+  { name: 'Twitch', domain: 'twitch.tv', query: `site:twitch.tv "${username}" -inurl:(signup | login | auth | directory)` },
+  { name: 'Discord', domain: 'discord.com', query: `site:discord.com "${username}" -inurl:(signup | login | invite | nitro | support)` },
+  { name: 'Pinterest', domain: 'pinterest.com', query: `site:pinterest.com "${username}" -inurl:(signup | login | account | ideas)` },
+  { name: 'Snapchat', domain: 'snapchat.com', query: `site:snapchat.com "${username}" -inurl:(signup | login | support | ads)` },
+  { name: 'Medium', domain: 'medium.com', query: `site:medium.com "${username}" -inurl:(signup | login | signin | membership)` },
+  { name: 'Quora', domain: 'quora.com', query: `site:quora.com "${username}" -inurl:(signup | login | join | spaces)` },
+  { name: 'StackOverflow', domain: 'stackoverflow.com', query: `site:stackoverflow.com "${username}" -inurl:(signup | login | auth | teams)` },
+  { name: 'Behance', domain: 'behance.net', query: `site:behance.net "${username}" -inurl:(signup | login | join | projects)` },
+  { name: 'Dribbble', domain: 'dribbble.com', query: `site:dribbble.com "${username}" -inurl:(signup | login | join | shots)` },
+  { name: 'Vimeo', domain: 'vimeo.com', query: `site:vimeo.com "${username}" -inurl:(signup | login | join | watch)` },
+  { name: 'SoundCloud', domain: 'soundcloud.com', query: `site:soundcloud.com "${username}" -inurl:(signup | login | auth | tracks)` },
+  { name: 'Flickr', domain: 'flickr.com', query: `site:flickr.com "${username}" -inurl:(signup | login | join | photos)` },
+  { name: 'Mastodon', domain: 'mastodon.social', query: `site:mastodon.social "${username}" -inurl:(signup | login | auth | about)` },
+  { name: 'Bluesky', domain: 'bsky.app', query: `site:bsky.app "${username}" -inurl:(signup | login | join | feed)` },
 ];
 
 // Scrape Bing for social media
@@ -155,7 +155,7 @@ async function scrapeBingSocial(username) {
     try {
       const scrape = async () => {
         const query = platform.query.replace('${username}', username);
-        const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=en-US&mkt=en-US`;
+        const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=en-US&mkt=en-US&cc=US`;
         const response = await axiosInstance.get(url, {
           headers: { ...getHeaders(), 'Accept-Language': 'en-US,en;q=0.9' },
         });
@@ -170,7 +170,7 @@ async function scrapeBingSocial(username) {
             title && link && snippet &&
             link.includes(platform.domain) &&
             !snippet.match(/[\u4e00-\u9fff]/) &&
-            !title.match(/login|signup|register|join|auth|account|help|support|premium/i) &&
+            !title.match(/login|signup|register|join|auth|account|help|support|premium|explore|trends|creator|reels|foryou|marketplace|watch|shorts|nitro|directory|spaces|teams|projects|shots|photos|feed/i) &&
             (title.toLowerCase().includes(username.toLowerCase()) || snippet.toLowerCase().includes(username.toLowerCase()))
           ) {
             results.push({ title, link, snippet, platform: platform.name });
@@ -213,7 +213,6 @@ async function scrapeDuckDuckGoSocial(username) {
           let link = $(elem).find('.result__url').attr('href') || $(elem).find('.result__title a').attr('href');
           const snippet = $(elem).find('.result__snippet').text().trim().slice(0, 1024);
 
-          // Handle DuckDuckGo redirects
           if (link && link.startsWith('/l/')) {
             const match = response.data.match(/uddg=([^&]+)/);
             if (match) link = decodeURIComponent(match[1]);
@@ -223,7 +222,7 @@ async function scrapeDuckDuckGoSocial(username) {
             title && link && snippet &&
             link.includes(platform.domain) &&
             !snippet.match(/[\u4e00-\u9fff]/) &&
-            !title.match(/login|signup|register|join|auth|account|help|support|premium/i) &&
+            !title.match(/login|signup|register|join|auth|account|help|support|premium|explore|trends|creator|reels|foryou|marketplace|watch|shorts|nitro|directory|spaces|teams|projects|shots|photos|feed/i) &&
             (title.toLowerCase().includes(username.toLowerCase()) || snippet.toLowerCase().includes(username.toLowerCase()))
           ) {
             results.push({ title, link, snippet, platform: platform.name });
@@ -265,7 +264,7 @@ app.post('/api/search', async (req, res) => {
         const bHasUsername = b.title.toLowerCase().includes(username.toLowerCase()) ? 1 : 0;
         return bHasUsername - aHasUsername;
       })
-      .slice(0, 15); // Limit to 15 high-quality results
+      .slice(0, 20); // Limit to 20 high-quality results
 
     res.json({ results: allResults });
   } catch (error) {
