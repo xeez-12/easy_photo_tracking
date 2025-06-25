@@ -14,34 +14,36 @@ app.use(express.static('public'));
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 50, // Reduced to avoid blocks
+    max: 50, // Conservative limit to avoid blocks
   })
 );
 
 // Comprehensive user agents (2025-compatible)
 const userAgents = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
-  'Mozilla/5.0 (Linux; Android 14; SM-G990U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36',
-  'Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15',
-  'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/123.0.0.0',
-  'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
-  'Mozilla/5.0 (Android 14; Mobile; rv:124.0) Gecko/124.0 Firefox/124.0',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 YaBrowser/24.1.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 OPR/108.0.0.0',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/21.0 Chrome/122.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+  'Mozilla/5.0 (Linux; Android 14; SM-G992U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+  'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/124.0.0.0',
+  'Mozilla/5.0 (iPad; CPU OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Mobile/15E148 Safari/604.1',
+  'Mozilla/5.0 (Android 14; Mobile; rv:125.0) Gecko/125.0 Firefox/125.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 YaBrowser/24.4.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 OPR/109.0.0.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/22.0 Chrome/123.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/537.36 (KHTML, like Gecko) Arc/1.0 Chrome/124.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) UCBrowser/8.0.0.0 Chrome/123.0.0.0 Safari/537.36',
 ];
 
 const getRandomUserAgent = () => userAgents[Math.floor(Math.random() * userAgents.length)];
 
-// Advanced headers (mimics real browser)
+// Advanced headers
 const getHeaders = () => ({
   'User-Agent': getRandomUserAgent(),
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/png,*/*;q=0.8',
-  'Accept-Language': 'en-US,en;q=0.8,fr;q=0.6,es;q=0.4',
+  'Accept-Language': 'en-US,en;q=0.9,fr;q=0.7,es;q=0.5',
   'Accept-Encoding': 'gzip, deflate, br, zstd',
   'Connection': 'keep-alive',
   'Upgrade-Insecure-Requests': '1',
@@ -52,31 +54,31 @@ const getHeaders = () => ({
   'Cache-Control': 'no-cache',
   'Pragma': 'no-cache',
   'DNT': '1',
-  'Sec-Ch-Ua': `"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"`,
+  'Sec-Ch-Ua': `"Chromium";v="125", "Google Chrome";v="125", "Not.A/Brand";v="99"`,
   'Sec-Ch-Ua-Mobile': '?0',
   'Sec-Ch-Ua-Platform': '"Windows"',
-  'Referer': 'https://www.google.com/', // Fake referer to avoid blocks
+  'Referer': 'https://www.google.com/',
   'Priority': 'u=0, i',
 });
 
-// HTTPS agent with optimized settings
+// HTTPS agent
 const httpsAgent = new Agent({
   keepAlive: true,
-  maxSockets: 25,
-  maxFreeSockets: 10,
-  timeout: 30000,
+  maxSockets: 30,
+  maxFreeSockets: 15,
+  timeout: 35000,
   rejectUnauthorized: false,
 });
 
-// Axios instance with retry logic
+// Axios instance
 const axiosInstance = axios.create({
   httpsAgent,
-  timeout: 30000,
+  timeout: 35000,
   headers: getHeaders(),
 });
 
-// Add retry logic
-const retryRequest = async (fn, retries = 3, delay = 1000) => {
+// Retry logic
+const retryRequest = async (fn, retries = 3, delay = 1500) => {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
@@ -91,22 +93,21 @@ const retryRequest = async (fn, retries = 3, delay = 1000) => {
 // Extract profile picture
 async function getProfilePicture(url) {
   try {
-    const response = await axiosInstance.get(url);
+    const response = await axiosInstance.get(url, { timeout: 10000 });
     const $ = cheerio.load(response.data);
 
     const selectors = [
-      'img[src*="profile"], img[src*="avatar"], img[src*="user"]',
       'meta[property="og:image"]',
       'meta[name="twitter:image"]',
+      'img[src*="profile"], img[src*="avatar"], img[src*="user"]',
       'img[class*="profile"], img[class*="avatar"], img[class*="user"]',
-      'img[alt*="profile"], img[alt*="avatar"]',
+      'img[alt*="profile"], img[alt*="avatar"], img[alt*="user"]',
     ];
 
     for (const selector of selectors) {
       const img = $(selector).first();
       let src = selector.includes('meta') ? img.attr('content') : img.attr('src');
       if (src) {
-        // Handle relative URLs
         if (src.startsWith('/')) {
           const { origin } = new URL(url);
           src = `${origin}${src}`;
@@ -121,22 +122,40 @@ async function getProfilePicture(url) {
   }
 }
 
+// Social media platforms (20+)
+const platforms = [
+  { name: 'X', domain: 'x.com', query: `site:x.com "${username}" -inurl:(signup | login | explore | trends | premium | settings)` },
+  { name: 'GitHub', domain: 'github.com', query: `site:github.com "${username}" -inurl:(signup | login | join | auth)` },
+  { name: 'Reddit', domain: 'reddit.com', query: `site:reddit.com "${username}" -inurl:(signup | login | register | oauth)` },
+  { name: 'Instagram', domain: 'instagram.com', query: `site:instagram.com "${username}" -inurl:(signup | login | accounts | help)` },
+  { name: 'LinkedIn', domain: 'linkedin.com', query: `site:linkedin.com "${username}" -inurl:(signup | login | join | auth)` },
+  { name: 'TikTok', domain: 'tiktok.com', query: `site:tiktok.com "${username}" -inurl:(signup | login | creator | support)` },
+  { name: 'Facebook', domain: 'facebook.com', query: `site:facebook.com "${username}" -inurl:(signup | login | account | help)` },
+  { name: 'YouTube', domain: 'youtube.com', query: `site:youtube.com "${username}" -inurl:(signup | login | account)` },
+  { name: 'Twitch', domain: 'twitch.tv', query: `site:twitch.tv "${username}" -inurl:(signup | login | auth)` },
+  { name: 'Discord', domain: 'discord.com', query: `site:discord.com "${username}" -inurl:(signup | login | invite | nitro)` },
+  { name: 'Pinterest', domain: 'pinterest.com', query: `site:pinterest.com "${username}" -inurl:(signup | login | account)` },
+  { name: 'Snapchat', domain: 'snapchat.com', query: `site:snapchat.com "${username}" -inurl:(signup | login | support)` },
+  { name: 'Medium', domain: 'medium.com', query: `site:medium.com "${username}" -inurl:(signup | login | signin)` },
+  { name: 'Quora', domain: 'quora.com', query: `site:quora.com "${username}" -inurl:(signup | login | join)` },
+  { name: 'StackOverflow', domain: 'stackoverflow.com', query: `site:stackoverflow.com "${username}" -inurl:(signup | login | auth)` },
+  { name: 'Behance', domain: 'behance.net', query: `site:behance.net "${username}" -inurl:(signup | login | join)` },
+  { name: 'Dribbble', domain: 'dribbble.com', query: `site:dribbble.com "${username}" -inurl:(signup | login | join)` },
+  { name: 'Vimeo', domain: 'vimeo.com', query: `site:vimeo.com "${username}" -inurl:(signup | login | join)` },
+  { name: 'SoundCloud', domain: 'soundcloud.com', query: `site:soundcloud.com "${username}" -inurl:(signup | login | auth)` },
+  { name: 'Flickr', domain: 'flickr.com', query: `site:flickr.com "${username}" -inurl:(signup | login | join)` },
+  { name: 'Mastodon', domain: 'mastodon.social', query: `site:mastodon.social "${username}" -inurl:(signup | login | auth)` },
+  { name: 'Bluesky', domain: 'bsky.app', query: `site:bsky.app "${username}" -inurl:(signup | login | join)` },
+];
+
 // Scrape Bing for social media
 async function scrapeBingSocial(username) {
-  const platforms = [
-    { name: 'X', domain: 'x.com', query: `site:x.com "${username}" -inurl:(signup | login | explore | trends | premium)` },
-    { name: 'GitHub', domain: 'github.com', query: `site:github.com "${username}" -inurl:(signup | login | join)` },
-    { name: 'Reddit', domain: 'reddit.com', query: `site:reddit.com "${username}" -inurl:(signup | login | register)` },
-    { name: 'Instagram', domain: 'instagram.com', query: `site:instagram.com "${username}" -inurl:(signup | login | accounts)` },
-    { name: 'LinkedIn', domain: 'linkedin.com', query: `site:linkedin.com "${username}" -inurl:(signup | login | join)` },
-    { name: 'TikTok', domain: 'tiktok.com', query: `site:tiktok.com "${username}" -inurl:(signup | login | creator)` },
-  ];
-
   const results = [];
   for (const platform of platforms) {
     try {
       const scrape = async () => {
-        const url = `https://www.bing.com/search?q=${encodeURIComponent(platform.query)}&setlang=en-US`;
+        const query = platform.query.replace('${username}', username);
+        const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=en-US&mkt=en-US`;
         const response = await axiosInstance.get(url, {
           headers: { ...getHeaders(), 'Accept-Language': 'en-US,en;q=0.9' },
         });
@@ -147,12 +166,11 @@ async function scrapeBingSocial(username) {
           const link = $(elem).find('a').attr('href');
           const snippet = $(elem).find('.b_caption p').text().trim().slice(0, 1024);
 
-          // Strict relevance filters
           if (
             title && link && snippet &&
             link.includes(platform.domain) &&
-            !snippet.match(/[\u4e00-\u9fff]/) && // No Chinese
-            !title.match(/login|signup|register|join/i) &&
+            !snippet.match(/[\u4e00-\u9fff]/) &&
+            !title.match(/login|signup|register|join|auth|account|help|support|premium/i) &&
             (title.toLowerCase().includes(username.toLowerCase()) || snippet.toLowerCase().includes(username.toLowerCase()))
           ) {
             results.push({ title, link, snippet, platform: platform.name });
@@ -173,22 +191,14 @@ async function scrapeBingSocial(username) {
   return results;
 }
 
-// Scrape DuckDuckGo for social media (fixed and optimized)
+// Scrape DuckDuckGo for social media
 async function scrapeDuckDuckGoSocial(username) {
-  const platforms = [
-    { name: 'X', domain: 'x.com', query: `site:x.com "${username}" -signup -login -explore -trends` },
-    { name: 'GitHub', domain: 'github.com', query: `site:github.com "${username}" -signup -login -join` },
-    { name: 'Reddit', domain: 'reddit.com', query: `site:reddit.com "${username}" -signup -login -register` },
-    { name: 'Instagram', domain: 'instagram.com', query: `site:instagram.com "${username}" -signup -login -accounts` },
-    { name: 'LinkedIn', domain: 'linkedin.com', query: `site:linkedin.com "${username}" -signup -login -join` },
-    { name: 'TikTok', domain: 'tiktok.com', query: `site:tiktok.com "${username}" -signup -login -creator` },
-  ];
-
   const results = [];
   for (const platform of platforms) {
     try {
       const scrape = async () => {
-        const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(platform.query)}`;
+        const query = platform.query.replace('${username}', username);
+        const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
         const response = await axiosInstance.get(url, {
           headers: {
             ...getHeaders(),
@@ -203,18 +213,17 @@ async function scrapeDuckDuckGoSocial(username) {
           let link = $(elem).find('.result__url').attr('href') || $(elem).find('.result__title a').attr('href');
           const snippet = $(elem).find('.result__snippet').text().trim().slice(0, 1024);
 
-          // Handle DuckDuckGo's /l/?uddg= redirects
+          // Handle DuckDuckGo redirects
           if (link && link.startsWith('/l/')) {
             const match = response.data.match(/uddg=([^&]+)/);
             if (match) link = decodeURIComponent(match[1]);
           }
 
-          // Strict relevance filters
           if (
             title && link && snippet &&
             link.includes(platform.domain) &&
             !snippet.match(/[\u4e00-\u9fff]/) &&
-            !title.match(/login|signup|register|join/i) &&
+            !title.match(/login|signup|register|join|auth|account|help|support|premium/i) &&
             (title.toLowerCase().includes(username.toLowerCase()) || snippet.toLowerCase().includes(username.toLowerCase()))
           ) {
             results.push({ title, link, snippet, platform: platform.name });
@@ -248,16 +257,15 @@ app.post('/api/search', async (req, res) => {
       scrapeDuckDuckGoSocial(username),
     ]);
 
-    // Combine and deduplicate
+    // Combine, deduplicate, and sort
     const allResults = [...bingResults, ...duckResults]
       .filter((v, i, a) => a.findIndex(t => t.link === v.link) === i)
       .sort((a, b) => {
-        // Prioritize results with username in title
         const aHasUsername = a.title.toLowerCase().includes(username.toLowerCase()) ? 1 : 0;
         const bHasUsername = b.title.toLowerCase().includes(username.toLowerCase()) ? 1 : 0;
         return bHasUsername - aHasUsername;
       })
-      .slice(0, 12); // Limit to 12 high-quality results
+      .slice(0, 15); // Limit to 15 high-quality results
 
     res.json({ results: allResults });
   } catch (error) {
