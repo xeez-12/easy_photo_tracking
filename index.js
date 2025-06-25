@@ -171,7 +171,7 @@ app.post('/api/search', async (req, res) => {
 
 // Serve UI
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(__dirname + 'index.html');
 });
 
 // Railway port binding
