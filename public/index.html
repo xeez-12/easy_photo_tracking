@@ -3,307 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Terminal X - Ping Edition</title>
-    <!-- Bootstrap Icons CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Xterm.js CSS CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.5.0/css/xterm.css" />
+    <title>Image Search Pro - Dark Mode</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background: #000;
-            font-family: 'Courier New', monospace;
-            color: #00ff00;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #1c1c1c, #0f0f0f);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+            position: sticky;
+            top: 0;
+            z-index: 100;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            align-items: center;
+            gap: 15px;
         }
-        .terminal-container {
-            flex: 1;
-            padding: 10px;
-            background: #000;
-            border: 1px solid #00ff00;
-            margin: 5px;
-            position: relative;
-            overflow: hidden;
+
+        header h1 {
+            font-size: 1.8em;
+            color: #00e4ff;
+            text-shadow: 0 0 10px rgba(0, 228, 255, 0.5);
+            animation: fadeIn 1s ease-out;
         }
-        #terminal {
+
+        .upload-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(90deg, #00e4ff, #00aaff);
+            color: #0f0f0f;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 228, 255, 0.4);
+        }
+
+        #preview {
+            max-width: 90%;
+            max-height: 250px;
+            margin: 20px auto;
+            border-radius: 15px;
+            border: 2px solid #1c1c1c;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        #searchBtn {
+            background: linear-gradient(90deg, #ff4081, #d81b60);
+            color: #fff;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #searchBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4);
+        }
+
+        #results {
             width: 100%;
-            height: 100%;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            animation: fadeIn 1s ease-out;
         }
-        .header {
-            background: #000;
-            padding: 5px 10px;
-            display: flex;
-            align-items: center;
-            color: #00ff00;
-            font-size: 14px;
-            border-bottom: 1px solid #00ff00;
+
+        .result-card {
+            background: #1c1c1c;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-        .header .title {
-            font-weight: bold;
-            margin-left: 10px;
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
         }
-        .header .controls {
-            display: flex;
-            align-items: center;
+
+        .result-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 2px solid #00e4ff;
         }
-        .header .controls div {
-            width: 12px;
-            height: 12px;
+
+        .result-card p {
+            padding: 12px;
+            font-size: 0.9em;
+            color: #b0b0b0;
+        }
+
+        .loader {
+            border: 5px solid #1c1c1c;
+            border-top: 5px solid #00e4ff;
             border-radius: 50%;
-            margin-right: 5px;
-            cursor: pointer;
-        }
-        .header .controls .close { background: #ff5555; }
-        .header .controls .minimize { background: #ffaa00; }
-        .header .controls .maximize { background: #00ff00; }
-        .status-bar {
-            background: #000;
-            padding: 5px 10px;
-            color: #00ff00;
-            font-size: 12px;
-            border-top: 1px solid #00ff00;
-            display: none; /* Hidden by default, enable if needed */
-        }
-        .mobile-keyboard {
-            display: none;
-            background: #000;
-            padding: 10px;
-            border-top: 1px solid #00ff00;
-        }
-        .mobile-keyboard input {
-            width: 100%;
-            background: #000;
-            border: 1px solid #00ff00;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
-            padding: 5px;
-        }
-        .autocomplete {
-            position: absolute;
-            background: #000;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-            max-height: 100px;
-            overflow-y: auto;
-            width: 200px;
-            z-index: 1000;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
             display: none;
         }
-        .autocomplete div {
-            padding: 5px;
-            cursor: pointer;
+
+        .error-message {
+            background: #d81b60;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.5s ease-out;
         }
-        .autocomplete div:hover {
-            background: #00ff00;
-            color: #000;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        @media (max-width: 768px) {
-            .terminal-container { margin: 2px; padding: 5px; }
-            .mobile-keyboard { display: block; }
-            .header { font-size: 12px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .upload-btn, #searchBtn {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+
+            #preview {
+                max-height: 200px;
+            }
+
+            .result-card img {
+                height: 140px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="controls">
-            <div class="close" onclick="closeTerminal()"></div>
-            <div class="minimize" onclick="minimizeTerminal()"></div>
-            <div class="maximize" onclick="maximizeTerminal()"></div>
+    <header>
+        <h1>Image Search Pro</h1>
+        <div class="upload-container">
+            <label class="upload-btn" for="imageInput">Upload Image</label>
+            <input type="file" id="imageInput" accept="image/*">
         </div>
-        <div class="title" id="title">ping 8.8.8.8</div>
-    </div>
-    <div class="terminal-container">
-        <div id="terminal"></div>
-        <div class="autocomplete" id="autocomplete"></div>
-    </div>
-    <div class="status-bar">
-        <span>Status: Connected</span>
-        <span>Time: 12:04 PM WIB, Jun 25, 2025</span>
-    </div>
-    <div class="mobile-keyboard">
-        <input type="text" id="mobileInput" placeholder="Type command..." oninput="handleAutocomplete(this.value)" onkeypress="handleMobileInput(event)">
-    </div>
+        <img id="preview" src="" alt="Preview">
+        <button id="searchBtn">Search Similar Images</button>
+    </header>
+    <div class="loader" id="loader"></div>
+    <div class="error-message" id="errorMessage"></div>
+    <div id="results"></div>
 
-    <!-- Xterm.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/xterm@5.5.0/lib/xterm.js"></script>
     <script>
-        const term = new Terminal({
-            cursorBlink: true,
-            theme: { background: '#000', foreground: '#00ff00', cursor: '#00ff00' }
-        });
-        term.open(document.getElementById('terminal'));
-        term.write('> stuff ping 8.8.8.8\r\nPING 8.8.8.8 (8.8.8.8): 56 data bytes\r\n');
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const searchBtn = document.getElementById('searchBtn');
+        const loader = document.getElementById('loader');
+        const errorMessage = document.getElementById('errorMessage');
+        const results = document.getElementById('results');
 
-        let command = '';
-        let history = [];
-        let historyIndex = -1;
-        const commandsList = ['ping', 'whois', 'dns', 'scrape', 'clear', 'exit'];
-
-        term.onKey(({ key, domEvent }) => {
-            const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
-
-            if (domEvent.keyCode === 13) { // Enter
-                term.write('\r\n');
-                executeCommand(command);
-                command = '';
-                historyIndex = -1;
-                hideAutocomplete();
-            } else if (domEvent.keyCode === 8) { // Backspace
-                if (command.length > 0) {
-                    command = command.slice(0, -1);
-                    term.write('\b \b');
-                    handleAutocomplete(command);
-                }
-            } else if (domEvent.keyCode === 9) { // Tab
-                domEvent.preventDefault();
-                autoCompleteCommand();
-            } else if (domEvent.keyCode === 38) { // Up arrow
-                if (historyIndex < history.length - 1) {
-                    historyIndex++;
-                    command = history[historyIndex] || '';
-                    term.write('\r\x1b[K> ' + command);
-                    handleAutocomplete(command);
-                }
-            } else if (domEvent.keyCode === 40) { // Down arrow
-                if (historyIndex >= 0) {
-                    historyIndex--;
-                    command = historyIndex >= 0 ? history[historyIndex] : '';
-                    term.write('\r\x1b[K> ' + command);
-                    handleAutocomplete(command);
-                }
-            } else if (printable) {
-                command += key;
-                term.write(key);
-                handleAutocomplete(command);
+        // Preview gambar
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
             }
         });
 
-        function handleMobileInput(event) {
-            if (event.key === 'Enter') {
-                const input = document.getElementById('mobileInput');
-                command = input.value;
-                term.write('> ' + command + '\r\n');
-                executeCommand(command);
-                input.value = '';
-                command = '';
-                hideAutocomplete();
-            }
+        // Fungsi untuk menampilkan error
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
         }
 
-        function handleAutocomplete(input) {
-            const autocomplete = document.getElementById('autocomplete');
-            autocomplete.innerHTML = '';
-            if (!input) {
-                hideAutocomplete();
+        // Fungsi untuk mencari gambar
+        searchBtn.addEventListener('click', async () => {
+            if (!imageInput.files[0]) {
+                showError('Please upload an image first!');
                 return;
             }
-            const matches = commandsList.filter(cmd => cmd.startsWith(input.toLowerCase()));
-            if (matches.length > 0) {
-                matches.forEach(match => {
-                    const div = document.createElement('div');
-                    div.textContent = match;
-                    div.onclick = () => {
-                        command = match;
-                        term.write('\r\x1b[K> ' + command);
-                        hideAutocomplete();
-                    };
-                    autocomplete.appendChild(div);
+
+            loader.style.display = 'block';
+            results.innerHTML = '';
+            errorMessage.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', imageInput.files[0]);
+
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    body: formData
                 });
-                autocomplete.style.display = 'block';
-                autocomplete.style.top = `${term.element.offsetTop + 20}px`;
-                autocomplete.style.left = `${term.element.offsetLeft + 50}px`;
-            } else {
-                hideAutocomplete();
-            }
-        }
 
-        function hideAutocomplete() {
-            document.getElementById('autocomplete').style.display = 'none';
-        }
+                const data = await response.json();
+                loader.style.display = 'none';
 
-        function autoCompleteCommand() {
-            const matches = commandsList.filter(cmd => cmd.startsWith(command.toLowerCase()));
-            if (matches.length > 0) {
-                command = matches[0];
-                term.write('\r\x1b[K> ' + command);
-            }
-        }
-
-        async function executeCommand(cmd) {
-            cmd = cmd.trim();
-            if (cmd) history.unshift(cmd);
-
-            const commands = {
-                'help': 'Available commands:\n- ping <ip>: Ping an IP address\n- whois <domain>: Perform WHOIS lookup\n- dns <domain>: Resolve DNS records\n- scrape <url>: Scrape website data\n- clear: Clear terminal\n- exit: Exit terminal',
-                'clear': () => term.clear(),
-                'exit': () => closeTerminal(),
-                async 'ping'(args) {
-                    if (!args[1]) return 'Usage: ping <ip>';
-                    document.getElementById('title').textContent = `ping ${args[1]}`;
-                    try {
-                        const response = await fetch(`/api/ping?ip=${encodeURIComponent(args[1])}`);
-                        const data = await response.json();
-                        return data.error ? `Error: ${data.error}` : data.result;
-                    } catch (e) {
-                        return 'Error: Unable to ping.';
-                    }
-                },
-                async 'whois'(args) {
-                    if (!args[1]) return 'Usage: whois <domain>';
-                    try {
-                        const response = await fetch(`/api/whois?domain=${encodeURIComponent(args[1])}`);
-                        const data = await response.json();
-                        return data.error ? `Error: ${data.error}` : data.result;
-                    } catch (e) {
-                        return 'Error: Unable to fetch WHOIS data.';
-                    }
-                },
-                async 'dns'(args) {
-                    if (!args[1]) return 'Usage: dns <domain>';
-                    try {
-                        const response = await fetch(`/api/dns?domain=${encodeURIComponent(args[1])}`);
-                        const data = await response.json();
-                        return data.error ? `Error: ${data.error}` : data.result;
-                    } catch (e) {
-                        return 'Error: Unable to fetch DNS data.';
-                    }
-                },
-                async 'scrape'(args) {
-                    if (!args[1]) return 'Usage: scrape <url>';
-                    try {
-                        const response = await fetch(`/api/scrape?url=${encodeURIComponent(args[1])}`);
-                        const data = await response.json();
-                        return data.error ? `Error: ${data.error}` : `Scraped ${args[1]}:\nTitle: ${data.title}\nLinks: ${data.links.join('\n')}`;
-                    } catch (e) {
-                        return 'Error: Unable to scrape data.';
-                    }
+                if (data.error) {
+                    showError(data.error);
+                    return;
                 }
-            };
 
-            const [cmdName, ...args] = cmd.split(' ');
-            const commandFunc = commands[cmdName.toLowerCase()];
-            let output = `Command not found: ${cmdName}\nType 'help' for available commands.`;
-
-            if (typeof commandFunc === 'function') {
-                output = await commandFunc(args);
-            } else if (typeof commandFunc === 'string') {
-                output = commandFunc;
+                data.images.forEach(({ url, description }) => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.innerHTML = `
+                        <img src="${url}" alt="Similar Image">
+                        <p>${description || 'Similar Image'}</p>
+                    `;
+                    results.appendChild(card);
+                });
+            } catch (error) {
+                loader.style.display = 'none';
+                showError('An error occurred while searching. Please try again.');
+                console.error('Search error:', error);
             }
-
-            term.write(output + '\r\n> ');
-        }
-
-        function minimizeTerminal() { document.querySelector('.terminal-container').style.display = 'none'; }
-        function maximizeTerminal() { document.querySelector('.terminal-container').style.height = '90vh'; }
-        function closeTerminal() { term.write('Terminal closed.\r\n'); setTimeout(() => window.location.reload(), 1000); }
-
-        term.write('> ');
+        });
     </script>
 </body>
 </html>
+
 
