@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Terminal X</title>
+    <title>OSINT Terminal X - Danya</title>
     <!-- Bootstrap Icons CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Xterm.js CSS CDN -->
@@ -12,7 +12,7 @@
         body {
             margin: 0;
             padding: 0;
-            background: #1a1a1a;
+            background: #0a0a0a;
             font-family: 'Courier New', monospace;
             color: #00ff00;
             display: flex;
@@ -22,11 +22,13 @@
         }
         .terminal-container {
             flex: 1;
-            padding: 10px;
-            background: #000;
-            border: 2px solid #333;
-            border-radius: 5px;
-            margin: 5px;
+            padding: 15px;
+            background: #111;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            margin: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            position: relative;
             overflow: hidden;
         }
         #terminal {
@@ -34,52 +36,91 @@
             height: 100%;
         }
         .header {
-            background: #333;
-            padding: 10px;
+            background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #fff;
-            font-size: 14px;
+            color: #00ff00;
+            font-size: 16px;
+            border-bottom: 1px solid #00ff00;
         }
         .header .title {
             font-weight: bold;
+            text-transform: uppercase;
         }
         .header .controls i {
-            margin-left: 10px;
+            margin-left: 15px;
             cursor: pointer;
+            transition: color 0.3s;
+        }
+        .header .controls i:hover {
+            color: #ff00ff;
+        }
+        .status-bar {
+            background: #1a1a1a;
+            padding: 5px 15px;
+            color: #00ff00;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #00ff00;
         }
         .mobile-keyboard {
             display: none;
-            background: #222;
+            background: #1a1a1a;
             padding: 10px;
-            border-top: 1px solid #333;
+            border-top: 1px solid #00ff00;
         }
         .mobile-keyboard input {
             width: 100%;
             background: #111;
-            border: 1px solid #333;
+            border: 1px solid #00ff00;
             color: #00ff00;
             font-family: 'Courier New', monospace;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .autocomplete {
+            position: absolute;
+            background: #222;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            max-height: 100px;
+            overflow-y: auto;
+            width: 200px;
+            z-index: 1000;
+            display: none;
+            border-radius: 4px;
+        }
+        .autocomplete div {
             padding: 5px;
+            cursor: pointer;
+        }
+        .autocomplete div:hover {
+            background: #00ff00;
+            color: #000;
         }
         @media (max-width: 768px) {
             .terminal-container {
-                margin: 2px;
-                padding: 5px;
+                margin: 5px;
+                padding: 8px;
             }
             .mobile-keyboard {
                 display: block;
             }
             .header {
-                font-size: 12px;
+                font-size: 14px;
+            }
+            .status-bar {
+                font-size: 10px;
             }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="title">OSINT Terminal X - Linux</div>
+        <div class="title">OSINT Terminal X - Danya</div>
         <div class="controls">
             <i class="bi bi-dash-circle" onclick="minimizeTerminal()"></i>
             <i class="bi bi-square" onclick="maximizeTerminal()"></i>
@@ -88,9 +129,14 @@
     </div>
     <div class="terminal-container">
         <div id="terminal"></div>
+        <div class="autocomplete" id="autocomplete"></div>
+    </div>
+    <div class="status-bar">
+        <span>Status: Connected</span>
+        <span>Version: 2.0.0 | Uptime: <span id="uptime">0s</span></span>
     </div>
     <div class="mobile-keyboard">
-        <input type="text" id="mobileInput" placeholder="Type command here..." onkeypress="handleMobileInput(event)">
+        <input type="text" id="mobileInput" placeholder="Type command..." oninput="handleAutocomplete(this.value)" onkeypress="handleMobileInput(event)">
     </div>
 
     <!-- Xterm.js CDN -->
@@ -99,18 +145,30 @@
         const term = new Terminal({
             cursorBlink: true,
             theme: {
-                background: '#000000',
+                background: '#111111',
                 foreground: '#00ff00',
-                cursor: '#00ff00'
-            }
+                cursor: '#00ff00',
+                selection: '#ff00ff'
+            },
+            fontSize: 14,
+            fontFamily: "'Courier New', monospace"
         });
         term.open(document.getElementById('terminal'));
-        term.write('OSINT Terminal X v1.0.0\nType `help` for available commands.\n\n');
+        term.write('OSINT Terminal X v2.0.0 - Danya Edition\nType `help` for commands.\n\n');
 
         let command = '';
         let history = [];
         let historyIndex = -1;
+        let uptime = 0;
+        const commandsList = ['help', 'whois', 'dns', 'scrape', 'geoip', 'searchx', 'clear', 'exit'];
 
+        // Uptime counter
+        setInterval(() => {
+            uptime++;
+            document.getElementById('uptime').textContent = `${uptime}s`;
+        }, 1000);
+
+        // Terminal input handling
         term.onKey(({ key, domEvent }) => {
             const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
 
@@ -119,29 +177,38 @@
                 executeCommand(command);
                 command = '';
                 historyIndex = -1;
+                hideAutocomplete();
             } else if (domEvent.keyCode === 8) { // Backspace
                 if (command.length > 0) {
                     command = command.slice(0, -1);
                     term.write('\b \b');
+                    handleAutocomplete(command);
                 }
+            } else if ( domEvent.keyCode === 9) { // Tab
+                domEvent.preventDefault();
+                autoCompleteCommand();
             } else if (domEvent.keyCode === 38) { // Up arrow
                 if (historyIndex < history.length - 1) {
                     historyIndex++;
                     command = history[historyIndex] || '';
                     term.write('\r\x1b[K$ ' + command);
+                    handleAutocomplete(command);
                 }
             } else if (domEvent.keyCode === 40) { // Down arrow
                 if (historyIndex >= 0) {
                     historyIndex--;
                     command = historyIndex >= 0 ? history[historyIndex] : '';
                     term.write('\r\x1b[K$ ' + command);
+                    handleAutocomplete(command);
                 }
             } else if (printable) {
                 command += key;
                 term.write(key);
+                handleAutocomplete(command);
             }
         });
 
+        // Mobile input handling
         function handleMobileInput(event) {
             if (event.key === 'Enter') {
                 const input = document.getElementById('mobileInput');
@@ -150,41 +217,114 @@
                 executeCommand(command);
                 input.value = '';
                 command = '';
+                hideAutocomplete();
             }
         }
 
+        // Autocomplete
+        function handleAutocomplete(input) {
+            const autocomplete = document.getElementById('autocomplete');
+            autocomplete.innerHTML = '';
+            if (!input) {
+                hideAutocomplete();
+                return;
+            }
+            const matches = commandsList.filter(cmd => cmd.startsWith(input.toLowerCase()));
+            if (matches.length > 0) {
+                matches.forEach(match => {
+                    const div = document.createElement('div');
+                    div.textContent = match;
+                    div.onclick = () => {
+                        command = match;
+                        term.write('\r\x1b[K$ ' + command);
+                        hideAutocomplete();
+                    };
+                    autocomplete.appendChild(div);
+                });
+                autocomplete.style.display = 'block';
+                autocomplete.style.top = `${term.element.offsetTop + 20}px`;
+                autocomplete.style.left = `${term.element.offsetLeft + 50}px`;
+            } else {
+                hideAutocomplete();
+            }
+        }
+
+        function hideAutocomplete() {
+            document.getElementById('autocomplete').style.display = 'none';
+        }
+
+        function autoCompleteCommand() {
+            const matches = commandsList.filter(cmd => cmd.startsWith(command.toLowerCase()));
+            if (matches.length > 0) {
+                command = matches[0];
+                term.write('\r\x1b[K$ ' + command);
+            }
+        }
+
+        // Command execution
         async function executeCommand(cmd) {
             cmd = cmd.trim();
             if (cmd) history.unshift(cmd);
 
             const commands = {
-                'help': 'Available commands:\n- whois <domain>: Perform WHOIS lookup\n- dns <domain>: Resolve DNS records\n- scrape <url>: Scrape website data\n- clear: Clear terminal\n- exit: Exit terminal',
+                'help': 'Available commands:\n- whois <domain>: Perform WHOIS lookup\n- dns <domain>: Resolve DNS records\n- scrape <url>: Scrape website data\n- geoip <ip>: Lookup geolocation\n- searchx <query>: Search X posts\n- clear: Clear terminal\n- exit: Exit terminal',
                 'clear': () => term.clear(),
                 'exit': () => closeTerminal(),
                 async 'whois'(args) {
                     if (!args[1]) return 'Usage: whois <domain>';
-                    return 'WHOIS lookup for ' + args[1] + '\nSimulated result: Domain registered to Example Corp, created on 2020-01-01.';
+                    try {
+                        const response = await fetch(`/api/whois?domain=${encodeURIComponent(args[1])}`);
+                        const data = await response.json();
+                        return data.error ? `Error: ${data.error}` : `WHOIS for ${args[1]}:\n${data.result}`;
+                    } catch (e) {
+                        return 'Error: Unable to fetch WHOIS data.';
+                    }
                 },
                 async 'dns'(args) {
                     if (!args[1]) return 'Usage: dns <domain>';
-                    return 'DNS lookup for ' + args[1] + '\nSimulated result: A: 93.184.216.34, NS: ns1.example.com';
+                    try {
+                        const response = await fetch(`/api/dns?domain=${encodeURIComponent(args[1])}`);
+                        const data = await response.json();
+                        return data.error ? `Error: ${data.error}` : `DNS for ${args[1]}:\n${data.result}`;
+                    } catch (e) {
+                        return 'Error: Unable to fetch DNS data.';
+                    }
                 },
                 async 'scrape'(args) {
                     if (!args[1]) return 'Usage: scrape <url>';
                     try {
-                        const response = await fetch('/api/scrape?url=' + encodeURIComponent(args[1]));
+                        const response = await fetch(`/api/scrape?url=${encodeURIComponent(args[1])}`);
                         const data = await response.json();
-                        if (data.error) return 'Error: ' + data.error;
-                        return `Scraped data from ${args[1]}:\nTitle: ${data.title}\nLinks: ${data.links.join('\n')}`;
+                        return data.error ? `Error: ${data.error}` : `Scraped ${args[1]}:\nTitle: ${data.title}\nLinks: ${data.links.join('\n')}\nText: ${data.text.slice(0, 200)}...`;
                     } catch (e) {
-                        return 'Error: Unable to fetch data. Ensure backend is running.';
+                        return 'Error: Unable to scrape data.';
+                    }
+                },
+                async 'geoip'(args) {
+                    if (!args[1]) return 'Usage: geoip <ip>';
+                    try {
+                        const response = await fetch(`/api/geoip?ip=${encodeURIComponent(args[1])}`);
+                        const data = await response.json();
+                        return data.error ? `Error: ${data.error}` : `GeoIP for ${args[1]}:\n${data.result}`;
+                    } catch (e) {
+                        return 'Error: Unable to fetch GeoIP data.';
+                    }
+                },
+                async 'searchx'(args) {
+                    if (!args[1]) return 'Usage: searchx <query>';
+                    try {
+                        const response = await fetch(`/api/searchx?query=${encodeURIComponent(args.slice(1).join(' '))}`);
+                        const data = await response.json();
+                        return data.error ? `Error: ${data.error}` : `X Search Results:\n${data.results.map(r => `- ${r.text} (${r.user})`).join('\n')}`;
+                    } catch (e) {
+                        return 'Error: Unable to fetch X search data.';
                     }
                 }
             };
 
             const [cmdName, ...args] = cmd.split(' ');
             const commandFunc = commands[cmdName.toLowerCase()];
-            let output = 'Command not found: ' + cmdName;
+            let output = `Command not found: ${cmdName}\nType 'help' for available commands.`;
 
             if (typeof commandFunc === 'function') {
                 output = await commandFunc(args);
@@ -195,17 +335,20 @@
             term.write(output + '\r\n$ ');
         }
 
+        // Terminal controls
         function minimizeTerminal() {
             document.querySelector('.terminal-container').style.display = 'none';
         }
 
         function maximizeTerminal() {
-            document.querySelector('.terminal-container').style.maximized = true;
+            const container = document.querySelector('.terminal-container');
+            container.style.maximized = true;
+            container.style.height = '90vh';
         }
 
         function closeTerminal() {
             term.write('Terminal closed.\r\n');
-            setTimeout(() => window.close(), 1000);
+            setTimeout(() => window.location.reload(), 1000);
         }
 
         term.write('$ ');
