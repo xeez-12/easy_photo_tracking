@@ -6,7 +6,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 // Environment variables (set these in Railway)
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN || 'YOUR_DISCORD_BOT_TOKEN';
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN || 'MTMxMzMwMjY3NzgyMzgxNTc1MQ.GK_Azd.dNfw2K8tRNcC_ca2KT8mkCIenQosapfNrw_HWk';
 
 // Initialize Discord client
 const client = new Client({
