@@ -8,7 +8,7 @@ const fs = require('fs').promises;
 
 const app = express();
 const cache = new NodeCache({ stdTTL: 3600 }); // Cache selama 1 jam
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI';
 
 app.use(express.static(path.join(__dirname, 'public')));
 
