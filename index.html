@@ -1,580 +1,938 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geolocation SPY</title>
-  <!-- Mapbox GL JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.css" rel="stylesheet" />
-  <!-- EXIF JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    }
-    body {
-      width: 100%;
-      height: 100vh;
-      overflow: hidden;
-      background-color: #121212;
-      color: #fff;
-    }
-    #app-container {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      display: flex;
-    }
-    #map {
-      flex: 1;
-      height: 100%;
-    }
-    #streetview-container {
-      display: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 20;
-    }
-    #streetview {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    #info-panel {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      width: 300px;
-      background-color: rgba(18,18,18,0.95);
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 200;
-    }
-    #geolocation-panel {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 250px;
-      background-color: rgba(18,18,18,0.95);
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 200;
-      background-image: url('https://img.icons8.com/ios/50/ffffff/spy.png');
-      background-size: 50px;
-      background-position: top right;
-      background-repeat: no-repeat;
-    }
-    #search-container, #city-search-container {
-      display: flex;
-      align-items: center;
-      background-color: #242424;
-      border-radius: 6px;
-      padding: 8px 12px;
-      margin-bottom: 20px;
-    }
-    #search-container svg, #city-search-container svg {
-      margin-right: 8px;
-      opacity: 0.7;
-    }
-    #search-input, #city-search-input {
-      background: none;
-      border: none;
-      color: #fff;
-      outline: none;
-      width: 100%;
-      font-size: 14px;
-    }
-    #image-preview {
-      width: 100%;
-      aspect-ratio: 1/1;
-      background-color: #242424;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      overflow: hidden;
-      position: relative;
-      cursor: pointer;
-    }
-    #image-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    #upload-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background-color: rgba(36,36,36,0.8);
-      cursor: pointer;
-    }
-    #upload-overlay.hidden {
-      display: none;
-    }
-    #upload-icon {
-      margin-bottom: 10px;
-      opacity: 0.7;
-    }
-    #upload-text {
-      color: #fff;
-      font-size: 14px;
-      text-align: center;
-    }
-    .location-info, .city-info {
-      margin-bottom: 15px;
-    }
-    .location-label, .city-label {
-      color: #999;
-      font-size: 12px;
-      margin-bottom: 3px;
-    }
-    .location-value, .city-value {
-      color: #fff;
-      font-size: 14px;
-      margin-bottom: 10px;
-      font-weight: 500;
-    }
-    #action-buttons {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 0;
-    }
-    .action-btn {
-      flex: 1;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background-color: #242424;
-      color: #fff;
-      font-size: 14px;
-      cursor: pointer;
-      text-align: center;
-    }
-    .action-btn:hover {
-      background-color: #333;
-    }
-    .floating-info {
-      position: absolute;
-      background-color: rgba(0,0,0,0.7);
-      border-radius: 6px;
-      padding: 10px 12px;
-      z-index: 200;
-      color: white;
-      font-size: 13px;
-    }
-    #location-name {
-      top: 20px;
-      left: 340px;
-    }
-    #location-name .title {
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
-    #neighborhood-info {
-      position: absolute;
-      bottom: 30px;
-      left: 20px;
-      background-color: rgba(0,0,0,0.7);
-      padding: 10px 15px;
-      border-radius: 4px;
-      font-size: 12px;
-      color: #ccc;
-      z-index: 999;
-    }
-    .attribution {
-      display: none;
-    }
-    .mapboxgl-canvas {
-      outline: none;
-    }
-    .mapboxgl-ctrl-logo {
-      display: none !important;
-    }
-    #file-input {
-      display: none;
-    }
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-    #analysis-results {
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 12px;
-      color: #ccc;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #161616;
+            --bg-card: #1e1e1e;
+            --bg-input: #252525;
+            --bg-code: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: #b8b8b8;
+            --text-muted: #888888;
+            --text-code: #e8e8e8;
+            --accent-blue: #4A90E2;
+            --accent-yellow: #F5A623;
+            --accent-green: #7ED321;
+            --accent-purple: #BD10E0;
+            --accent-red: #D0021B;
+            --border-color: #2a2a2a;
+            --border-hover: #404040;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-light: 0 4px 16px rgba(0, 0, 0, 0.2);
+            --gradient-bg: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f0f0f 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+            background: var(--gradient-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 420px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: var(--shadow);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .timeline-container {
+            padding: 20px;
+            padding-bottom: 140px;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 49px;
+            top: 0;
+            bottom: 140px;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, var(--border-color) 10%, var(--border-color) 90%, transparent);
+            border-radius: 1px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            position: relative;
+            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .time-label {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            width: 38px;
+            text-align: right;
+            margin-right: 22px;
+            margin-top: 14px;
+            letter-spacing: 0.5px;
+            font-variant-numeric: tabular-nums;
+            position: relative;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 18px;
+            position: relative;
+            z-index: 2;
+            font-size: 16px;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-light);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 2px solid transparent;
+        }
+
+        .activity-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: var(--shadow);
+        }
+
+        .activity-icon.user { 
+            background: var(--bg-card); 
+            border-color: var(--border-color);
+        }
+        .activity-icon.ai { 
+            background: var(--bg-card); 
+            border-color: var(--border-color);
+        }
+        .activity-icon.error { 
+            background: var(--bg-card); 
+            border-color: var(--accent-red);
+        }
+        .activity-icon.success { 
+            background: var(--bg-card); 
+            border-color: var(--accent-green);
+        }
+        .activity-icon.warning { 
+            background: var(--bg-card); 
+            border-color: var(--accent-yellow);
+        }
+        .activity-icon.info { 
+            background: var(--bg-card); 
+            border-color: var(--accent-blue);
+        }
+
+        .activity-content {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .activity-content:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-light);
+            transform: translateY(-2px);
+        }
+
+        .activity-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            line-height: 1.4;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .activity-message {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 0;
+        }
+
+        .ai-response {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .formatted-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .formatted-text h1, .formatted-text h2, .formatted-text h3 {
+            color: var(--text-primary);
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+        }
+
+        .formatted-text h1 { font-size: 18px; }
+        .formatted-text h2 { font-size: 16px; }
+        .formatted-text h3 { font-size: 15px; }
+
+        .formatted-text p {
+            margin: 12px 0;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .formatted-text ul, .formatted-text ol {
+            margin: 12px 0;
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        .formatted-text li {
+            margin: 6px 0;
+            line-height: 1.6;
+        }
+
+        .formatted-text strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .formatted-text em {
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        .data-file {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            width: 90%;
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+            color: var(--text-code);
+            position: relative;
+            box-shadow: var(--shadow-light);
+        }
+
+        .data-file::before {
+            content: 'social_data.txt';
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+
+        .formatted-text blockquote {
+            border-left: 3px solid var(--border-color);
+            padding-left: 16px;
+            margin: 16px 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+            background: rgba(208, 2, 27, 0.1);
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent-red);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .explanation-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
+        .explanation-toggle:hover {
+            background: var(--bg-code);
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .explanation-content {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-code);
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            line-height: 1.5;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .explanation-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .explanation-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .explanation-content::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .explanation-content.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-section {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 420px;
+            background: linear-gradient(to top, var(--bg-secondary) 80%, transparent);
+            padding: 20px;
+            backdrop-filter: blur(30px);
+            border-top: 1px solid var(--border-color);
+            z-index: 1000;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 8px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-light);
+            position: relative;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+        }
+
+        .message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 14px 18px;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            resize: none;
+            max-height: 120px;
+            min-height: 24px;
+            font-family: inherit;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        .message-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .send-button {
+            background: var(--bg-input);
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 18px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: var(--bg-code);
+            transform: scale(1.05);
+            box-shadow: var(--shadow);
+        }
+
+        .send-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            background: var(--bg-input);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            gap: 3px;
+        }
+
+        .loading-dots span {
+            width: 5px;
+            height: 5px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 2px;
+        }
+
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.14s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.07s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+            40% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        .message-status {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 480px) {
+            .app-container {
+                max-width: 100%;
+                border-left: none;
+                border-right: none;
+                box-shadow: none;
+            }
+            
+            .input-section {
+                max-width: 100%;
+                padding: 16px;
+            }
+
+            .timeline-container {
+                padding: 16px;
+                padding-bottom: 140px;
+            }
+
+            .activity-item {
+                margin-bottom: 24px;
+            }
+
+            .time-label {
+                font-size: 11px;
+                width: 32px;
+                margin-right: 16px;
+            }
+
+            .activity-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+                margin-right: 14px;
+            }
+
+            .activity-content {
+                padding: 16px;
+            }
+
+            .activity-title {
+                font-size: 15px;
+            }
+
+            .activity-message, .ai-response {
+                font-size: 13px;
+            }
+
+            .timeline::before {
+                left: 40px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .timeline-container {
+                padding: 12px;
+                padding-bottom: 140px;
+            }
+
+            .input-section {
+                padding: 12px;
+            }
+
+            .activity-content {
+                padding: 14px;
+            }
+
+            .message-input {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            .send-button {
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="app-container">
-    <div id="map"></div>
-    <div id="streetview-container">
-      <iframe id="streetview"></iframe>
-    </div>
-    <div id="info-panel">
-      <div id="search-container">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="text" id="search-input" placeholder="New search" />
-      </div>
-      <div id="image-preview">
-        <img id="preview-img" src="" style="display: none;" />
-        <div id="upload-overlay">
-          <svg id="upload-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
-          </svg>
-          <p id="upload-text">Click to upload an image</p>
+    <div class="app-container">
+        <div class="timeline-container">
+            <div class="timeline" id="timeline">
+                <div class="empty-state" id="emptyState">
+                    <i class="bi bi-search"></i>
+                    <h3>Start Your OSINT Search</h3>
+                    <p>Enter a query to begin searching social media for open-source intelligence.</p>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="location-info">
-        <div class="location-label">Detail</div>
-        <div class="location-value" id="detail-value">unknown</div>
-        <div class="location-label">Negara</div>
-        <div class="location-value" id="country-value">unknown</div>
-        <div class="location-label">Kota</div>
-        <div class="location-value" id="city-value">unknown</div>
-        <div class="location-label">Kordinator</div>
-        <div class="location-value" id="coord-value">unknown</div>
-        <div class="location-label">Analisis</div>
-        <div id="analysis-results">No analysis available</div>
-      </div>
-      <div id="action-buttons">
-        <div class="action-btn" id="map-btn">Map</div>
-        <div class="action-btn" id="share-geospy">Street View</div>
-      </div>
+
+        <div class="input-section">
+            <div class="typing-indicator" id="typingIndicator">
+                <span>AI is searching</span>
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <textarea 
+                    class="message-input" 
+                    placeholder="Enter your OSINT query..." 
+                    id="messageInput"
+                    rows="1"></textarea>
+                <button class="send-button" id="sendBtn">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
     </div>
-    <div id="geolocation-panel">
-      <div id="city-search-container">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
-        <input type="text" id="city-search-input" placeholder="Select city for AI focus" />
-      </div>
-      <div class="city-info">
-        <div class="city-label">Selected City</div>
-        <div class="city-value" id="selected-city">None</div>
-      </div>
-    </div>
-    <div class="floating-info" id="location-name">
-      <div class="title">Geolocation SPY</div>
-    </div>
-    <div id="neighborhood-info">sweet geolocation</div>
-  </div>
-  <input type="file" id="file-input" accept="image/*" />
-  <div id="loading-overlay" class="loading-overlay" style="display: none;">
-    <div class="loading-spinner"></div>
-  </div>
 
-  <script>
-    const MAPBOX_TOKEN = "pk.eyJ1IjoiYXZpb3BvcnRvbGFubyIsImEiOiJja212cmRrd2QwN3dzMnZuMXV2d25xbWsxIn0.x3y36v9arY9wmBOCZlCXUA";
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    const GEMINI_API_KEY = "AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI"; // Replace with your actual Gemini API key
+    <script>
+        class OSINTTracker {
+            constructor() {
+                this.messageInput = document.getElementById('messageInput');
+                this.sendBtn = document.getElementById('sendBtn');
+                this.timeline = document.getElementById('timeline');
+                this.emptyState = document.getElementById('emptyState');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                this.messageCount = 0;
+                this.conversations = [];
+                
+                this.init();
+            }
 
-    const map = new mapboxgl.Map({
-      container: "map",
-      style: "mapbox://styles/mapbox/dark-v10",
-      center: [0, 0],
-      zoom: 2,
-      pitch: 0,
-    });
+            init() {
+                this.bindEvents();
+                this.autoResizeTextarea();
+                this.messageInput.focus();
+            }
 
-    let trackingMarker = null;
-    let lastMatchedCoord = { lat: 0, lng: 0 };
-    let selectedCity = null;
+            bindEvents() {
+                this.sendBtn.addEventListener('click', () => this.sendQuery());
+                
+                this.messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendQuery();
+                    }
+                });
 
-    const fileInput = document.getElementById("file-input");
-    const previewImg = document.getElementById("preview-img");
-    const uploadOverlay = document.getElementById("upload-overlay");
-    const loadingOverlay = document.getElementById("loading-overlay");
-    const citySearchInput = document.getElementById("city-search-input");
-    const selectedCityDisplay = document.getElementById("selected-city");
-    const analysisResults = document.getElementById("analysis-results");
+                this.messageInput.addEventListener('input', () => {
+                    this.autoResizeTextarea();
+                    this.updateSendButton();
+                });
 
-    // Image Analysis Module
-    const ImageAnalyzer = {
-      analyzeElements(data) {
-        // Simulated analysis of image elements (trees, buildings, etc.)
-        // In practice, this would be part of the Gemini API response parsing
-        const elements = {
-          trees: data.trees || { count: 0, types: [] },
-          buildings: data.buildings || { count: 0, types: [] },
-          landmarks: data.landmarks || { count: 0, names: [] },
-          roads: data.roads || { count: 0, types: [] },
-          other: data.other || []
-        };
-        return `
-          <b>Trees:</b> ${elements.trees.count} (${elements.trees.types.join(", ") || "none"})<br>
-          <b>Buildings:</b> ${elements.buildings.count} (${elements.buildings.types.join(", ") || "none"})<br>
-          <b>Landmarks:</b> ${elements.landmarks.count} (${elements.landmarks.names.join(", ") || "none"})<br>
-          <b>Roads:</b> ${elements.roads.count} (${elements.roads.types.join(", ") || "none"})<br>
-          <b>Other:</b> ${elements.other.join(", ") || "none"}
-        `;
-      }
-    };
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.explanation-toggle')) {
+                        e.stopPropagation();
+                        this.toggleExplanation(e.target.closest('.explanation-toggle'));
+                    }
+                });
 
-    function imageToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
+                window.addEventListener('resize', () => {
+                    this.scrollToBottom();
+                });
+            }
 
-    async function analyzePhotoWithGemini(photoBlob) {
-      try {
-        const base64Image = await imageToBase64(photoBlob);
-        const cityContext = selectedCity ? `Focus analysis on ${selectedCity} for higher accuracy.` : "";
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    {
-                      text: `${cityContext} Analyze this image in detail and provide location information along with a comprehensive analysis of elements present. Return the response in JSON format with the following fields:
-                      - latitude: The latitude of the location.
-                      - longitude: The longitude of the location.
-                      - city: The city name.
-                      - country: The country name.
-                      - description: A detailed description of the location.
-                      - analysis: An object containing:
-                        - trees: { count: number, types: array of strings }
-                        - buildings: { count: number, types: array of strings }
-                        - landmarks: { count: number, names: array of strings }
-                        - roads: { count: number, types: array of strings }
-                        - other: array of strings for other notable elements
-                      Ensure the analysis includes identification of trees (type, count), buildings (type, count), landmarks (name, count), roads (type, count), and any other notable features like vehicles, signs, or natural elements.`
-                    },
-                    {
-                      inlineData: {
-                        mimeType: photoBlob.type,
-                        data: base64Image,
-                      },
-                    },
-                  ],
-                },
-              ],
-            }),
-          }
-        );
+            autoResizeTextarea() {
+                this.messageInput.style.height = 'auto';
+                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 120) + 'px';
+            }
 
-        if (!response.ok) {
-          throw new Error(`Gemini API error: ${response.statusText}`);
+            updateSendButton() {
+                const hasText = this.messageInput.value.trim().length > 0;
+                this.sendBtn.style.opacity = hasText ? '1' : '0.6';
+            }
+
+            generateUniqueTime() {
+                const now = new Date();
+                const baseTime = now.getTime();
+                const randomOffset = Math.floor(Math.random() * 300000);
+                const adjustedTime = new Date(baseTime + randomOffset);
+                
+                return adjustedTime.toLocaleTimeString('en-US', { 
+                    hour12: false, 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
+
+            async sendQuery() {
+                const query = this.messageInput.value.trim();
+                if (!query || this.sendBtn.disabled) return;
+
+                this.hideEmptyState();
+                
+                const userTime = this.generateUniqueTime();
+                this.addActivityToTimeline('You', query, 'user', userTime);
+                
+                this.messageInput.value = '';
+                this.autoResizeTextarea();
+                this.updateSendButton();
+                this.setLoading(true);
+                this.showTypingIndicator();
+
+                try {
+                    const response = await fetch('/api/search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`HTTP ${response.status}: ${errorData.message || 'Unknown error'}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.response) {
+                        const aiResponse = data.response;
+                        const aiTime = this.generateUniqueTime();
+                        this.addActivityToTimeline('OSINT Assistant', aiResponse, 'ai', aiTime);
+                        
+                        this.conversations.push({
+                            user: query,
+                            ai: aiResponse,
+                            timestamp: new Date().toISOString()
+                        });
+                    } else {
+                        throw new Error('Invalid response format from server');
+                    }
+
+                } catch (error) {
+                    console.error('Error calling search API:', error);
+                    
+                    let errorMessage = 'Failed to retrieve OSINT data. ';
+                    if (error.message.includes('401') || error.message.includes('403')) {
+                        errorMessage += 'Authentication error. Please check server configuration.';
+                    } else if (error.message.includes('429')) {
+                        errorMessage += 'Rate limit exceeded. Please try again in a moment.';
+                    } else if (error.message.includes('400')) {
+                        errorMessage += 'Invalid query format.';
+                    } else {
+                        errorMessage += 'Please try again later.';
+                    }
+                    
+                    const errorTime = this.generateUniqueTime();
+                    this.addActivityToTimeline('System Error', errorMessage, 'error', errorTime);
+                } finally {
+                    this.setLoading(false);
+                    this.hideTypingIndicator();
+                    this.messageInput.focus();
+                }
+            }
+
+            formatText(text) {
+                let formatted = text;
+                
+                formatted = formatted.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+                formatted = formatted.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+                formatted = formatted.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+                
+                formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                formatted = formatted.replace(/```[\s\S]*?```/g, (match) => {
+                    return `<div class="data-file">${this.escapeHtml(match.replace(/```/g, ''))}</div>`;
+                });
+                formatted = formatted.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+                
+                formatted = formatted.replace(/^\* (.*$)/gm, '<li>$1</li>');
+                formatted = formatted.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
+                
+                formatted = formatted.replace(/(<li>.*<\/li>)/gs, (match) => {
+                    return `<ul>${match}</ul>`;
+                });
+                
+                formatted = formatted.replace(/\n\n/g, '</p><p>');
+                formatted = `<p>${formatted}</p>`;
+                
+                formatted = formatted.replace(/<p><\/p>/g, '');
+                
+                return formatted;
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            scrollToBottom() {
+                const timelineContainer = this.timeline.parentElement;
+                timelineContainer.scrollTo({
+                    top: timelineContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+
+            addActivityToTimeline(title, content, type = 'message', customTime = null) {
+                this.messageCount++;
+                
+                const timeToUse = customTime || this.generateUniqueTime();
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                let iconClass;
+                switch (type) {
+                    case 'user':
+                        iconClass = 'bi bi-person-circle';
+                        break;
+                    case 'ai':
+                        iconClass = 'bi bi-robot';
+                        break;
+                    case 'error':
+                        iconClass = 'bi bi-exclamation-triangle-fill';
+                        break;
+                    case 'success':
+                        iconClass = 'bi bi-check-circle-fill';
+                        break;
+                    case 'warning':
+                        iconClass = 'bi bi-exclamation-circle-fill';
+                        break;
+                    case 'info':
+                        iconClass = 'bi bi-info-circle-fill';
+                        break;
+                    default:
+                        iconClass = 'bi bi-search';
+                }
+
+                let formattedContent;
+                if (type === 'ai') {
+                    formattedContent = `<div class="ai-response formatted-text">${this.formatText(content)}</div>`;
+                } else if (type === 'error') {
+                    formattedContent = `<div class="error-message">${this.escapeHtml(content)}</div>`;
+                } else {
+                    formattedContent = `<p class="activity-message">${this.escapeHtml(content)}</p>`;
+                }
+
+                activityItem.innerHTML = `
+                    <div class="time-label">${timeToUse}</div>
+                    <div class="activity-icon ${type}">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${this.escapeHtml(title)}</div>
+                        ${formattedContent}
+                        ${type === 'ai' ? `
+                            <button class="explanation-toggle">
+                                <i class="bi bi-info-circle"></i>
+                                Show Explanation
+                            </button>
+                            <div class="explanation-content">
+                                This response was generated based on your query and scraped social media data from Bing and DuckDuckGo, processed by AI for clarity and relevance.
+                            </div>
+                        ` : ''}
+                        <div class="message-status">
+                            <i class="bi bi-check2-all status-icon"></i>
+                            ${type === 'user' ? 'Sent' : 'Delivered'}
+                        </div>
+                    </div>
+                `;
+
+                this.timeline.appendChild(activityItem);
+                this.scrollToBottom();
+            }
+
+            toggleExplanation(toggleButton) {
+                const explanationContent = toggleButton.nextElementSibling;
+                const isVisible = explanationContent.classList.contains('visible');
+                
+                explanationContent.classList.toggle('visible');
+                toggleButton.innerHTML = `
+                    <i class="bi bi-info-circle"></i>
+                    ${isVisible ? 'Show' : 'Hide'} Explanation
+                `;
+            }
+
+            setLoading(loading) {
+                this.sendBtn.disabled = loading;
+                this.messageInput.disabled = loading;
+                
+                if (loading) {
+                    this.sendBtn.innerHTML = `
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    `;
+                } else {
+                    this.sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+                }
+            }
+
+            showTypingIndicator() {
+                this.typingIndicator.classList.add('active');
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                this.typingIndicator.classList.remove('active');
+            }
+
+            hideEmptyState() {
+                if (this.emptyState && this.emptyState.style.display !== 'none') {
+                    this.emptyState.style.display = 'none';
+                }
+            }
         }
 
-        const data = await response.json();
-        let resultText = data.candidates[0].content.parts[0].text;
-
-        // Clean Markdown code blocks
-        resultText = resultText.replace(/```json\n|\n```/g, '').trim();
-
-        // Parse the cleaned JSON
-        let locationData;
-        try {
-          locationData = JSON.parse(resultText);
-        } catch (parseError) {
-          console.error("Failed to parse Gemini response as JSON:", parseError);
-          throw new Error("Invalid JSON response from Gemini API");
-        }
-
-        // Validate required fields
-        if (!locationData.latitude || !locationData.longitude) {
-          throw new Error("Missing latitude or longitude in Gemini response");
-        }
-
-        return {
-          lat: parseFloat(locationData.latitude) || 0,
-          lng: parseFloat(locationData.longitude) || 0,
-          city: locationData.city || "unknown",
-          country: locationData.country || "unknown",
-          description: locationData.description || "unknown",
-          analysis: locationData.analysis || {}
-        };
-      } catch (error) {
-        console.error("Error analyzing photo with Gemini:", error);
-        alert("Failed to analyze image with Gemini API. Using default location.");
-        return {
-          lat: 0,
-          lng: 0,
-          city: "unknown",
-          country: "unknown",
-          description: "unknown",
-          analysis: {}
-        };
-      }
-    }
-
-    async function reverseGeocode(lat, lng) {
-      try {
-        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`;
-        const res = await fetch(endpoint);
-        const data = await res.json();
-        let detail = "unknown", country = "unknown", city = "unknown";
-        if (data.features && data.features.length > 0) {
-          detail = data.features[0].place_name || "unknown";
-          data.features.forEach(f => {
-            if (f.place_type.includes("country")) country = f.text;
-            if (f.place_type.includes("place")) city = f.text;
-          });
-        }
-        return { detail, country, city };
-      } catch (error) {
-        console.error("Error in reverse geocoding:", error);
-        return { detail: "unknown", country: "unknown", city: "unknown" };
-      }
-    }
-
-    async function searchCity(query) {
-      try {
-        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&types=place`;
-        const res = await fetch(endpoint);
-        const data = await res.json();
-        if (data.features && data.features.length > 0) {
-          const city = data.features[0].text;
-          selectedCity = city;
-          selectedCityDisplay.textContent = city;
-          return city;
-        }
-        return null;
-      } catch (error) {
-        console.error("Error searching city:", error);
-        return null;
-      }
-    }
-
-    document.getElementById("image-preview").addEventListener("click", () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      loadingOverlay.style.display = "flex";
-
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        const imageData = evt.target.result;
-        previewImg.src = imageData;
-        previewImg.style.display = "block";
-        uploadOverlay.classList.add("hidden");
-
-        const locationData = await analyzePhotoWithGemini(file);
-        lastMatchedCoord = { lat: locationData.lat, lng: locationData.lng };
-
-        let info = {
-          detail: locationData.description,
-          country: locationData.country,
-          city: locationData.city,
-        };
-
-        if (info.detail === "unknown" || info.country === "unknown" || info.city === "unknown") {
-          const geocodedInfo = await reverseGeocode(locationData.lat, locationData.lng);
-          info = {
-            detail: info.detail !== "unknown" ? info.detail : geocodedInfo.detail,
-            country: info.country !== "unknown" ? info.country : geocodedInfo.country,
-            city: info.city !== "unknown" ? info.city : geocodedInfo.city,
-          };
-        }
-
-        document.getElementById("detail-value").textContent = info.detail;
-        document.getElementById("country-value").textContent = info.country;
-        document.getElementById("city-value").textContent = info.city;
-        document.getElementById("coord-value").textContent =
-          locationData.lat.toFixed(5) + ", " + locationData.lng.toFixed(5);
-        analysisResults.innerHTML = ImageAnalyzer.analyzeElements(locationData.analysis);
-
-        if (trackingMarker) trackingMarker.remove();
-        const markerEl = document.createElement("img");
-        markerEl.src = imageData;
-        markerEl.style.width = "60px";
-        markerEl.style.height = "60px";
-        markerEl.style.borderRadius = "50%";
-        markerEl.style.border = "2px solid white";
-        trackingMarker = new mapboxgl.Marker(markerEl)
-          .setLngLat([locationData.lng, locationData.lat])
-          .addTo(map);
-        map.flyTo({
-          center: [locationData.lng, locationData.lat],
-          zoom: 14,
-          essential: true,
-        });
-
-        loadingOverlay.style.display = "none";
-      };
-      reader.readAsDataURL(file);
-    });
-
-    citySearchInput.addEventListener("change", async (e) => {
-      const query = e.target.value.trim();
-      if (query) {
-        const city = await searchCity(query);
-        if (city) {
-          alert(`AI focus set to ${city} for enhanced accuracy.`);
-        } else {
-          alert("City not found.");
-        }
-      }
-    });
-
-    document.getElementById("map-btn").addEventListener("click", () => {
-      document.getElementById("streetview-container").style.display = "none";
-      document.getElementById("map").style.display = "block";
-    });
-
-    document.getElementById("share-geospy").addEventListener("click", () => {
-      const lat = lastMatchedCoord.lat;
-      const lng = lastMatchedCoord.lng;
-      const streetViewUrl = `https://www.google.com/maps/embed?pb=!4v0!6m8!1m7!1sCAoSLEFGMVFpcE1pVUlONllYeXpHdXVpUjd4cjlHcWxGQVZ2cnlyT1I5NmFwTE9B!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`;
-      document.getElementById("streetview").src = streetViewUrl;
-      document.getElementById("streetview-container").style.display = "block";
-      document.getElementById("map").style.display = "none";
-    });
-  </script>
+        const tracker = new OSINTTracker();
+    </script>
 </body>
 </html>
-
