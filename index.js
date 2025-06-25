@@ -1,60 +1,63 @@
-const { Client, GatewayIntentBits, EmbedBuilder, SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
+const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { Agent } = require('https');
-const fs = require('fs').promises;
-const path = require('path');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
-// Initialize Discord client
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
-});
+const app = express();
 
-// Discord Token (REGENERATE AND MOVE TO ENV)
-const DISCORD_TOKEN = 'MTMxMzMwMjY3NzgyMzgxNTc1MQ.GK_Azd.dNfw2K8tRNcC_ca2KT8mkCIenQosapfNrw_HWk'; // Replace with new token
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public')); // Serve static files (UI)
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per window
+  })
+);
 
-// Extensive military-grade user agents
+// Expanded user agents
 const userAgents = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0 (Military-Grade-Browser/1.0)',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15 (MIL-STD-810G/1.1)',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 (Secure-Agent/2.0)',
-  'Mozilla/5.0 (iPhone14,2; U; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1 (MIL-OPS/3.0)',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0 (Tactical-Browser/4.0)',
-  'Mozilla/5.0 (Android 13; Mobile; rv:126.0) Gecko/126.0 Firefox/126.0 (Field-Unit/5.0)',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+  'Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+  'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+  'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/121.0.0.0',
+  'Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+  'Mozilla/5.0 (Android 14; Mobile; rv:122.0) Gecko/122.0 Firefox/122.0',
 ];
 
 const getRandomUserAgent = () => userAgents[Math.floor(Math.random() * userAgents.length)];
 
-// Military-grade complex headers
+// Advanced headers
 const getHeaders = () => ({
   'User-Agent': getRandomUserAgent(),
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-  'Accept-Language': 'en-US,en;q=0.9,de;q=0.8,fr;q=0.7',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.7',
   'Accept-Encoding': 'gzip, deflate, br',
   'Connection': 'keep-alive',
   'Upgrade-Insecure-Requests': '1',
   'Sec-Fetch-Dest': 'document',
   'Sec-Fetch-Mode': 'navigate',
-  'Sec-Fetch-Site': 'cross-site',
+  'Sec-Fetch-Site': 'none',
   'Sec-Fetch-User': '?1',
-  'Cache-Control': 'no-cache, no-store, must-revalidate',
+  'Cache-Control': 'no-cache',
   'Pragma': 'no-cache',
-  'Referer': 'https://www.google.com/',
-  'DNT': '1',
-  'TE': 'trailers',
-  'X-Forwarded-For': `192.168.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`, // Spoof IP
-  'X-Requested-With': 'XMLHttpRequest',
-  'Authorization': 'Bearer MIL-SEC-TOKEN-2025', // Placeholder, replace with real if needed
-  'Cookie': `session_id=${Math.random().toString(36).substring(2, 15)}; secure=true`, // Dynamic session
+  'DNT': '1', // Do Not Track
+  'Sec-Ch-Ua': `"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"`,
+  'Sec-Ch-Ua-Mobile': '?0',
+  'Sec-Ch-Ua-Platform': '"Windows"',
 });
 
+// HTTPS agent
 const httpsAgent = new Agent({
   keepAlive: true,
-  maxSockets: 10,
+  maxSockets: 15,
   rejectUnauthorized: false,
 });
 
@@ -62,173 +65,118 @@ const axiosInstance = axios.create({
   httpsAgent,
   timeout: 20000,
   headers: getHeaders(),
-  maxRedirects: 5,
 });
 
-async function scrapeSocialMediaFromEngines(query) {
+// Scrape Bing for username
+async function scrapeBing(username) {
   try {
-    const platforms = ['x.com', 'facebook.com', 'linkedin.com', 'instagram.com', 'twitter.com'];
-    const socialResults = [];
-    const profileImages = [];
-    let phone = null;
-    let email = null;
+    const url = `https://www.bing.com/search?q=${encodeURIComponent(`"${username}" site:*.com`)}`;
+    const response = await axiosInstance.get(url);
+    const $ = cheerio.load(response.data);
 
-    for (const platform of platforms) {
-      // Bing search
-      const bingUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}+site:${platform}`;
-      const bingResponse = await axiosInstance.get(bingUrl);
-      const $bing = cheerio.load(bingResponse.data);
-
-      $bing('li.b_algo').each((i, elem) => {
-        const title = $bing(elem).find('h2').text().trim().substring(0, 100);
-        const link = $bing(elem).find('a').attr('href');
-        const snippet = $bing(elem).find('.b_caption p').text().trim().substring(0, 200);
-        if (title && link && snippet) {
-          socialResults.push({ platform, title, link, snippet });
-        }
-      });
-
-      $bing('img').each((i, elem) => {
-        const src = $bing(elem).attr('src');
-        if (src && src.includes('/profile/') && src.startsWith('http')) {
-          profileImages.push(src);
-        }
-      });
-
-      // DuckDuckGo search
-      const duckUrl = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}+site:${platform}`;
-      const duckResponse = await axiosInstance.get(duckUrl);
-      const $duck = cheerio.load(duckResponse.data);
-
-      $duck('div.result').each((i, elem) => {
-        const title = $duck(elem).find('h2.result__title').text().trim().substring(0, 100);
-        const link = $duck(elem).find('a.result__url').attr('href');
-        const snippet = $duck(elem).find('div.result__snippet').text().trim().substring(0, 200);
-        if (title && link && snippet) {
-          socialResults.push({ platform, title, link, snippet });
-        }
-      });
-
-      $duck('img').each((i, elem) => {
-        const src = $duck(elem).attr('src');
-        if (src && src.includes('/profile/') && src.startsWith('http')) {
-          profileImages.push(src);
-        }
-      });
-    }
-
-    // Deep search for phone and email
-    const deepBingUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}+phone+email+site:${platforms.join('|')}`;
-    const deepResponse = await axiosInstance.get(deepBingUrl);
-    const $deep = cheerio.load(deepResponse.data);
-    $deep('p').each((i, elem) => {
-      const text = $deep(elem).text().trim();
-      const phoneMatch = text.match(/\+?\d{10,15}/);
-      const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-      if (phoneMatch && !phone) phone = phoneMatch[0];
-      if (emailMatch && !email) email = emailMatch[0];
+    const results = [];
+    $('li.b_algo').each((i, elem) => {
+      const title = $(elem).find('h2').text().trim().slice(0, 256);
+      const link = $(elem).find('a').attr('href');
+      const snippet = $(elem).find('.b_caption p').text().trim().slice(0, 1024);
+      if (title && link && snippet) {
+        results.push({ title, link, snippet, platform: 'Web' });
+      }
     });
 
-    return { socialResults, profileImages, phone, email };
+    return results;
   } catch (error) {
-    console.error('Social media scraping error:', error.message);
-    return { socialResults: [], profileImages: [], phone: null, email: null };
+    console.error('Bing scraping error:', error.message);
+    return [];
   }
 }
 
-async function saveImage(url, query, type = 'profile') {
+// Scrape DuckDuckGo for username
+async function scrapeDuckDuckGo(username) {
   try {
-    const response = await axiosInstance.get(url, { responseType: 'arraybuffer', maxContentLength: 5e6 });
-    const imageName = `${query}_${type}_${Date.now()}.jpg`;
-    const imagePath = path.join(__dirname, 'images', imageName);
-    await fs.mkdir(path.join(__dirname, 'images'), { recursive: true });
-    await fs.writeFile(imagePath, response.data);
-    return imagePath;
+    const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(`"${username}"`)}`;
+    const response = await axiosInstance.get(url);
+    const $ = cheerio.load(response.data);
+
+    const results = [];
+    $('div.result').each((i, elem) => {
+      const title = $(elem).find('h2.result__title').text().trim().slice(0, 256);
+      const link = $(elem).find('a.result__url').attr('href');
+      const snippet = $(elem).find('div.result__snippet').text().trim().slice(0, 1024);
+      if (title && link && snippet) {
+        results.push({ title, link, snippet, platform: 'Web' });
+      }
+    });
+
+    return results;
   } catch (error) {
-    console.error('Image download error:', error.message);
-    return null;
+    console.error('DuckDuckGo scraping error:', error.message);
+    return [];
   }
 }
 
-// Register slash command
-const commands = [
-  new SlashCommandBuilder()
-    .setName('osint')
-    .setDescription('Perform a deep OSINT social media search')
-    .addStringOption(option =>
-      option.setName('query')
-        .setDescription('The search query')
-        .setRequired(true))
-    .toJSON(),
-];
-
-client.once('ready', async () => {
-  console.log(`Logged in as ${client.user.tag} at ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })}`);
+// Scrape social media platforms (X, GitHub, Reddit)
+async function scrapeSocialMedia(username) {
   try {
-    await client.application.commands.set(commands);
-    console.log('Slash commands registered');
-  } catch (error) {
-    console.error('Error registering commands:', error);
-  }
-});
+    const platforms = [
+      { name: 'X', query: `site:x.com "${username}"` },
+      { name: 'GitHub', query: `site:github.com "${username}"` },
+      { name: 'Reddit', query: `site:reddit.com "${username}"` },
+    ];
 
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+    const results = [];
+    for (const platform of platforms) {
+      const url = `https://www.bing.com/search?q=${encodeURIComponent(platform.query)}`;
+      const response = await axiosInstance.get(url);
+      const $ = cheerio.load(response.data);
 
-  if (interaction.commandName === 'osint') {
-    await interaction.deferReply();
-    const query = interaction.options.getString('query');
-
-    const embed = new EmbedBuilder()
-      .setColor('#0099ff')
-      .setTitle(`🕵️‍♂️ OSINT Social Media Report: ${query.substring(0, 100)}`)
-      .setDescription('Deep search results from social platforms.')
-      .setTimestamp()
-      .setFooter({ text: 'Generated by OSINT Bot' });
-
-    const socialData = await scrapeSocialMediaFromEngines(query);
-    if (socialData.socialResults.length > 0) {
-      socialData.socialResults.slice(0, 3).forEach((result, i) => {
-        const profileImagePath = socialData.profileImages[i] ? await saveImage(socialData.profileImages[i], query, 'profile') : null;
-        embed.addFields({
-          name: `${i + 1}. ${result.platform} - [${result.title.substring(0, 50)}](${result.link})`,
-          value: result.snippet.substring(0, 200),
-          inline: false,
-        });
-        if (profileImagePath) {
-          embed.data.fields[i].inline = true; // Adjust layout
-          embed.setAuthor({ name: result.platform, iconURL: `attachment://${path.basename(profileImagePath)}` });
+      $('li.b_algo').each((i, elem) => {
+        const title = $(elem).find('h2').text().trim().slice(0, 256);
+        const link = $(elem).find('a').attr('href');
+        const snippet = $(elem).find('.b_caption p').text().trim().slice(0, 1024);
+        if (title && link && snippet) {
+          results.push({ title, link, snippet, platform: platform.name });
         }
       });
     }
 
-    if (socialData.phone || socialData.email) {
-      embed.addFields({
-        name: '🔍 Deep Findings',
-        value: [
-          socialData.phone ? `📞 Phone: ${socialData.phone}` : '',
-          socialData.email ? `📧 Email: ${socialData.email}` : '',
-        ].filter(Boolean).join('\n').substring(0, 1024),
-        inline: false,
-      });
-    }
+    return results;
+  } catch (error) {
+    console.error('Social media scraping error:', error.message);
+    return [];
+  }
+}
 
-    const validImages = socialData.profileImages.slice(0, 3).map(img => saveImage(img, query, 'profile')).filter(p => p);
-    await interaction.editReply({ embeds: [embed] });
+// API endpoint for username search
+app.post('/api/search', async (req, res) => {
+  const { username } = req.body;
+  if (!username || typeof username !== 'string' || username.length < 3) {
+    return res.status(400).json({ error: 'Invalid username' });
+  }
 
-    if (validImages.length > 0) {
-      const attachments = validImages.map(img => new AttachmentBuilder(img, { name: path.basename(img) }));
-      await interaction.followUp({ files: attachments });
-    }
+  try {
+    const [bingResults, duckResults, socialResults] = await Promise.all([
+      scrapeBing(username),
+      scrapeDuckDuckGo(username),
+      scrapeSocialMedia(username),
+    ]);
+
+    const allResults = [...bingResults, ...duckResults, ...socialResults].slice(0, 20);
+    res.json({ results: allResults });
+  } catch (error) {
+    console.error('Search error:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Railway HTTP server
+// Serve UI
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+// Railway port binding
 const port = process.env.PORT || 3000;
-require('http').createServer((req, res) => {
-  res.writeHead(200);
-  res.end('OSINT Bot is running');
-}).listen(port, () => {
+app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
 
@@ -236,5 +184,3 @@ require('http').createServer((req, res) => {
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled promise rejection:', error);
 });
-
-client.login(DISCORD_TOKEN);
