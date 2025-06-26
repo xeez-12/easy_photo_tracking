@@ -14,7 +14,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1Cwxgj
 const PORT = process.env.PORT || 3000;
 
 // Expanded user-agent pool
-const userAgents = Array(10).fill().map(() => userAgent.random().toString()); // Dynamic generation
+const userAgents = Array(10).fill().map(() => userAgent.random().toString());
 
 // Simple logging function
 const log = (reqId, message, level = 'info') => {
@@ -39,13 +39,13 @@ function getRandomHeaders() {
     };
 }
 
-// Enhanced scraping with pagination and retries
+// Enhanced scraping with pagination
 async function scrapeSearchEngine(reqId, query, engine) {
     const results = new Set();
     const baseUrl = engine === 'bing' 
         ? 'https://www.bing.com/search?q='
         : 'https://duckduckgo.com/html/?q=';
-    const maxPages = 1; // Reduced to 1 page
+    const maxPages = 1; // Single page
     let currentPage = 1;
 
     while (currentPage <= maxPages) {
@@ -55,47 +55,50 @@ async function scrapeSearchEngine(reqId, query, engine) {
         try {
             const response = await axios.get(url, {
                 headers: getRandomHeaders(),
-                timeout: 20000, // Increased to 20 seconds
-                maxRedirects: 3,
-                // Optional proxy (uncomment and configure if needed)
-                // proxy: { protocol: 'http', host: 'proxy_host', port: 8080, auth: { username: 'user', password: 'pass' } }
+                timeout: 20000, // 20 seconds
+                maxRedirects: 3
             });
             const $ = cheerio.load(response.data);
 
             if (engine === 'bing') {
                 $('.b_algo').each((i, element) => {
-                    const title = $(element).find('h2 a').text().trim() || 'No title'; // Adjusted selector
+                    const title = $(element).find('h2 a').text().trim() || 'No title';
                     const link = $(element).find('a').attr('href') || '';
                     const snippet = $(element).find('.b_caption p').text().trim() || '';
-                    if (title && link && !link.includes('advertisement') && !results.has(link)) {
-                        results.add(link);
-                        results.add(JSON.stringify({ title, link, snippet }));
+                    if (title && link && !link.includes('advertisement')) {
+                        results.add(JSON.stringify({ title, link, snippet })); // Only add JSON
                     }
                 });
             } else {
                 $('.result__body').each((i, element) => {
-                    const title = $(element).find('.result__title a').text().trim() || 'No title'; // Adjusted selector
+                    const title = $(element).find('.result__title a').text().trim() || 'No title';
                     const link = $(element).find('.result__url').attr('href') || '';
                     const snippet = $(element).find('.result__snippet').text().trim() || '';
-                    if (title && link && !link.includes('ad') && !results.has(link)) {
-                        results.add(link);
-                        results.add(JSON.stringify({ title, link, snippet }));
+                    if (title && link && !link.includes('ad')) {
+                        results.add(JSON.stringify({ title, link, snippet })); // Only add JSON
                     }
                 });
             }
 
             log(reqId, `Successfully scraped ${engine} page ${currentPage}, results count: ${results.size}`, 'info');
             currentPage++;
-            await new Promise(resolve => setTimeout(resolve, 500)); // Reduced to 500ms
+            await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
         } catch (error) {
             log(reqId, `Error scraping ${engine} page ${currentPage}: ${error.message} (Status: ${error.response?.status})`, 'error');
-            break; // Exit on first error to avoid retries
+            break;
         }
     }
 
     const parsedResults = Array.from(results)
-        .filter(item => typeof item === 'string')
-        .map(item => JSON.parse(item))
+        .map(item => {
+            try {
+                return JSON.parse(item); // Parse only valid JSON
+            } catch (e) {
+                log(reqId, `Skipping invalid JSON: ${item}`, 'warn');
+                return null;
+            }
+        })
+        .filter(item => item !== null)
         .slice(0, 50);
     log(reqId, `Final ${engine} results count: ${parsedResults.length}`);
     return parsedResults;
