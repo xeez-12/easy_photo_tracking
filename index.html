@@ -647,7 +647,12 @@
                 this.typingIndicator = document.getElementById('typingIndicator');
                 this.messageCount = 0;
                 this.conversations = [];
-                
+
+                if (!this.messageInput || !this.sendBtn || !this.timeline || !this.emptyState || !this.typingIndicator) {
+                    console.error('One or more DOM elements not found');
+                    return;
+                }
+
                 this.init();
             }
 
@@ -673,9 +678,10 @@
                 });
 
                 document.addEventListener('click', (e) => {
-                    if (e.target.closest('.explanation-toggle')) {
+                    const toggleButton = e.target.closest('.explanation-toggle');
+                    if (toggleButton) {
                         e.stopPropagation();
-                        this.toggleExplanation(e.target.closest('.explanation-toggle'));
+                        this.toggleExplanation(toggleButton);
                     }
                 });
 
@@ -730,7 +736,7 @@
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
+                        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
                         throw new Error(`HTTP ${response.status}: ${errorData.message || 'Unknown error'}`);
                     }
 
@@ -774,7 +780,7 @@
             }
 
             formatText(text) {
-                let formatted = text;
+                let formatted = text || '';
                 
                 formatted = formatted.replace(/^### (.*$)/gm, '<h3>$1</h3>');
                 formatted = formatted.replace(/^## (.*$)/gm, '<h2>$1</h2>');
@@ -804,20 +810,22 @@
             }
 
             escapeHtml(unsafe) {
-                return unsafe
+                return (unsafe || '')
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#39;");
+                    .replace(/'/g, "&#039;");
             }
 
             scrollToBottom() {
-                const timelineContainer = this.timeline.parentElement;
-                timelineContainer.scrollTo({
-                    top: timelineContainer.scrollHeight,
-                    behavior: 'smooth'
-                });
+                const timelineContainer = this.timeline?.parentElement;
+                if (timelineContainer) {
+                    timelineContainer.scrollTo({
+                        top: timelineContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
             }
 
             addActivityToTimeline(title, content, type = 'message', customTime = null) {
@@ -884,19 +892,22 @@
                     </div>
                 `;
 
-                this.timeline.appendChild(activityItem);
-                this.scrollToBottom();
+                if (this.timeline) {
+                    this.timeline.appendChild(activityItem);
+                    this.scrollToBottom();
+                }
             }
 
             toggleExplanation(toggleButton) {
                 const explanationContent = toggleButton.nextElementSibling;
-                const isVisible = explanationContent.classList.contains('visible');
-                
-                explanationContent.classList.toggle('visible');
-                toggleButton.innerHTML = `
-                    <i class="bi bi-info-circle"></i>
-                    ${isVisible ? 'Show' : 'Hide'} Explanation
-                `;
+                if (explanationContent) {
+                    const isVisible = explanationContent.classList.contains('visible');
+                    explanationContent.classList.toggle('visible');
+                    toggleButton.innerHTML = `
+                        <i class="bi bi-info-circle"></i>
+                        ${isVisible ? 'Show' : 'Hide'} Explanation
+                    `;
+                }
             }
 
             setLoading(loading) {
@@ -917,12 +928,16 @@
             }
 
             showTypingIndicator() {
-                this.typingIndicator.classList.add('active');
-                this.scrollToBottom();
+                if (this.typingIndicator) {
+                    this.typingIndicator.classList.add('active');
+                    this.scrollToBottom();
+                }
             }
 
             hideTypingIndicator() {
-                this.typingIndicator.classList.remove('active');
+                if (this.typingIndicator) {
+                    this.typingIndicator.classList.remove('active');
+                }
             }
 
             hideEmptyState() {
