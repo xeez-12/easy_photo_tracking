@@ -46,7 +46,7 @@ function getRandomHeaders() {
 
 // Enhanced scraping with pagination and retries
 async function scrapeSearchEngine(query, engine, maxRetries = 3) {
-    const results = new Set(); // Use Set to avoid duplicates
+    const results = new Set();
     const baseUrl = engine === 'bing' 
         ? 'https://www.bing.com/search?q='
         : 'https://duckduckgo.com/html/?q=';
@@ -93,15 +93,15 @@ async function scrapeSearchEngine(query, engine, maxRetries = 3) {
                 }
 
                 currentPage++;
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Respect rate limits
-                break; // Exit retry loop on success
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                break;
             } catch (error) {
                 retryCount++;
                 console.error(`Error scraping ${engine} page ${currentPage} (attempt ${retryCount}):`, error.message);
                 if (retryCount === maxRetries || error.response?.status === 403) {
                     break;
                 }
-                await new Promise(resolve => setTimeout(resolve, 3000 * retryCount)); // Exponential backoff
+                await new Promise(resolve => setTimeout(resolve, 3000 * retryCount));
             }
         }
     }
@@ -109,9 +109,10 @@ async function scrapeSearchEngine(query, engine, maxRetries = 3) {
     return Array.from(results)
         .filter(item => typeof item === 'string')
         .map(item => JSON.parse(item))
-        .slice(0, 50); // Limit to 50 unique results
+        .slice(0, 50);
 }
 
+// Fixed processWithGemini function
 async function processWithGemini(query, scrapedData) {
     const prompt = `
         You are an advanced OSINT assistant specializing in analyzing publicly available data from web sources.
@@ -132,7 +133,7 @@ async function processWithGemini(query, scrapedData) {
         - Avoid speculation or unverified claims
 
         Format your response using markdown-style formatting for better readability. Wrap raw data in triple backticks (```) as a data file.
-    `;
+    `.trim(); // Added trim() to remove any trailing whitespace
 
     try {
         const response = await axios.post(
