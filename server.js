@@ -114,26 +114,23 @@ async function scrapeSearchEngine(query, engine, maxRetries = 3) {
 
 // Fixed processWithGemini function
 async function processWithGemini(query, scrapedData) {
-    const prompt = `
-        You are an advanced OSINT assistant specializing in analyzing publicly available data from web sources.
+    const scrapedDataJson = JSON.stringify(scrapedData, null, 2);
+    const prompt = `You are an advanced OSINT assistant specializing in analyzing publicly available data from web sources.
 
-        User query: ${query}
+User query: ${query}
 
-        Scraped data from Bing and DuckDuckGo:
-        \`\`\`
-        ${JSON.stringify(scrapedData, null, 2)}
-        \`\`\`
+Scraped data from Bing and DuckDuckGo:
+${scrapedDataJson}
 
-        Please provide a comprehensive, well-structured response with:
-        - Relevant findings from the scraped data
-        - Clear explanations of sources and their credibility
-        - Actionable insights or next steps for the user
-        - Use proper formatting with headings, bullet points, and emphasis where appropriate
-        - Be concise, factual, and ethical in handling sensitive information
-        - Avoid speculation or unverified claims
+Please provide a comprehensive, well-structured response with:
+- Relevant findings from the scraped data
+- Clear explanations of sources and their credibility
+- Actionable insights or next steps for the user
+- Use proper formatting with headings, bullet points, and emphasis where appropriate
+- Be concise, factual, and ethical in handling sensitive information
+- Avoid speculation or unverified claims
 
-        Format your response using markdown-style formatting for better readability. Wrap raw data in triple backticks (```) as a data file.
-    `.trim(); // Added trim() to remove any trailing whitespace
+Format your response using markdown-style formatting for better readability.`;
 
     try {
         const response = await axios.post(
