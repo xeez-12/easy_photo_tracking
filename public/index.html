@@ -3,951 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Tracker</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <title>OSINT Scraper</title>
     <style>
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #161616;
-            --bg-card: #1e1e1e;
-            --bg-input: #252525;
-            --bg-code: #141414;
-            --text-primary: #ffffff;
-            --text-secondary: #b8b8b8;
-            --text-muted: #888888;
-            --text-code: #e8e8e8;
-            --accent-blue: #4A90E2;
-            --accent-yellow: #F5A623;
-            --accent-green: #7ED321;
-            --accent-purple: #BD10E0;
-            --accent-red: #D0021B;
-            --border-color: #2a2a2a;
-            --border-hover: #404040;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            --shadow-light: 0 4px 16px rgba(0, 0, 0, 0.2);
-            --gradient-bg: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f0f0f 100%);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
-            background: var(--gradient-bg);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            min-height: 100vh;
-            line-height: 1.6;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
         }
-
-        .app-container {
-            max-width: 420px;
+        .container {
+            max-width: 800px;
             margin: 0 auto;
-            background: var(--bg-secondary);
-            min-height: 100vh;
-            position: relative;
-            box-shadow: var(--shadow);
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-        }
-
-        .timeline-container {
+            background: #fff;
             padding: 20px;
-            padding-bottom: 140px;
-            position: relative;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 49px;
-            top: 0;
-            bottom: 140px;
-            width: 2px;
-            background: linear-gradient(to bottom, transparent, var(--border-color) 10%, var(--border-color) 90%, transparent);
-            border-radius: 1px;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 32px;
-            position: relative;
-            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(24px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .time-label {
-            color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 600;
-            width: 38px;
-            text-align: right;
-            margin-right: 22px;
-            margin-top: 14px;
-            letter-spacing: 0.5px;
-            font-variant-numeric: tabular-nums;
-            position: relative;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 18px;
-            position: relative;
-            z-index: 2;
-            font-size: 16px;
-            color: var(--text-primary);
-            box-shadow: var(--shadow-light);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 2px solid transparent;
-        }
-
-        .activity-icon:hover {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: var(--shadow);
-        }
-
-        .activity-icon.user { 
-            background: var(--bg-card); 
-            border-color: var(--border-color);
-        }
-        .activity-icon.ai { 
-            background: var(--bg-card); 
-            border-color: var(--border-color);
-        }
-        .activity-icon.error { 
-            background: var(--bg-card); 
-            border-color: var(--accent-red);
-        }
-        .activity-icon.success { 
-            background: var(--bg-card); 
-            border-color: var(--accent-green);
-        }
-        .activity-icon.warning { 
-            background: var(--bg-card); 
-            border-color: var(--accent-yellow);
-        }
-        .activity-icon.info { 
-            background: var(--bg-card); 
-            border-color: var(--accent-blue);
-        }
-
-        .activity-content {
-            flex: 1;
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 20px;
-            position: relative;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(10px);
-            overflow: hidden;
-        }
-
-        .activity-content:hover {
-            border-color: var(--border-hover);
-            box-shadow: var(--shadow-light);
-            transform: translateY(-2px);
-        }
-
-        .activity-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-            line-height: 1.4;
-            letter-spacing: -0.2px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .activity-message {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.7;
-            margin-bottom: 0;
-        }
-
-        .ai-response {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .formatted-text {
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .formatted-text h1, .formatted-text h2, .formatted-text h3 {
-            color: var(--text-primary);
-            margin: 16px 0 8px 0;
-            font-weight: 600;
-        }
-
-        .formatted-text h1 { font-size: 18px; }
-        .formatted-text h2 { font-size: 16px; }
-        .formatted-text h3 { font-size: 15px; }
-
-        .formatted-text p {
-            margin: 12px 0;
-            line-height: 1.7;
-            color: var(--text-secondary);
-        }
-
-        .formatted-text ul, .formatted-text ol {
-            margin: 12px 0;
-            padding-left: 20px;
-            color: var(--text-secondary);
-        }
-
-        .formatted-text li {
-            margin: 6px 0;
-            line-height: 1.6;
-        }
-
-        .formatted-text strong {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .formatted-text em {
-            font-style: italic;
-            color: var(--text-secondary);
-        }
-
-        .data-file {
-            background: var(--bg-code);
-            border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 16px;
-            margin: 12px 0;
-            width: 90%;
-            font-family: 'SF Mono', monospace;
-            font-size: 13px;
-            color: var(--text-code);
-            position: relative;
-            box-shadow: var(--shadow-light);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-
-        .data-file::before {
-            content: 'social_data.txt';
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 12px;
+        .input-group {
+            margin-bottom: 20px;
         }
-
-        .formatted-text blockquote {
-            border-left: 3px solid var(--border-color);
-            padding-left: 16px;
-            margin: 16px 0;
-            color: var(--text-muted);
-            font-style: italic;
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
         }
-
-        .error-message {
-            color: var(--text-secondary);
-            background: rgba(208, 2, 27, 0.1);
-            padding: 16px;
-            border-radius: 12px;
-            border-left: 3px solid var(--accent-red);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .explanation-toggle {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 12px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            margin-top: 16px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            width: 100%;
-            text-align: left;
-        }
-
-        .explanation-toggle:hover {
-            background: var(--bg-code);
-            color: var(--text-primary);
-            border-color: var(--border-hover);
-            transform: translateY(-1px);
-        }
-
-        .explanation-content {
-            background: var(--bg-code);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 18px;
-            margin-top: 12px;
-            font-size: 13px;
-            color: var(--text-code);
-            max-height: 400px;
-            overflow-y: auto;
-            display: none;
-            line-height: 1.5;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border-color) transparent;
-        }
-
-        .explanation-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .explanation-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .explanation-content::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
-
-        .explanation-content.visible {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .input-section {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 420px;
-            background: linear-gradient(to top, var(--bg-secondary) 80%, transparent);
-            padding: 20px;
-            backdrop-filter: blur(30px);
-            border-top: 1px solid var(--border-color);
-            z-index: 1000;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 8px;
-            border: 2px solid var(--border-color);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: var(--shadow-light);
-            position: relative;
-        }
-
-        .input-wrapper:focus-within {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
-        }
-
-        .message-input {
-            flex: 1;
-            background: transparent;
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
             border: none;
-            padding: 14px 18px;
-            color: var(--text-primary);
-            font-size: 15px;
-            outline: none;
-            resize: none;
-            max-height: 120px;
-            min-height: 24px;
-            font-family: inherit;
-            line-height: 1.4;
-            font-weight: 400;
-        }
-
-        .message-input::placeholder {
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-
-        .send-button {
-            background: var(--bg-input);
-            border: none;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 0 4px 4px 0;
             cursor: pointer;
-            color: var(--text-primary);
-            font-size: 18px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: var(--shadow-light);
-            position: relative;
-            overflow: hidden;
         }
-
-        .send-button:hover:not(:disabled) {
-            background: var(--bg-code);
-            transform: scale(1.05);
-            box-shadow: var(--shadow);
+        button:hover {
+            background-color: #0056b3;
         }
-
-        .send-button:active:not(:disabled) {
-            transform: scale(0.95);
+        #results {
+            margin-top: 20px;
         }
-
-        .send-button:disabled {
-            background: var(--bg-input);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            opacity: 0.6;
+        .result-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
         }
-
-        .loading-dots {
-            display: inline-flex;
-            gap: 3px;
-        }
-
-        .loading-dots span {
-            width: 5px;
-            height: 5px;
-            background: var(--text-primary);
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1.2); opacity: 1; }
-        }
-
-        .empty-state {
+        .error {
+            color: red;
             text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
         }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state p {
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-muted);
-            font-size: 13px;
-            margin-bottom: 12px;
-        }
-
-        .typing-indicator.active {
-            display: flex;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 2px;
-        }
-
-        .typing-dots span {
-            width: 4px;
-            height: 4px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
-        }
-
-        .typing-dots span:nth-child(1) { animation-delay: -0.14s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.07s; }
-
-        @keyframes typingBounce {
-            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-            40% { transform: translateY(-4px); opacity: 1; }
-        }
-
-        .message-status {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .status-icon {
-            width: 12px;
-            height: 12px;
-        }
-
-        /* Mobile Optimizations */
-        @media (max-width: 480px) {
-            .app-container {
-                max-width: 100%;
-                border-left: none;
-                border-right: none;
-                box-shadow: none;
+        @media (max-width: 600px) {
+            input[type="text"] {
+                width: 60%;
             }
-            
-            .input-section {
-                max-width: 100%;
-                padding: 16px;
-            }
-
-            .timeline-container {
-                padding: 16px;
-                padding-bottom: 140px;
-            }
-
-            .activity-item {
-                margin-bottom: 24px;
-            }
-
-            .time-label {
-                font-size: 11px;
-                width: 32px;
-                margin-right: 16px;
-            }
-
-            .activity-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 14px;
-                margin-right: 14px;
-            }
-
-            .activity-content {
-                padding: 16px;
-            }
-
-            .activity-title {
-                font-size: 15px;
-            }
-
-            .activity-message, .ai-response {
-                font-size: 13px;
-            }
-
-            .timeline::before {
-                left: 40px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .timeline-container {
-                padding: 12px;
-                padding-bottom: 140px;
-            }
-
-            .input-section {
-                padding: 12px;
-            }
-
-            .activity-content {
-                padding: 14px;
-            }
-
-            .message-input {
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-
-            .send-button {
-                width: 44px;
-                height: 44px;
-                font-size: 16px;
+            button {
+                width: 40%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="timeline-container">
-            <div class="timeline" id="timeline">
-                <div class="empty-state" id="emptyState">
-                    <i class="bi bi-search"></i>
-                    <h3>Start Your OSINT Search</h3>
-                    <p>Enter a query to begin searching social media for open-source intelligence.</p>
-                </div>
-            </div>
+    <div class="container">
+        <h2>OSINT Scraper</h2>
+        <div class="input-group">
+            <input type="text" id="queryInput" placeholder="Enter search query (e.g., elonmusk)">
+            <button onclick="fetchData()">Search</button>
         </div>
-
-        <div class="input-section">
-            <div class="typing-indicator" id="typingIndicator">
-                <span>AI is searching</span>
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-            <div class="input-wrapper">
-                <textarea 
-                    class="message-input" 
-                    placeholder="Enter your OSINT query..." 
-                    id="messageInput"
-                    rows="1"></textarea>
-                <button class="send-button" id="sendBtn">
-                    <i class="bi bi-send-fill"></i>
-                </button>
-            </div>
-        </div>
+        <div id="results"></div>
     </div>
 
     <script>
-        class OSINTTracker {
-            constructor() {
-                this.messageInput = document.getElementById('messageInput');
-                this.sendBtn = document.getElementById('sendBtn');
-                this.timeline = document.getElementById('timeline');
-                this.emptyState = document.getElementById('emptyState');
-                this.typingIndicator = document.getElementById('typingIndicator');
-                this.messageCount = 0;
-                this.conversations = [];
+        async function fetchData() {
+            const query = document.getElementById('queryInput').value.trim();
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Loading...';
 
-                if (!this.messageInput || !this.sendBtn || !this.timeline || !this.emptyState || !this.typingIndicator) {
-                    console.error('One or more DOM elements not found');
-                    return;
+            if (!query) {
+                resultsDiv.innerHTML = '<p class="error">Please enter a query.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
-                this.init();
-            }
+                const data = await response.json();
+                if (data.message) {
+                    resultsDiv.innerHTML = `<p class="error">${data.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML = '';
+                    const { bing, duckduckgo } = data.data;
 
-            init() {
-                this.bindEvents();
-                this.autoResizeTextarea();
-                this.messageInput.focus();
-            }
-
-            bindEvents() {
-                this.sendBtn.addEventListener('click', () => this.sendQuery());
-                
-                this.messageInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        this.sendQuery();
-                    }
-                });
-
-                this.messageInput.addEventListener('input', () => {
-                    this.autoResizeTextarea();
-                    this.updateSendButton();
-                });
-
-                document.addEventListener('click', (e) => {
-                    const toggleButton = e.target.closest('.explanation-toggle');
-                    if (toggleButton) {
-                        e.stopPropagation();
-                        this.toggleExplanation(toggleButton);
-                    }
-                });
-
-                window.addEventListener('resize', () => {
-                    this.scrollToBottom();
-                });
-            }
-
-            autoResizeTextarea() {
-                this.messageInput.style.height = 'auto';
-                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 120) + 'px';
-            }
-
-            updateSendButton() {
-                const hasText = this.messageInput.value.trim().length > 0;
-                this.sendBtn.style.opacity = hasText ? '1' : '0.6';
-            }
-
-            generateUniqueTime() {
-                const now = new Date();
-                const baseTime = now.getTime();
-                const randomOffset = Math.floor(Math.random() * 300000);
-                const adjustedTime = new Date(baseTime + randomOffset);
-                
-                return adjustedTime.toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-            }
-
-            async sendQuery() {
-                const query = this.messageInput.value.trim();
-                if (!query || this.sendBtn.disabled) return;
-
-                this.hideEmptyState();
-                
-                const userTime = this.generateUniqueTime();
-                this.addActivityToTimeline('You', query, 'user', userTime);
-                
-                this.messageInput.value = '';
-                this.autoResizeTextarea();
-                this.updateSendButton();
-                this.setLoading(true);
-                this.showTypingIndicator();
-
-                try {
-                    const response = await fetch('/api/search', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ query })
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-                        throw new Error(`HTTP ${response.status}: ${errorData.message || 'Unknown error'}`);
-                    }
-
-                    const data = await response.json();
-                    
-                    if (data.response) {
-                        const aiResponse = data.response;
-                        const aiTime = this.generateUniqueTime();
-                        this.addActivityToTimeline('OSINT Assistant', aiResponse, 'ai', aiTime);
-                        
-                        this.conversations.push({
-                            user: query,
-                            ai: aiResponse,
-                            timestamp: new Date().toISOString()
+                    if (bing.length > 0) {
+                        resultsDiv.innerHTML += '<h3>Bing Results</h3>';
+                        bing.forEach(item => {
+                            resultsDiv.innerHTML += `
+                                <div class="result-item">
+                                    <h4>${item.title}</h4>
+                                    <a href="${item.link}" target="_blank">${item.link}</a>
+                                    <p>${item.snippet}</p>
+                                </div>
+                            `;
                         });
-                    } else {
-                        throw new Error('Invalid response format from server');
                     }
 
-                } catch (error) {
-                    console.error('Error calling search API:', error);
-                    
-                    let errorMessage = 'Failed to retrieve OSINT data. ';
-                    if (error.message.includes('401') || error.message.includes('403')) {
-                        errorMessage += 'Authentication error. Please check server configuration.';
-                    } else if (error.message.includes('429')) {
-                        errorMessage += 'Rate limit exceeded. Please try again in a moment.';
-                    } else if (error.message.includes('400')) {
-                        errorMessage += 'Invalid query format.';
-                    } else {
-                        errorMessage += 'Please try again later.';
+                    if (duckduckgo.length > 0) {
+                        resultsDiv.innerHTML += '<h3>DuckDuckGo Results</h3>';
+                        duckduckgo.forEach(item => {
+                            resultsDiv.innerHTML += `
+                                <div class="result-item">
+                                    <h4>${item.title}</h4>
+                                    <a href="${item.link}" target="_blank">${item.link}</a>
+                                    <p>${item.snippet}</p>
+                                </div>
+                            `;
+                        });
                     }
-                    
-                    const errorTime = this.generateUniqueTime();
-                    this.addActivityToTimeline('System Error', errorMessage, 'error', errorTime);
-                } finally {
-                    this.setLoading(false);
-                    this.hideTypingIndicator();
-                    this.messageInput.focus();
+
+                    if (bing.length === 0 && duckduckgo.length === 0) {
+                        resultsDiv.innerHTML = '<p class="error">No data retrieved from search engines.</p>';
+                    }
                 }
-            }
-
-            formatText(text) {
-                let formatted = text || '';
-                
-                formatted = formatted.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-                formatted = formatted.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-                formatted = formatted.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-                
-                formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-                
-                formatted = formatted.replace(/```[\s\S]*?```/g, (match) => {
-                    return `<div class="data-file">${this.escapeHtml(match.replace(/```/g, ''))}</div>`;
-                });
-                formatted = formatted.replace(/`([^`\n]+)`/g, '<code>$1</code>');
-                
-                formatted = formatted.replace(/^\* (.*$)/gm, '<li>$1</li>');
-                formatted = formatted.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
-                
-                formatted = formatted.replace(/(<li>.*<\/li>)/gs, (match) => {
-                    return `<ul>${match}</ul>`;
-                });
-                
-                formatted = formatted.replace(/\n\n/g, '</p><p>');
-                formatted = `<p>${formatted}</p>`;
-                
-                formatted = formatted.replace(/<p><\/p>/g, '');
-                
-                return formatted;
-            }
-
-            escapeHtml(unsafe) {
-                return (unsafe || '')
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
-
-            scrollToBottom() {
-                const timelineContainer = this.timeline?.parentElement;
-                if (timelineContainer) {
-                    timelineContainer.scrollTo({
-                        top: timelineContainer.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                }
-            }
-
-            addActivityToTimeline(title, content, type = 'message', customTime = null) {
-                this.messageCount++;
-                
-                const timeToUse = customTime || this.generateUniqueTime();
-                const activityItem = document.createElement('div');
-                activityItem.className = 'activity-item';
-                
-                let iconClass;
-                switch (type) {
-                    case 'user':
-                        iconClass = 'bi bi-person-circle';
-                        break;
-                    case 'ai':
-                        iconClass = 'bi bi-robot';
-                        break;
-                    case 'error':
-                        iconClass = 'bi bi-exclamation-triangle-fill';
-                        break;
-                    case 'success':
-                        iconClass = 'bi bi-check-circle-fill';
-                        break;
-                    case 'warning':
-                        iconClass = 'bi bi-exclamation-circle-fill';
-                        break;
-                    case 'info':
-                        iconClass = 'bi bi-info-circle-fill';
-                        break;
-                    default:
-                        iconClass = 'bi bi-search';
-                }
-
-                let formattedContent;
-                if (type === 'ai') {
-                    formattedContent = `<div class="ai-response formatted-text">${this.formatText(content)}</div>`;
-                } else if (type === 'error') {
-                    formattedContent = `<div class="error-message">${this.escapeHtml(content)}</div>`;
-                } else {
-                    formattedContent = `<p class="activity-message">${this.escapeHtml(content)}</p>`;
-                }
-
-                activityItem.innerHTML = `
-                    <div class="time-label">${timeToUse}</div>
-                    <div class="activity-icon ${type}">
-                        <i class="${iconClass}"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">${this.escapeHtml(title)}</div>
-                        ${formattedContent}
-                        ${type === 'ai' ? `
-                            <button class="explanation-toggle">
-                                <i class="bi bi-info-circle"></i>
-                                Show Explanation
-                            </button>
-                            <div class="explanation-content">
-                                This response was generated based on your query and scraped social media data from Bing and DuckDuckGo, processed by AI for clarity and relevance.
-                            </div>
-                        ` : ''}
-                        <div class="message-status">
-                            <i class="bi bi-check2-all status-icon"></i>
-                            ${type === 'user' ? 'Sent' : 'Delivered'}
-                        </div>
-                    </div>
-                `;
-
-                if (this.timeline) {
-                    this.timeline.appendChild(activityItem);
-                    this.scrollToBottom();
-                }
-            }
-
-            toggleExplanation(toggleButton) {
-                const explanationContent = toggleButton.nextElementSibling;
-                if (explanationContent) {
-                    const isVisible = explanationContent.classList.contains('visible');
-                    explanationContent.classList.toggle('visible');
-                    toggleButton.innerHTML = `
-                        <i class="bi bi-info-circle"></i>
-                        ${isVisible ? 'Show' : 'Hide'} Explanation
-                    `;
-                }
-            }
-
-            setLoading(loading) {
-                this.sendBtn.disabled = loading;
-                this.messageInput.disabled = loading;
-                
-                if (loading) {
-                    this.sendBtn.innerHTML = `
-                        <div class="loading-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    `;
-                } else {
-                    this.sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
-                }
-            }
-
-            showTypingIndicator() {
-                if (this.typingIndicator) {
-                    this.typingIndicator.classList.add('active');
-                    this.scrollToBottom();
-                }
-            }
-
-            hideTypingIndicator() {
-                if (this.typingIndicator) {
-                    this.typingIndicator.classList.remove('active');
-                }
-            }
-
-            hideEmptyState() {
-                if (this.emptyState && this.emptyState.style.display !== 'none') {
-                    this.emptyState.style.display = 'none';
-                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">Failed to retrieve OSINT data. Please try again later. Error: ${error.message}</p>`;
+                console.error('Fetch error:', error);
             }
         }
 
-        const tracker = new OSINTTracker();
+        // Optional: Trigger search on Enter key
+        document.getElementById('queryInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') fetchData();
+        });
     </script>
 </body>
 </html>
+
+
