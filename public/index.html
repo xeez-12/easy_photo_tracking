@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSINT Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0a0a;
@@ -125,11 +126,9 @@
         }
 
         .activity-icon.user { background: var(--bg-card); border-color: var(--border-color); }
-        .activity-icon.ai { background: var(--bg-card); border-color: var(--border-color); }
-        .activity-icon.error { background: var(--bg-card); border-color: var(--accent-red); }
         .activity-icon.success { background: var(--bg-card); border-color: var(--accent-green); }
+        .activity-icon.error { background: var(--bg-card); border-color: var(--accent-red); }
         .activity-icon.warning { background: var(--bg-card); border-color: var(--accent-yellow); }
-        .activity-icon.info { background: var(--bg-card); border-color: var(--accent-blue); }
 
         .activity-content {
             flex: 1;
@@ -168,158 +167,128 @@
             margin-bottom: 0;
         }
 
-        .ai-response {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .formatted-text {
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .formatted-text h1, .formatted-text h2, .formatted-text h3 {
-            color: var(--text-primary);
-            margin: 16px 0 8px 0;
-            font-weight: 600;
-        }
-
-        .formatted-text h1 { font-size: 18px; }
-        .formatted-text h2 { font-size: 16px; }
-        .formatted-text h3 { font-size: 15px; }
-
-        .formatted-text p {
-            margin: 12px 0;
-            line-height: 1.7;
-            color: var(--text-secondary);
-        }
-
-        .formatted-text ul, .formatted-text ol {
-            margin: 12px 0;
-            padding-left: 20px;
-            color: var(--text-secondary);
-        }
-
-        .formatted-text li {
-            margin: 6px 0;
-            line-height: 1.6;
-        }
-
-        .formatted-text strong {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .formatted-text em {
-            font-style: italic;
-            color: var(--text-secondary);
-        }
-
-        .data-file {
-            background: var(--bg-code);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
-            margin: 12px 0;
-            width: 90%;
-            font-family: 'SF Mono', monospace;
-            font-size: 13px;
-            color: var(--text-code);
-            position: relative;
-            box-shadow: var(--shadow-light);
-        }
-
-        .data-file::before {
-            content: 'social_data.txt';
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 12px;
-        }
-
-        .formatted-text blockquote {
-            border-left: 3px solid var(--border-color);
-            padding-left: 16px;
-            margin: 16px 0;
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        .error-message {
-            color: var(--text-secondary);
-            background: rgba(208, 2, 27, 0.1);
-            padding: 16px;
-            border-radius: 12px;
-            border-left: 3px solid var(--accent-red);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .explanation-toggle {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 12px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            margin-top: 16px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            width: 100%;
-            text-align: left;
-        }
-
-        .explanation-toggle:hover {
-            background: var(--bg-code);
-            color: var(--text-primary);
-            border-color: var(--border-hover);
-            transform: translateY(-1px);
-        }
-
-        .explanation-content {
-            background: var(--bg-code);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 18px;
+        .result-section {
             margin-top: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+        }
+
+        .result-item {
+            background: var(--bg-code);
+            border: 1px solid var(--border-hover);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            background: var(--bg-input);
+            transform: translateX(5px);
+        }
+
+        .result-item h4 {
+            color: var(--text-primary);
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .result-item a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .result-item a:hover {
+            text-decoration: underline;
+        }
+
+        .result-item p {
+            color: var(--text-secondary);
             font-size: 13px;
-            color: var(--text-code);
-            max-height: 400px;
-            overflow-y: auto;
+            margin: 6px 0 0;
+        }
+
+        .collapsible {
+            cursor: pointer;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible:hover {
+            background: var(--bg-code);
+        }
+
+        .collapsible-content {
             display: none;
-            line-height: 1.5;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border-color) transparent;
+            margin-top: 10px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
 
-        .explanation-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .explanation-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .explanation-content::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
-
-        .explanation-content.visible {
+        .collapsible-content.active {
             display: block;
             animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.14s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.07s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+            40% { transform: translateY(-4px); opacity: 1; }
         }
 
         .input-section {
@@ -346,7 +315,6 @@
             border: 2px solid var(--border-color);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: var(--shadow-light);
-            position: relative;
         }
 
         .input-wrapper:focus-within {
@@ -394,8 +362,8 @@
         }
 
         .send-button:hover:not(:disabled) {
-            background: var(--bg-code);
-            transform: scale(1.05);
+            background: var(--accent-green);
+            transform: scale(1.1);
             box-shadow: var(--shadow);
         }
 
@@ -432,78 +400,6 @@
             40% { transform: scale(1.2); opacity: 1; }
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state p {
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-muted);
-            font-size: 13px;
-            margin-bottom: 12px;
-        }
-
-        .typing-indicator.active {
-            display: flex;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 2px;
-        }
-
-        .typing-dots span {
-            width: 4px;
-            height: 4px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
-        }
-
-        .typing-dots span:nth-child(1) { animation-delay: -0.14s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.07s; }
-
-        @keyframes typingBounce {
-            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-            40% { transform: translateY(-4px); opacity: 1; }
-        }
-
-        .message-status {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .status-icon {
-            width: 12px;
-            height: 12px;
-        }
-
         @media (max-width: 480px) {
             .app-container {
                 max-width: 100%;
@@ -511,75 +407,23 @@
                 border-right: none;
                 box-shadow: none;
             }
-            
-            .input-section {
-                max-width: 100%;
-                padding: 16px;
-            }
-
-            .timeline-container {
-                padding: 16px;
-                padding-bottom: 140px;
-            }
-
-            .activity-item {
-                margin-bottom: 24px;
-            }
-
-            .time-label {
-                font-size: 11px;
-                width: 32px;
-                margin-right: 16px;
-            }
-
-            .activity-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 14px;
-                margin-right: 14px;
-            }
-
-            .activity-content {
-                padding: 16px;
-            }
-
-            .activity-title {
-                font-size: 15px;
-            }
-
-            .activity-message, .ai-response {
-                font-size: 13px;
-            }
-
-            .timeline::before {
-                left: 40px;
-            }
+            .input-section { max-width: 100%; padding: 16px; }
+            .timeline-container { padding: 16px; padding-bottom: 140px; }
+            .activity-item { margin-bottom: 24px; }
+            .time-label { font-size: 11px; width: 32px; margin-right: 16px; }
+            .activity-icon { width: 36px; height: 36px; font-size: 14px; margin-right: 14px; }
+            .activity-content { padding: 16px; }
+            .activity-title { font-size: 15px; }
+            .activity-message { font-size: 13px; }
+            .timeline::before { left: 40px; }
         }
 
         @media (max-width: 360px) {
-            .timeline-container {
-                padding: 12px;
-                padding-bottom: 140px;
-            }
-
-            .input-section {
-                padding: 12px;
-            }
-
-            .activity-content {
-                padding: 14px;
-            }
-
-            .message-input {
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-
-            .send-button {
-                width: 44px;
-                height: 44px;
-                font-size: 16px;
-            }
+            .timeline-container { padding: 12px; padding-bottom: 140px; }
+            .input-section { padding: 12px; }
+            .activity-content { padding: 14px; }
+            .message-input { padding: 12px 16px; font-size: 14px; }
+            .send-button { width: 44px; height: 44px; font-size: 16px; }
         }
     </style>
 </head>
@@ -588,9 +432,7 @@
         <div class="timeline-container">
             <div class="timeline" id="timeline">
                 <div class="empty-state" id="emptyState">
-                    <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                    </svg>
+                    <i class="bi bi-search"></i>
                     <h3>Start Your OSINT Search</h3>
                     <p>Enter a query to begin searching social media for open-source intelligence.</p>
                 </div>
@@ -613,9 +455,7 @@
                     id="messageInput"
                     rows="1"></textarea>
                 <button class="send-button" id="sendBtn">
-                    <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15.854 1.146a.5.5 0 0 1 .11.54l-5.5 11a.5.5 0 0 1-.768.27L8.5 11.11l-4.167 3.073a.5.5 0 0 1-.745-.638l.116-.136 4.167-3.073L5.5 7.89l-5.5-1.073a.5.5 0 0 1-.288-.354l-.002-.065a.5.5 0 0 1 .202-.455l11-7a.5.5 0 0 1 .54.11l.06.055 1.047 1.045.06.052a.5.5 0 0 1 .11.54z"/>
-                    </svg>
+                    <i class="bi bi-send"></i>
                 </button>
             </div>
         </div>
@@ -647,27 +487,16 @@
 
             bindEvents() {
                 this.sendBtn.addEventListener('click', () => this.sendQuery());
-                
                 this.messageInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         this.sendQuery();
                     }
                 });
-
                 this.messageInput.addEventListener('input', () => {
                     this.autoResizeTextarea();
                     this.updateSendButton();
                 });
-
-                document.addEventListener('click', (e) => {
-                    const toggleButton = e.target.closest('.explanation-toggle');
-                    if (toggleButton) {
-                        e.stopPropagation();
-                        this.toggleExplanation(toggleButton);
-                    }
-                });
-
                 window.addEventListener('resize', () => this.scrollToBottom());
             }
 
@@ -728,21 +557,46 @@
                     const aiTime = this.generateUniqueTime();
 
                     if (bing.length > 0 || duckduckgo.length > 0) {
-                        let content = '<h3>Scraped Results</h3>';
+                        let content = '<div class="result-section">';
                         if (bing.length > 0) {
-                            content += '<h4>Bing</h4><ul>';
-                            bing.forEach(item => {
-                                content += `<li><strong>${item.title}</strong> - <a href="${item.link}" target="_blank">${item.link}</a><br>${item.snippet}</li>`;
+                            content += '<h4>Bing Results</h4>';
+                            bing.forEach((item, index) => {
+                                content += `
+                                    <div class="result-item">
+                                        <h4>${item.title}</h4>
+                                        <a href="${item.link}" target="_blank">${item.link}</a>
+                                        <p>${item.snippet}</p>
+                                        <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
+                                            <span>View Details</span>
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
+                                        <div class="collapsible-content">
+                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '&quot;')}
+                                        </div>
+                                    </div>
+                                `;
                             });
-                            content += '</ul>';
                         }
                         if (duckduckgo.length > 0) {
-                            content += '<h4>DuckDuckGo</h4><ul>';
-                            duckduckgo.forEach(item => {
-                                content += `<li><strong>${item.title}</strong> - <a href="${item.link}" target="_blank">${item.link}</a><br>${item.snippet}</li>`;
+                            content += '<h4>DuckDuckGo Results</h4>';
+                            duckduckgo.forEach((item, index) => {
+                                content += `
+                                    <div class="result-item">
+                                        <h4>${item.title}</h4>
+                                        <a href="${item.link}" target="_blank">${item.link}</a>
+                                        <p>${item.snippet}</p>
+                                        <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
+                                            <span>View Details</span>
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
+                                        <div class="collapsible-content">
+                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '&quot;')}
+                                        </div>
+                                    </div>
+                                `;
                             });
-                            content += '</ul>';
                         }
+                        content += '</div>';
                         this.addActivityToTimeline('OSINT Scraper', content, 'success', aiTime);
                     } else {
                         this.addActivityToTimeline('OSINT Scraper', 'No results found from search engines.', 'warning', aiTime);
@@ -771,11 +625,11 @@
 
             escapeHtml(unsafe) {
                 return (unsafe || '')
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
+                    .replace(/&/g, "&")
+                    .replace(/</g, "<")
+                    .replace(/>/g, ">")
+                    .replace(/"/g, """)
+                    .replace(/'/g, "'");
             }
 
             scrollToBottom() {
@@ -795,34 +649,25 @@
                 const activityItem = document.createElement('div');
                 activityItem.className = 'activity-item';
                 
-                let iconSvg;
+                let iconClass;
                 switch (type) {
-                    case 'user':
-                        iconSvg = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/></svg>';
-                        break;
-                    case 'success':
-                        iconSvg = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/></svg>';
-                        break;
-                    case 'error':
-                        iconSvg = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>';
-                        break;
-                    case 'warning':
-                        iconSvg = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5a.905.905 0 0 1 .9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>';
-                        break;
-                    default:
-                        iconSvg = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>';
+                    case 'user': iconClass = 'bi-person-circle'; break;
+                    case 'success': iconClass = 'bi-check-circle-fill'; break;
+                    case 'error': iconClass = 'bi-exclamation-triangle-fill'; break;
+                    case 'warning': iconClass = 'bi-exclamation-circle-fill'; break;
+                    default: iconClass = 'bi-search';
                 }
 
                 activityItem.innerHTML = `
                     <div class="time-label">${timeToUse}</div>
                     <div class="activity-icon ${type}">
-                        ${iconSvg}
+                        <i class="${iconClass}"></i>
                     </div>
                     <div class="activity-content">
                         <div class="activity-title">${this.escapeHtml(title)}</div>
                         ${content ? `<div class="activity-message">${content}</div>` : ''}
                         <div class="message-status">
-                            <svg class="status-icon" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/></svg>
+                            <i class="bi-check2-all status-icon"></i>
                             ${type === 'user' ? 'Sent' : 'Delivered'}
                         </div>
                     </div>
@@ -831,18 +676,6 @@
                 if (this.timeline) {
                     this.timeline.appendChild(activityItem);
                     this.scrollToBottom();
-                }
-            }
-
-            toggleExplanation(toggleButton) {
-                const explanationContent = toggleButton.nextElementSibling;
-                if (explanationContent) {
-                    const isVisible = explanationContent.classList.contains('visible');
-                    explanationContent.classList.toggle('visible');
-                    toggleButton.innerHTML = `
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0l-.35-3.507z"/></svg>
-                        ${isVisible ? 'Show' : 'Hide'} Explanation
-                    `;
                 }
             }
 
@@ -859,11 +692,7 @@
                         </div>
                     `;
                 } else {
-                    this.sendBtn.innerHTML = `
-                        <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15.854 1.146a.5.5 0 0 1 .11.54l-5.5 11a.5.5 0 0 1-.768.27L8.5 11.11l-4.167 3.073a.5.5 0 0 1-.745-.638l.116-.136 4.167-3.073L5.5 7.89l-5.5-1.073a.5.5 0 0 1-.288-.354l-.002-.065a.5.5 0 0 1 .202-.455l11-7a.5.5 0 0 1 .54.11l.06.055 1.047 1.045.06.052a.5.5 0 0 1 .11.54z"/>
-                        </svg>
-                    `;
+                    this.sendBtn.innerHTML = '<i class="bi-send-fill"></i>';
                 }
             }
 
