@@ -3,25 +3,28 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const userAgent = require('user-agents');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY';
 const PORT = process.env.PORT || 3000;
 
 // Expanded user-agent pool
 const userAgents = [
-    userAgent.random().toString(), // Random desktop
+    userAgent.random().toString(),
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     'Mozilla/5.0 (Android 13; Mobile; rv:126.0) Gecko/20100101 Firefox/126.0',
-    userAgent.random().toString(), // Random mobile
+    userAgent.random().toString(),
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:126.0) Gecko/20100101 Firefox/126.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0',
+    'Mozilla/5.0 (iPad; CPU OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
 ];
 
 // Complex headers with randomization
@@ -41,9 +44,9 @@ function getRandomHeaders() {
     };
 }
 
-// Enhanced scraping with pagination
-async function scrapeSearchEngine(query, engine) {
-    const results = [];
+// Enhanced scraping with pagination and retries
+async function scrapeSearchEngine(query, engine, maxRetries = 3) {
+    const results = new Set(); // Use Set to avoid duplicates
     const baseUrl = engine === 'bing' 
         ? 'https://www.bing.com/search?q='
         : 'https://duckduckgo.com/html/?q=';
@@ -52,51 +55,61 @@ async function scrapeSearchEngine(query, engine) {
 
     while (currentPage <= maxPages) {
         const url = `${baseUrl}${encodeURIComponent(query)}${engine === 'bing' && currentPage > 1 ? `&first=${(currentPage - 1) * 10 + 1}` : ''}`;
-        try {
-            const response = await axios.get(url, {
-                headers: getRandomHeaders(),
-                timeout: 10000,
-                maxRedirects: 3
-            });
-            const $ = cheerio.load(response.data);
+        let retryCount = 0;
 
-            if (engine === 'bing') {
-                $('.b_algo').each((i, element) => {
-                    const title = $(element).find('h2').text().trim();
-                    const link = $(element).find('a').attr('href');
-                    const snippet = $(element).find('.b_caption p').text().trim();
-                    if (title && link && !link.includes('advertisement') && !results.some(r => r.link === link)) {
-                        results.push({ title, link, snippet });
-                    }
+        while (retryCount < maxRetries) {
+            try {
+                const response = await axios.get(url, {
+                    headers: getRandomHeaders(),
+                    timeout: 10000,
+                    maxRedirects: 3
                 });
-                const nextPage = $('.sb_pagN').last().find('a').attr('href');
-                if (!nextPage || results.length >= 50) break;
-            } else {
-                $('.result__body').each((i, element) => {
-                    const title = $(element).find('.result__title').text().trim();
-                    const link = $(element).find('.result__url').attr('href');
-                    const snippet = $(element).find('.result__snippet').text().trim();
-                    if (title && link && !link.includes('ad') && !results.some(r => r.link === link)) {
-                        results.push({ title, link, snippet });
-                    }
-                });
-                const nextPage = $('.result--more__btn').length > 0;
-                if (!nextPage || results.length >= 50) break;
-            }
+                const $ = cheerio.load(response.data);
 
-            currentPage++;
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Rate limiting
-        } catch (error) {
-            console.error(`Error scraping ${engine} page ${currentPage}:`, error.message);
-            if (error.response?.status === 429) {
-                await new Promise(resolve => setTimeout(resolve, 5000)); // Wait longer on rate limit
-                continue;
+                if (engine === 'bing') {
+                    $('.b_algo').each((i, element) => {
+                        const title = $(element).find('h2').text().trim() || 'No title';
+                        const link = $(element).find('a').attr('href') || '';
+                        const snippet = $(element).find('.b_caption p').text().trim() || '';
+                        if (title && link && !link.includes('advertisement') && !results.has(link)) {
+                            results.add(link);
+                            results.add(JSON.stringify({ title, link, snippet }));
+                        }
+                    });
+                    const nextPage = $('.sb_pagN').last().find('a').attr('href');
+                    if (!nextPage || results.size >= 50) break;
+                } else {
+                    $('.result__body').each((i, element) => {
+                        const title = $(element).find('.result__title').text().trim() || 'No title';
+                        const link = $(element).find('.result__url').attr('href') || '';
+                        const snippet = $(element).find('.result__snippet').text().trim() || '';
+                        if (title && link && !link.includes('ad') && !results.has(link)) {
+                            results.add(link);
+                            results.add(JSON.stringify({ title, link, snippet }));
+                        }
+                    });
+                    const nextPage = $('.result--more__btn').length > 0;
+                    if (!nextPage || results.size >= 50) break;
+                }
+
+                currentPage++;
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Respect rate limits
+                break; // Exit retry loop on success
+            } catch (error) {
+                retryCount++;
+                console.error(`Error scraping ${engine} page ${currentPage} (attempt ${retryCount}):`, error.message);
+                if (retryCount === maxRetries || error.response?.status === 403) {
+                    break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 3000 * retryCount)); // Exponential backoff
             }
-            break;
         }
     }
 
-    return results.slice(0, 50); // Limit to 50 unique results
+    return Array.from(results)
+        .filter(item => typeof item === 'string')
+        .map(item => JSON.parse(item))
+        .slice(0, 50); // Limit to 50 unique results
 }
 
 async function processWithGemini(query, scrapedData) {
@@ -143,18 +156,18 @@ async function processWithGemini(query, scrapedData) {
         );
 
         if (response.data.candidates && response.data.candidates[0] && response.data.candidates[0].content) {
-            return response.data.candidates[0].content.parts[0].text;
+            return response.data.candidates[0].content.parts[0].text || 'No response generated';
         } else {
             throw new Error('Invalid response format from Gemini API');
         }
     } catch (error) {
         console.error('Error calling Gemini API:', error.message);
-        throw new Error(`Failed to process data with AI: ${error.message}`);
+        throw new Error(`Failed to process data with AI: ${error.message || 'Unknown error'}`);
     }
 }
 
 app.post('/api/search', async (req, res) => {
-    const { query } = req.body;
+    const { query } = req.body || {};
     if (!query || typeof query !== 'string' || query.trim() === '') {
         return res.status(400).json({ message: 'Query is required and must be a non-empty string' });
     }
@@ -165,22 +178,34 @@ app.post('/api/search', async (req, res) => {
         const scrapedData = { bing: bingResults, duckduckgo: duckduckgoResults };
 
         if (bingResults.length === 0 && duckduckgoResults.length === 0) {
-            throw new Error('No data retrieved from search engines');
+            return res.status(404).json({ message: 'No data retrieved from search engines' });
         }
 
         const aiResponse = await processWithGemini(query.trim(), scrapedData);
         res.json({ response: aiResponse });
     } catch (error) {
         console.error('Error in /api/search:', error.message);
-        res.status(500).json({ message: error.message || 'Internal server error' });
+        res.status(error.response?.status || 500).json({ message: error.message || 'Internal server error' });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Serve index.html statically
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Handle uncaught exceptions and unhandled rejections
+// Graceful shutdown
+const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} at ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })}`);
+});
+
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down gracefully...');
+    server.close(() => {
+        process.exit(0);
+    });
+});
+
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err.message);
     process.exit(1);
