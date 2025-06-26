@@ -4,7 +4,8 @@
     "description": "OSINT Tracker for social media data scraping and AI processing",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js"
+        "start": "node server.js",
+        "dev": "node server.js"
     },
     "dependencies": {
         "axios": "^1.7.2",
