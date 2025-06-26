@@ -10,7 +10,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI'; // Set in env
 const PORT = process.env.PORT || 3000;
 
 // Expanded user-agent pool
@@ -66,7 +65,7 @@ async function scrapeSearchEngine(reqId, query, engine) {
                     const link = $(element).find('a').attr('href') || '';
                     const snippet = $(element).find('.b_caption p').text().trim() || '';
                     if (title && link && !link.includes('advertisement')) {
-                        results.add(JSON.stringify({ title, link, snippet })); // Only add JSON
+                        results.add(JSON.stringify({ title, link, snippet }));
                     }
                 });
             } else {
@@ -75,7 +74,7 @@ async function scrapeSearchEngine(reqId, query, engine) {
                     const link = $(element).find('.result__url').attr('href') || '';
                     const snippet = $(element).find('.result__snippet').text().trim() || '';
                     if (title && link && !link.includes('ad')) {
-                        results.add(JSON.stringify({ title, link, snippet })); // Only add JSON
+                        results.add(JSON.stringify({ title, link, snippet }));
                     }
                 });
             }
@@ -92,7 +91,7 @@ async function scrapeSearchEngine(reqId, query, engine) {
     const parsedResults = Array.from(results)
         .map(item => {
             try {
-                return JSON.parse(item); // Parse only valid JSON
+                return JSON.parse(item);
             } catch (e) {
                 log(reqId, `Skipping invalid JSON: ${item}`, 'warn');
                 return null;
@@ -102,60 +101,6 @@ async function scrapeSearchEngine(reqId, query, engine) {
         .slice(0, 50);
     log(reqId, `Final ${engine} results count: ${parsedResults.length}`);
     return parsedResults;
-}
-
-// Process with Gemini API
-async function processWithGemini(reqId, query, scrapedData) {
-    const scrapedDataJson = JSON.stringify(scrapedData, null, 2);
-    const prompt = `You are an advanced OSINT assistant specializing in analyzing publicly available data from web sources.
-
-User query: ${query}
-
-Scraped data from Bing and DuckDuckGo:
-${scrapedDataJson}
-
-Please provide a comprehensive, well-structured response with:
-- Relevant findings from the scraped data
-- Clear explanations of sources and their credibility
-- Actionable insights or next steps for the user
-- Use proper formatting with headings, bullet points, and emphasis where appropriate
-- Be concise, factual, and ethical in handling sensitive information
-- Avoid speculation or unverified claims
-
-Format your response using markdown-style formatting for better readability.`;
-
-    try {
-        log(reqId, 'Sending request to Gemini API...');
-        const response = await axios.post(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-            {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.8,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 2048
-                }
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GEMINI_API_KEY}`
-                },
-                timeout: 30000 // 30 seconds
-            }
-        );
-
-        if (response.data.candidates && response.data.candidates[0] && response.data.candidates[0].content) {
-            log(reqId, 'Received response from Gemini API');
-            return response.data.candidates[0].content.parts[0].text || 'No response generated';
-        } else {
-            throw new Error('Invalid response format from Gemini API');
-        }
-    } catch (error) {
-        log(reqId, `Error calling Gemini API: ${error.message} (Status: ${error.response?.status})`, 'error');
-        throw new Error(`Failed to process data with AI: ${error.message || 'Unknown error'}`);
-    }
 }
 
 app.post('/api/search', async (req, res) => {
@@ -178,8 +123,7 @@ app.post('/api/search', async (req, res) => {
             return res.status(404).json({ message: 'No data retrieved from search engines' });
         }
 
-        const aiResponse = await processWithGemini(reqId, query.trim(), scrapedData);
-        res.json({ response: aiResponse });
+        res.json({ data: scrapedData }); // Return scraped data directly
     } catch (error) {
         log(reqId, `Error in /api/search: ${error.message} (Status: ${error.response?.status})`, 'error');
         res.status(error.response?.status || 500).json({ message: error.message || 'Internal server error' });
@@ -212,5 +156,4 @@ process.on('unhandledRejection', (reason, promise) => {
     log('SERVER', `Unhandled Rejection at: ${promise}, reason: ${reason}`, 'error');
     process.exit(1);
 });
-
 
