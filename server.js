@@ -127,7 +127,7 @@ Format your response using markdown-style formatting for better readability.`;
     try {
         log(reqId, 'Sending request to Gemini API...');
         const response = await axios.post(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
             {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
