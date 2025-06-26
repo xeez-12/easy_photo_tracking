@@ -362,7 +362,7 @@
         }
 
         .send-button:hover:not(:disabled) {
-            background: var(--accent-green);
+            background: var(--bg-code);
             transform: scale(1.1);
             box-shadow: var(--shadow);
         }
@@ -398,6 +398,11 @@
         @keyframes bounce {
             0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
             40% { transform: scale(1.2); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 480px) {
@@ -455,7 +460,7 @@
                     id="messageInput"
                     rows="1"></textarea>
                 <button class="send-button" id="sendBtn">
-                    <i class="bi bi-send"></i>
+                    <i class="bi bi-send-fill"></i>
                 </button>
             </div>
         </div>
@@ -571,7 +576,7 @@
                                             <i class="bi bi-chevron-down"></i>
                                         </div>
                                         <div class="collapsible-content">
-                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '&quot;')}
+                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '"')}
                                         </div>
                                     </div>
                                 `;
@@ -590,7 +595,7 @@
                                             <i class="bi bi-chevron-down"></i>
                                         </div>
                                         <div class="collapsible-content">
-                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '&quot;')}
+                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '"')}
                                         </div>
                                     </div>
                                 `;
@@ -692,7 +697,7 @@
                         </div>
                     `;
                 } else {
-                    this.sendBtn.innerHTML = '<i class="bi-send-fill"></i>';
+                    this.sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
                 }
             }
 
@@ -720,5 +725,3 @@
     </script>
 </body>
 </html>
-
-
