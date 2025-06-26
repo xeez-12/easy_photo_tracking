@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI'; // Move to env for security
 const PORT = process.env.PORT || 3000;
 
 // Expanded user-agent pool
@@ -45,12 +45,12 @@ function getRandomHeaders() {
 }
 
 // Enhanced scraping with pagination and retries
-async function scrapeSearchEngine(query, engine, maxRetries = 3) {
+async function scrapeSearchEngine(query, engine, maxRetries = 2) {
     const results = new Set();
     const baseUrl = engine === 'bing' 
         ? 'https://www.bing.com/search?q='
         : 'https://duckduckgo.com/html/?q=';
-    const maxPages = 3;
+    const maxPages = 2; // Reduced to 2 pages
     let currentPage = 1;
 
     while (currentPage <= maxPages) {
@@ -59,6 +59,7 @@ async function scrapeSearchEngine(query, engine, maxRetries = 3) {
 
         while (retryCount < maxRetries) {
             try {
+                console.log(`Scraping ${engine} page ${currentPage} with URL: ${url}`); // Debug log
                 const response = await axios.get(url, {
                     headers: getRandomHeaders(),
                     timeout: 10000,
@@ -92,24 +93,27 @@ async function scrapeSearchEngine(query, engine, maxRetries = 3) {
                     if (!nextPage || results.size >= 50) break;
                 }
 
+                console.log(`Successfully scraped ${engine} page ${currentPage}, results count: ${results.size}`); // Debug log
                 currentPage++;
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Reduced to 1 second
                 break;
             } catch (error) {
                 retryCount++;
-                console.error(`Error scraping ${engine} page ${currentPage} (attempt ${retryCount}):`, error.message);
-                if (retryCount === maxRetries || error.response?.status === 403) {
+                console.error(`Error scraping ${engine} page ${currentPage} (attempt ${retryCount}):`, error.message, error.response?.status);
+                if (retryCount === maxRetries || error.response?.status === 403 || error.code === 'ECONNRESET') {
                     break;
                 }
-                await new Promise(resolve => setTimeout(resolve, 3000 * retryCount));
+                await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Adjusted backoff
             }
         }
     }
 
-    return Array.from(results)
+    const parsedResults = Array.from(results)
         .filter(item => typeof item === 'string')
         .map(item => JSON.parse(item))
         .slice(0, 50);
+    console.log(`Final ${engine} results count: ${parsedResults.length}`); // Debug log
+    return parsedResults;
 }
 
 // Fixed processWithGemini function
@@ -133,6 +137,7 @@ Please provide a comprehensive, well-structured response with:
 Format your response using markdown-style formatting for better readability.`;
 
     try {
+        console.log('Sending request to Gemini API...'); // Debug log
         const response = await axios.post(
             'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
             {
@@ -149,17 +154,18 @@ Format your response using markdown-style formatting for better readability.`;
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${GEMINI_API_KEY}`
                 },
-                timeout: 15000
+                timeout: 30000 // Increased to 30 seconds
             }
         );
 
         if (response.data.candidates && response.data.candidates[0] && response.data.candidates[0].content) {
+            console.log('Received response from Gemini API'); // Debug log
             return response.data.candidates[0].content.parts[0].text || 'No response generated';
         } else {
             throw new Error('Invalid response format from Gemini API');
         }
     } catch (error) {
-        console.error('Error calling Gemini API:', error.message);
+        console.error('Error calling Gemini API:', error.message, error.response?.status, error.response?.data);
         throw new Error(`Failed to process data with AI: ${error.message || 'Unknown error'}`);
     }
 }
@@ -171,10 +177,15 @@ app.post('/api/search', async (req, res) => {
     }
 
     try {
-        const bingResults = await scrapeSearchEngine(query.trim(), 'bing');
-        const duckduckgoResults = await scrapeSearchEngine(query.trim(), 'duckduckgo');
+        console.log(`Processing query: ${query}`); // Debug log
+        // Parallel scraping
+        const [bingResults, duckduckgoResults] = await Promise.all([
+            scrapeSearchEngine(query.trim(), 'bing'),
+            scrapeSearchEngine(query.trim(), 'duckduckgo')
+        ]);
         const scrapedData = { bing: bingResults, duckduckgo: duckduckgoResults };
 
+        console.log(`Bing results: ${bingResults.length}, DuckDuckGo results: ${duckduckgoResults.length}`); // Debug log
         if (bingResults.length === 0 && duckduckgoResults.length === 0) {
             return res.status(404).json({ message: 'No data retrieved from search engines' });
         }
@@ -182,7 +193,7 @@ app.post('/api/search', async (req, res) => {
         const aiResponse = await processWithGemini(query.trim(), scrapedData);
         res.json({ response: aiResponse });
     } catch (error) {
-        console.error('Error in /api/search:', error.message);
+        console.error('Error in /api/search:', error.message, error.response?.status);
         res.status(error.response?.status || 500).json({ message: error.message || 'Internal server error' });
     }
 });
