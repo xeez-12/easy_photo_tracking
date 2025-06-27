@@ -5,6 +5,7 @@ const stringSimilarity = require('string-similarity');
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
+const metaphone = natural.Metaphone;
 
 // Analyze OSINT results
 const analyzeResults = (results, query) => {
@@ -116,7 +117,7 @@ const analyzeProfiles = (results) => {
     };
 };
 
-// Check if two profiles are similar
+// Check if two profiles are similar using multiple methods
 const isSimilarProfile = (profile1, profile2) => {
     if (profile1.url === profile2.url) return true;
     
@@ -152,6 +153,20 @@ const isSimilarProfile = (profile1, profile2) => {
         if (similarity > 0.6) return true;
     }
     
+    // Image similarity (if available)
+    if (profile1.profileImage && profile2.profileImage) {
+        // This would require image comparison AI which is heavy
+        // For now, we skip or use simple dimension comparison
+        if (profile1.profileImageDimensions && profile2.profileImageDimensions) {
+            const ratio1 = profile1.profileImageDimensions.width / profile1.profileImageDimensions.height;
+            const ratio2 = profile2.profileImageDimensions.width / profile2.profileImageDimensions.height;
+            if (Math.abs(ratio1 - ratio2) < 0.1) {
+                // Similar aspect ratio might indicate same image
+                return true;
+            }
+        }
+    }
+    
     return false;
 };
 
@@ -178,8 +193,44 @@ const verifyProfile = (profile) => {
     };
 };
 
+// Find connections between profiles
+const findConnections = (profiles) => {
+    const connections = [];
+    
+    // For each pair of profiles, check if they mention each other
+    for (let i = 0; i < profiles.length; i++) {
+        for (let j = i + 1; j < profiles.length; j++) {
+            if (profiles[i].bio && profiles[j].bio) {
+                const name1 = profiles[i].name.split(' ')[0];
+                const name2 = profiles[j].name.split(' ')[0];
+                const handle1 = profiles[i].handle.replace('@', '');
+                const handle2 = profiles[j].handle.replace('@', '');
+                
+                if (profiles[i].bio.includes(handle2) || profiles[i].bio.includes(name2)) {
+                    connections.push({
+                        source: profiles[i].url,
+                        target: profiles[j].url,
+                        type: 'mention'
+                    });
+                }
+                
+                if (profiles[j].bio.includes(handle1) || profiles[j].bio.includes(name1)) {
+                    connections.push({
+                        source: profiles[j].url,
+                        target: profiles[i].url,
+                        type: 'mention'
+                    });
+                }
+            }
+        }
+    }
+    
+    return connections;
+};
+
 module.exports = {
     analyzeResults,
     analyzeProfiles,
-    verifyProfile
+    verifyProfile,
+    findConnections
 };
