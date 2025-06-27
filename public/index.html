@@ -63,7 +63,7 @@
         .timeline::before {
             content: '';
             position: absolute;
-            left: 39px;
+            left: 36px; /* Updated from 39px to 36px */
             top: 0;
             bottom: 130px;
             width: 1.5px;
@@ -87,19 +87,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-
-        .time-label {
-            color: var(--text-muted);
-            font-size: 10px;
-            font-weight: 600;
-            width: 34px;
-            text-align: right;
-            margin-right: 16px;
-            margin-top: 10px;
-            letter-spacing: 0.2px;
-            font-variant-numeric: tabular-nums;
-            position: relative;
         }
 
         .activity-content {
@@ -129,6 +116,15 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .time-icon {
+            margin-left: auto;
+            color: var(--text-muted);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .activity-message {
@@ -580,6 +576,39 @@
             border-radius: 0 0 0 4px;
         }
 
+        .account-match {
+            background: rgba(92, 172, 92, 0.15);
+            border-left: 2px solid var(--accent-green);
+            border-radius: 6px;
+            padding: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .account-match h6 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--accent-green);
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .match-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px;
+            font-size: 11px;
+        }
+
+        .match-item img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
         @media (max-width: 480px) {
             .app-container {
                 max-width: 100%;
@@ -590,7 +619,6 @@
             .input-section { max-width: 100%; padding: 12px; }
             .timeline-container { padding: 12px; padding-bottom: 120px; }
             .activity-item { margin-bottom: 20px; }
-            .time-label { font-size: 9px; width: 30px; margin-right: 12px; margin-top: 8px; }
             .activity-content { padding: 12px; }
             .activity-title { font-size: 12px; }
             .activity-message { font-size: 11px; }
@@ -761,6 +789,11 @@
                         this.addActivityToTimeline('OSINT Analyst', this.generateAIAnalysis(data.insights), 'info', aiTime);
                     }
 
+                    // Add profile matches
+                    if (data.insights?.profileAnalysis?.profileGroups?.length > 0) {
+                        this.addActivityToTimeline('Profile Matcher', this.generateProfileMatches(data.insights.profileAnalysis), 'success', aiTime);
+                    }
+
                     // Add search results
                     if (data.results && data.results.length > 0) {
                         let content = '<div class="result-section">';
@@ -883,6 +916,33 @@
                 `;
             }
 
+            generateProfileMatches(profileAnalysis) {
+                let content = '<div class="result-section">';
+                content += `<h4><i class="bi bi-people"></i> Profile Matches</h4>`;
+                
+                profileAnalysis.profileGroups.forEach((group, index) => {
+                    content += `
+                        <div class="account-match">
+                            <h6><i class="bi bi-link-45deg"></i> Match Group ${index + 1}</h6>
+                            <p>This person appears on ${group.length} platforms:</p>
+                    `;
+                    
+                    group.forEach(profile => {
+                        content += `
+                            <div class="match-item">
+                                ${profile.profileImage ? `<img src="${profile.profileImage}" alt="${profile.name}">` : '<i class="bi bi-person-circle"></i>'}
+                                <span><strong>${profile.name}</strong> on ${profile.platform}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    content += `</div>`;
+                });
+                
+                content += '</div>';
+                return content;
+            }
+
             escapeHtml(unsafe) {
                 return (unsafe || '')
                     .replace(/&/g, "&amp;")
@@ -911,11 +971,11 @@
                 }
 
                 activityItem.innerHTML = `
-                    <div class="time-label">${timeToUse}</div>
                     <div class="activity-content">
                         <div class="activity-title">
                             <i class="bi ${iconClass}"></i>
                             ${this.escapeHtml(title)}
+                            <span class="time-icon"><i class="bi bi-clock"></i> ${timeToUse}</span>
                         </div>
                         ${content ? `<div class="activity-message">${content}</div>` : ''}
                     </div>
@@ -967,4 +1027,3 @@
     </script>
 </body>
 </html>
-
