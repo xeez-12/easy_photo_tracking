@@ -12,136 +12,303 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 
-// Expanded user-agent pool
-const userAgents = Array(10).fill().map(() => userAgent.random().toString());
-
-// Simple logging function
-const log = (reqId, message, level = 'info') => {
-    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
-    console[level](`[${timestamp}] [${reqId}] [${level.toUpperCase()}] ${message}`);
-};
-
-// Complex headers with randomization
-function getRandomHeaders() {
-    const ua = userAgents[Math.floor(Math.random() * userAgents.length)];
-    return {
+// Advanced header configuration
+const getRandomHeaders = (reqId) => {
+    const ua = new userAgent({ deviceCategory: 'desktop' }).toString();
+    
+    const headers = {
         'User-Agent': ua,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': `https://www.google.com/search?q=${encodeURIComponent(Math.random().toString(36).substring(7))}`,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'DNT': '1',
+        'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
-        'Cookie': `session_id=${Math.random().toString(36).substring(2, 15)}; visited=true`,
-        'Upgrade-Insecure-Requests': '1'
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'max-age=0',
+        'TE': 'Trailers',
+        'X-Request-ID': reqId,
+        'X-Forwarded-For': Array(4).fill().map(() => Math.floor(Math.random() * 255)).join('.'),
+        'Referer': `https://www.google.com/search?q=${Math.random().toString(36).substring(7)}`,
+        'DNT': '1',
+        'Pragma': 'no-cache',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-User': '?1'
     };
-}
 
-// Enhanced scraping with pagination
-async function scrapeSearchEngine(reqId, query, engine) {
-    const results = new Set();
-    const baseUrl = engine === 'bing' 
-        ? 'https://www.bing.com/search?q='
-        : 'https://duckduckgo.com/html/?q=';
-    const maxPages = 1; // Single page
-    let currentPage = 1;
-
-    while (currentPage <= maxPages) {
-        const url = `${baseUrl}${encodeURIComponent(query)}${engine === 'bing' && currentPage > 1 ? `&first=${(currentPage - 1) * 10 + 1}` : ''}`;
-        log(reqId, `Scraping ${engine} page ${currentPage} with URL: ${url}`);
-
-        try {
-            const response = await axios.get(url, {
-                headers: getRandomHeaders(),
-                timeout: 50, // 20 seconds
-                maxRedirects: 3
-            });
-            const $ = cheerio.load(response.data);
-
-            if (engine === 'bing') {
-                $('.b_algo').each((i, element) => {
-                    const title = $(element).find('h2 a').text().trim() || 'No title';
-                    const link = $(element).find('a').attr('href') || '';
-                    const snippet = $(element).find('.b_caption p').text().trim() || '';
-                    if (title && link && !link.includes('advertisement')) {
-                        results.add(JSON.stringify({ title, link, snippet }));
-                    }
-                });
-            } else {
-                $('.result__body').each((i, element) => {
-                    const title = $(element).find('.result__title a').text().trim() || 'No title';
-                    const link = $(element).find('.result__url').attr('href') || '';
-                    const snippet = $(element).find('.result__snippet').text().trim() || '';
-                    if (title && link && !link.includes('ad')) {
-                        results.add(JSON.stringify({ title, link, snippet }));
-                    }
-                });
-            }
-
-            log(reqId, `Successfully scraped ${engine} page ${currentPage}, results count: ${results.size}`, 'info');
-            currentPage++;
-            await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
-        } catch (error) {
-            log(reqId, `Error scraping ${engine} page ${currentPage}: ${error.message} (Status: ${error.response?.status})`, 'error');
-            break;
-        }
+    // Add cookies for specific domains
+    if (Math.random() > 0.7) {
+        headers['Cookie'] = `session_id=${Math.random().toString(36).substring(2)}; consent=yes`;
     }
 
-    const parsedResults = Array.from(results)
-        .map(item => {
-            try {
-                return JSON.parse(item);
-            } catch (e) {
-                log(reqId, `Skipping invalid JSON: ${item}`, 'warn');
-                return null;
-            }
-        })
-        .filter(item => item !== null)
-        .slice(0, 50);
-    log(reqId, `Final ${engine} results count: ${parsedResults.length}`);
-    return parsedResults;
-}
+    return headers;
+};
 
-app.post('/api/search', async (req, res) => {
-    const reqId = Math.random().toString(36).substring(2, 8); // Unique request ID
-    const { query } = req.body || {};
+// Rotating proxy middleware
+const proxyMiddleware = (req, res, next) => {
+    const proxies = [
+        // Free proxy list would go here in production
+        // Example: 'http://user:pass@ip:port'
+    ];
+
+    if (proxies.length > 0) {
+        const proxy = proxies[Math.floor(Math.random() * proxies.length)];
+        req.proxyConfig = {
+            host: proxy.split('@')[1].split(':')[0],
+            port: parseInt(proxy.split(':')[2]),
+            auth: {
+                username: proxy.split('//')[1].split(':')[0],
+                password: proxy.split(':')[1].split('@')[0]
+            }
+        };
+    }
+    next();
+};
+
+// Enhanced scraping function with platform detection
+const scrapePlatform = async (reqId, query, platform) => {
+    const results = [];
+    const platforms = {
+        twitter: {
+            url: `https://twitter.com/search?q=${encodeURIComponent(query)}&f=user`,
+            selector: 'div[data-testid="UserCell"]',
+            parser: ($, el) => {
+                const name = $(el).find('div[dir="ltr"] span').first().text().trim();
+                const handle = $(el).find('div[dir="ltr"] span:contains("@")').text().trim();
+                const bio = $(el).find('div[data-testid="UserBio"]').text().trim();
+                const url = `https://twitter.com/${handle}`;
+                return { 
+                    title: name || 'Twitter User', 
+                    url, 
+                    description: bio,
+                    source: 'Twitter',
+                    icon: 'twitter'
+                };
+            }
+        },
+        instagram: {
+            url: `https://www.instagram.com/web/search/topsearch/?query=${encodeURIComponent(query)}`,
+            isAPI: true,
+            parser: (data) => {
+                return data.users.map(user => ({
+                    title: user.user.username,
+                    url: `https://instagram.com/${user.user.username}`,
+                    description: user.user.full_name,
+                    source: 'Instagram',
+                    icon: 'instagram',
+                    followers: user.user.follower_count
+                }));
+            }
+        },
+        linkedin: {
+            url: `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(query)}`,
+            selector: '.entity-result',
+            parser: ($, el) => {
+                const name = $(el).find('.entity-result__title-text a').text().trim();
+                const title = $(el).find('.entity-result__primary-subtitle').text().trim();
+                const url = $(el).find('.entity-result__title-text a').attr('href') || '';
+                return { 
+                    title: name || 'LinkedIn Profile', 
+                    url, 
+                    description: title,
+                    source: 'LinkedIn',
+                    icon: 'linkedin'
+                };
+            }
+        },
+        github: {
+            url: `https://github.com/search?q=${encodeURIComponent(query)}&type=users`,
+            selector: '.user-list-item',
+            parser: ($, el) => {
+                const name = $(el).find('.f4 a').text().trim();
+                const bio = $(el).find('.user-list-bio').text().trim();
+                const url = `https://github.com/${name}`;
+                return { 
+                    title: name || 'GitHub User', 
+                    url, 
+                    description: bio,
+                    source: 'GitHub',
+                    icon: 'github'
+                };
+            }
+        },
+        facebook: {
+            url: `https://www.facebook.com/public/${encodeURIComponent(query)}`,
+            selector: 'div._4p2o',
+            parser: ($, el) => {
+                const name = $(el).find('._2ial > a').text().trim();
+                const url = $(el).find('._2ial > a').attr('href') || '';
+                const location = $(el).find('._glm').text().trim();
+                return { 
+                    title: name || 'Facebook Profile', 
+                    url, 
+                    description: location,
+                    source: 'Facebook',
+                    icon: 'facebook'
+                };
+            }
+        }
+    };
+
+    const config = platforms[platform];
+    if (!config) return [];
+
+    try {
+        log(reqId, `Scraping ${platform} for: ${query}`);
+        
+        if (config.isAPI) {
+            const response = await axios.get(config.url, {
+                headers: getRandomHeaders(reqId),
+                timeout: 15000,
+                proxy: req.proxyConfig
+            });
+            return config.parser(response.data);
+        }
+
+        const response = await axios.get(config.url, {
+            headers: getRandomHeaders(reqId),
+            timeout: 15000,
+            proxy: req.proxyConfig
+        });
+        
+        const $ = cheerio.load(response.data);
+        const items = [];
+        
+        $(config.selector).each((i, el) => {
+            try {
+                const result = config.parser($, el);
+                if (result) items.push(result);
+            } catch (e) {
+                log(reqId, `Error parsing ${platform} item: ${e.message}`, 'warn');
+            }
+        });
+        
+        log(reqId, `Found ${items.length} results on ${platform}`);
+        return items;
+    } catch (error) {
+        log(reqId, `Error scraping ${platform}: ${error.message}`, 'error');
+        return [];
+    }
+};
+
+// AI-powered analysis function
+const generateAnalysis = (results) => {
+    const insights = {
+        summary: '',
+        keyFindings: [],
+        recommendations: []
+    };
+
+    // Generate summary based on results
+    if (results.length === 0) {
+        insights.summary = 'No significant digital footprint found for this query.';
+        return insights;
+    }
+
+    const platforms = [...new Set(results.map(r => r.source))];
+    const hasSocialMedia = platforms.some(p => ['Twitter', 'Instagram', 'Facebook'].includes(p));
+    const hasProfessional = platforms.some(p => ['LinkedIn', 'GitHub'].includes(p));
+
+    insights.summary = `Found digital presence across ${platforms.length} platforms. `;
+    
+    if (hasSocialMedia && hasProfessional) {
+        insights.summary += 'The subject maintains both professional and social media profiles.';
+    } else if (hasProfessional) {
+        insights.summary += 'The subject primarily maintains professional profiles.';
+    } else if (hasSocialMedia) {
+        insights.summary += 'The subject primarily maintains social media profiles.';
+    }
+
+    // Key findings
+    if (results.some(r => r.source === 'Twitter' && r.description.includes('CEO'))) {
+        insights.keyFindings.push('Potential executive position based on Twitter bio');
+    }
+    
+    if (results.some(r => r.source === 'GitHub' && r.description.includes('security'))) {
+        insights.keyFindings.push('Shows interest in security based on GitHub activity');
+    }
+    
+    if (results.some(r => r.source === 'LinkedIn' && r.description.includes('Engineer'))) {
+        insights.keyFindings.push('Professional engineering background based on LinkedIn profile');
+    }
+
+    // Recommendations
+    if (results.length > 0) {
+        insights.recommendations.push('Review all found profiles for connections and associations');
+    }
+    
+    if (platforms.includes('GitHub')) {
+        insights.recommendations.push('Analyze GitHub repositories for technical expertise');
+    }
+    
+    if (!platforms.includes('LinkedIn')) {
+        insights.recommendations.push('Consider searching professional networks for additional information');
+    }
+
+    return insights;
+};
+
+// Main search endpoint
+app.post('/api/search', proxyMiddleware, async (req, res) => {
+    const reqId = req.headers['x-request-id'] || Math.random().toString(36).substring(2, 12);
+    const { query, platforms = [] } = req.body || {};
+    
     if (!query || typeof query !== 'string' || query.trim() === '') {
         return res.status(400).json({ message: 'Query is required and must be a non-empty string' });
     }
 
     try {
-        log(reqId, `Processing query: ${query}`);
-        const [bingResults, duckduckgoResults] = await Promise.all([
-            scrapeSearchEngine(reqId, query.trim(), 'bing'),
-            scrapeSearchEngine(reqId, query.trim(), 'duckduckgo')
-        ]);
-        const scrapedData = { bing: bingResults, duckduckgo: duckduckgoResults };
-
-        log(reqId, `Bing results: ${bingResults.length}, DuckDuckGo results: ${duckduckgoResults.length}`);
-        if (bingResults.length === 0 && duckduckgoResults.length === 0) {
-            return res.status(404).json({ message: 'No data retrieved from search engines' });
-        }
-
-        res.json({ data: scrapedData }); // Return scraped data directly
+        log(reqId, `Processing query: "${query}"`);
+        
+        // Scrape all requested platforms in parallel
+        const scrapePromises = platforms.map(platform => 
+            scrapePlatform(reqId, query.trim(), platform)
+        );
+        
+        const results = (await Promise.all(scrapePromises))
+            .flat()
+            .filter(r => r)
+            .slice(0, 25);
+        
+        // Generate AI insights
+        const insights = generateAnalysis(results);
+        
+        log(reqId, `Found ${results.length} results across ${platforms.length} platforms`);
+        res.json({ results, insights });
     } catch (error) {
-        log(reqId, `Error in /api/search: ${error.message} (Status: ${error.response?.status})`, 'error');
-        res.status(error.response?.status || 500).json({ message: error.message || 'Internal server error' });
+        log(reqId, `Search error: ${error.message}`, 'error');
+        res.status(500).json({ 
+            message: 'Search failed', 
+            error: error.message 
+        });
     }
 });
 
-// Serve index.html statically
+// Logging function
+const log = (reqId, message, level = 'info') => {
+    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
+    const colors = {
+        info: '\x1b[36m',
+        warn: '\x1b[33m',
+        error: '\x1b[31m',
+        debug: '\x1b[35m'
+    };
+    const reset = '\x1b[0m';
+    console.log(`${colors[level] || ''}[${timestamp}] [${reqId}] [${level.toUpperCase()}] ${message}${reset}`);
+};
+
+// Server setup
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Graceful shutdown
 const server = app.listen(PORT, () => {
     log('SERVER', `Server running on port ${PORT}`);
 });
 
+// Graceful shutdown
 process.on('SIGTERM', () => {
-    log('SERVER', 'SIGTERM received. Shutting down gracefully...');
+    log('SERVER', 'Shutting down gracefully...');
     server.close(() => {
         process.exit(0);
     });
@@ -153,7 +320,5 @@ process.on('uncaughtException', (err) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    log('SERVER', `Unhandled Rejection at: ${promise}, reason: ${reason}`, 'error');
-    process.exit(1);
+    log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
 });
-
