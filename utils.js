@@ -122,10 +122,47 @@ const normalizeImageUrl = (url, baseDomain) => {
     return url;
 };
 
+const extractUsernames = (text) => {
+    if (!text) return [];
+    // Match @username and username patterns
+    const pattern = /(?:^|\s)(?:@)?([a-zA-Z0-9_]+)(?=\s|$)/g;
+    const usernames = [];
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        if (match[1].length > 3) { // Ignore short strings
+            usernames.push(match[1]);
+        }
+    }
+    return [...new Set(usernames)]; // Remove duplicates
+};
+
+const isBlockedDomain = (url) => {
+    const blockedDomains = [
+        'baidu.com',
+        'qq.com',
+        'weibo.com',
+        'zhihu.com',
+        'douban.com',
+        't.co',
+        'bit.ly',
+        'goo.gl',
+        'tinyurl.com'
+    ];
+    
+    try {
+        const domain = new URL(url).hostname;
+        return blockedDomains.some(blocked => domain.includes(blocked));
+    } catch (e) {
+        return false;
+    }
+};
+
 module.exports = {
     getPlatformFromUrl,
     getUsernameFromUrl,
     extractSocialProfile,
-    normalizeImageUrl
+    normalizeImageUrl,
+    extractUsernames,
+    isBlockedDomain
 };
 
