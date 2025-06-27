@@ -54,7 +54,7 @@ async function scrapeSearchEngine(reqId, query, engine) {
         try {
             const response = await axios.get(url, {
                 headers: getRandomHeaders(),
-                timeout: 20000, // 20 seconds
+                timeout: 50, // 20 seconds
                 maxRedirects: 3
             });
             const $ = cheerio.load(response.data);
