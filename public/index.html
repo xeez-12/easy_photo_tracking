@@ -102,30 +102,6 @@
             position: relative;
         }
 
-        .activity-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 14px;
-            position: relative;
-            z-index: 2;
-            font-size: 13px;
-            color: var(--text-primary);
-            box-shadow: var(--shadow-light);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 1px solid transparent;
-            background: rgba(25, 25, 25, 0.9);
-        }
-
-        .activity-icon.user { border-color: var(--border-color); }
-        .activity-icon.success { border-color: var(--accent-green); }
-        .activity-icon.error { border-color: var(--accent-red); }
-        .activity-icon.warning { border-color: var(--accent-yellow); }
-        .activity-icon.info { border-color: var(--accent-blue); }
-
         .activity-content {
             flex: 1;
             background: var(--bg-card);
@@ -567,6 +543,43 @@
             color: var(--text-secondary);
         }
 
+        .profile-bio {
+            font-size: 10px;
+            margin-top: 4px;
+            color: var(--text-secondary);
+        }
+
+        .social-posts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .social-post {
+            aspect-ratio: 1/1;
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--bg-input);
+            position: relative;
+        }
+
+        .social-post img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .post-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 4px;
+            font-size: 8px;
+            border-radius: 0 0 0 4px;
+        }
+
         @media (max-width: 480px) {
             .app-container {
                 max-width: 100%;
@@ -578,7 +591,6 @@
             .timeline-container { padding: 12px; padding-bottom: 120px; }
             .activity-item { margin-bottom: 20px; }
             .time-label { font-size: 9px; width: 30px; margin-right: 12px; margin-top: 8px; }
-            .activity-icon { width: 30px; height: 30px; font-size: 12px; margin-right: 10px; }
             .activity-content { padding: 12px; }
             .activity-title { font-size: 12px; }
             .activity-message { font-size: 11px; }
@@ -766,7 +778,7 @@
                                                 <i class="bi bi-link-45deg url-icon"></i>
                                                 <a href="${result.url}" target="_blank">${this.extractDomain(result.url)}</a>
                                             </div>
-                                            <p>${this.escapeHtml(result.description || 'No description available')}</p>
+                                            <p>${this.escapeHtml(result.snippet || 'No description available')}</p>
                                             ${result.date ? `<div class="result-meta"><span><i class="bi bi-calendar"></i> ${result.date}</span></div>` : ''}
                                         </div>
                                     </div>
@@ -809,15 +821,54 @@
             }
 
             renderProfile(profile) {
-                return `
+                let profileHtml = `
                     <div class="social-profile">
-                        ${profile.image ? `<img src="${profile.image}" class="profile-image" onerror="this.style.display='none'">` : '<div class="profile-image"><i class="bi bi-person-circle"></i></div>'}
+                        ${profile.profileImage ? `<img src="${profile.profileImage}" class="profile-image" onerror="this.style.display='none'">` : 
+                          `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`}
                         <div class="profile-info">
                             <div class="profile-name">${profile.name || 'Unknown'}</div>
-                            <div class="profile-handle">${profile.handle ? `@${profile.handle}` : profile.url ? this.extractDomain(profile.url) : ''}</div>
+                            <div class="profile-handle">${profile.handle || (profile.url ? this.extractDomain(profile.url) : '')}</div>
+                            ${profile.bio ? `<div class="profile-bio">${this.escapeHtml(profile.bio)}</div>` : ''}
                         </div>
                     </div>
                 `;
+                
+                // Add posts if available
+                if (profile.posts && profile.posts.length > 0) {
+                    profileHtml += `<div class="social-posts">`;
+                    profile.posts.slice(0, 9).forEach((post, index) => {
+                        profileHtml += `
+                            <div class="social-post">
+                                <img src="${post.image}" alt="Post ${index + 1}">
+                                ${index === 8 && profile.posts.length > 9 ? 
+                                    `<div class="post-count">+${profile.posts.length - 9}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                    profileHtml += `</div>`;
+                }
+                
+                // Add tweets if available
+                if (profile.tweets && profile.tweets.length > 0) {
+                    profileHtml += `<div class="result-section" style="margin-top:10px;">`;
+                    profileHtml += `<h4><i class="bi bi-chat-left-text"></i> Recent Tweets</h4>`;
+                    profile.tweets.slice(0, 3).forEach(tweet => {
+                        profileHtml += `
+                            <div class="result-item" style="padding:8px;margin-bottom:6px;">
+                                <p>${this.escapeHtml(tweet.text)}</p>
+                                <div class="result-meta">
+                                    <span><i class="bi bi-heart"></i> ${tweet.likes}</span>
+                                    <span><i class="bi bi-repeat"></i> ${tweet.retweets}</span>
+                                    <span><i class="bi bi-chat"></i> ${tweet.replies}</span>
+                                    <span><i class="bi bi-calendar"></i> ${new Date(tweet.timestamp).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    profileHtml += `</div>`;
+                }
+                
+                return profileHtml;
             }
 
             generateAIAnalysis(insights) {
@@ -861,17 +912,18 @@
 
                 activityItem.innerHTML = `
                     <div class="time-label">${timeToUse}</div>
-                    <div class="activity-icon ${type}">
-                        <i class="${iconClass}"></i>
-                    </div>
                     <div class="activity-content">
-                        <div class="activity-title">${this.escapeHtml(title)}</div>
+                        <div class="activity-title">
+                            <i class="bi ${iconClass}"></i>
+                            ${this.escapeHtml(title)}
+                        </div>
                         ${content ? `<div class="activity-message">${content}</div>` : ''}
                     </div>
                 `;
 
                 if (this.timeline) {
                     this.timeline.appendChild(activityItem);
+                    activityItem.scrollIntoView({ behavior: 'smooth' });
                 }
             }
 
