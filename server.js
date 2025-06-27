@@ -70,19 +70,18 @@ const searchEngines = {
             $('.result').each((i, el) => {
                 const linkElement = $(el).find('.result__a');
                 const title = linkElement.text() || 'No title';
-                // Extract the actual URL from the href
                 let url = linkElement.attr('href') || '';
-                // The href is in the form: "/url?q=ACTUAL_URL&..."
-                // We need to parse the query string to get the 'q' parameter
+                
+                // Fix for DuckDuckGo URL parsing
                 if (url.startsWith('/url?')) {
                     try {
-                        const queryString = url.split('?')[1];
-                        const params = new URLSearchParams(queryString);
-                        url = params.get('q') || '';
+                        const urlParams = new URLSearchParams(url.split('?')[1]);
+                        url = urlParams.get('q') || '';
                     } catch (e) {
-                        console.error('Error parsing DuckDuckGo URL:', url);
+                        console.error('Error parsing DuckDuckGo URL:', e);
                     }
                 }
+                
                 const snippet = $(el).find('.result__snippet').text() || '';
                 
                 if (title && url) {
@@ -158,6 +157,7 @@ const generateInsights = (results) => {
         socialMediaKeywords.some(keyword => 
             result.url.toLowerCase().includes(keyword) ||
             result.title.toLowerCase().includes(keyword)
+        )
     );
     
     if (socialMediaResults.length > 0) {
@@ -171,6 +171,7 @@ const generateInsights = (results) => {
     const hasRisk = results.some(result => 
         riskKeywords.some(keyword => 
             (result.title + result.snippet).toLowerCase().includes(keyword)
+        )
     );
     
     insights.riskLevel = hasRisk ? 'High (Sensitive content detected)' : 'Low';
@@ -216,7 +217,7 @@ const performSearch = async (reqId, query) => {
         log(reqId, `Search error: ${error.message}`, 'error');
     }
     
-    return results.slice(0, 50); // Limit to top 50 results
+    return results.slice(0, 50);
 };
 
 // API endpoint
@@ -289,3 +290,4 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
 });
+
