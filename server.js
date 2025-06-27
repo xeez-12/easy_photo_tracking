@@ -68,8 +68,21 @@ const searchEngines = {
         parser: ($) => {
             const results = [];
             $('.result').each((i, el) => {
-                const title = $(el).find('.result__a').text() || 'No title';
-                const url = $(el).find('.result__url').attr('href') || '';
+                const linkElement = $(el).find('.result__a');
+                const title = linkElement.text() || 'No title';
+                // Extract the actual URL from the href
+                let url = linkElement.attr('href') || '';
+                // The href is in the form: "/url?q=ACTUAL_URL&..."
+                // We need to parse the query string to get the 'q' parameter
+                if (url.startsWith('/url?')) {
+                    try {
+                        const queryString = url.split('?')[1];
+                        const params = new URLSearchParams(queryString);
+                        url = params.get('q') || '';
+                    } catch (e) {
+                        console.error('Error parsing DuckDuckGo URL:', url);
+                    }
+                }
                 const snippet = $(el).find('.result__snippet').text() || '';
                 
                 if (title && url) {
@@ -276,4 +289,3 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
 });
-
