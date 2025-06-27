@@ -63,7 +63,7 @@
         .timeline::before {
             content: '';
             position: absolute;
-            left: 36px; /* Updated from 39px to 36px */
+            left: 36px;
             top: 0;
             bottom: 130px;
             width: 1.5px;
@@ -233,15 +233,18 @@
             font-weight: 600;
         }
 
-        .domain-badge {
-            background: rgba(120, 120, 120, 0.2);
+        .social-stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+            font-size: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
             color: var(--text-secondary);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 500;
-            display: inline-block;
-            margin-left: 4px;
         }
 
         .collapsible {
@@ -862,6 +865,13 @@
                             <div class="profile-name">${profile.name || 'Unknown'}</div>
                             <div class="profile-handle">${profile.handle || (profile.url ? this.extractDomain(profile.url) : '')}</div>
                             ${profile.bio ? `<div class="profile-bio">${this.escapeHtml(profile.bio)}</div>` : ''}
+                            ${profile.stats ? `
+                                <div class="social-stats">
+                                    ${profile.stats.followers ? `<div class="stat-item"><i class="bi bi-people"></i> ${profile.stats.followers} followers</div>` : ''}
+                                    ${profile.stats.following ? `<div class="stat-item"><i class="bi bi-person-plus"></i> ${profile.stats.following} following</div>` : ''}
+                                    ${profile.stats.posts ? `<div class="stat-item"><i class="bi bi-images"></i> ${profile.stats.posts} posts</div>` : ''}
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -1027,3 +1037,4 @@
     </script>
 </body>
 </html>
+
