@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Tracker</title>
+    <title>OSINT Tracker Pro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
@@ -44,7 +44,7 @@
         }
 
         .app-container {
-            max-width: 420px;
+            max-width: 480px;
             margin: 0 auto;
             background: var(--bg-secondary);
             min-height: 100vh;
@@ -52,6 +52,59 @@
             box-shadow: var(--shadow);
             border-left: 1px solid var(--border-color);
             border-right: 1px solid var(--border-color);
+        }
+
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-tools {
+            display: flex;
+            gap: 12px;
+        }
+
+        .tool-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tool-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--accent-blue);
         }
 
         .timeline-container {
@@ -67,7 +120,7 @@
             top: 0;
             bottom: 140px;
             width: 2px;
-            background: linear-gradient(to bottom, transparent, var(--border-color) 10%, var(--border-color) 90%, transparent);
+            background: linear-gradient(to bottom, transparent, var(--accent-purple) 10%, var(--accent-purple) 90%, transparent);
             border-radius: 1px;
         }
 
@@ -129,6 +182,7 @@
         .activity-icon.success { background: var(--bg-card); border-color: var(--accent-green); }
         .activity-icon.error { background: var(--bg-card); border-color: var(--accent-red); }
         .activity-icon.warning { background: var(--bg-card); border-color: var(--accent-yellow); }
+        .activity-icon.info { background: var(--bg-card); border-color: var(--accent-blue); }
 
         .activity-content {
             flex: 1;
@@ -173,6 +227,15 @@
             padding-top: 12px;
         }
 
+        .result-section h4 {
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .result-item {
             background: var(--bg-code);
             border: 1px solid var(--border-hover);
@@ -180,6 +243,7 @@
             padding: 12px;
             margin-bottom: 10px;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .result-item:hover {
@@ -187,16 +251,21 @@
             transform: translateX(5px);
         }
 
-        .result-item h4 {
+        .result-item h5 {
             color: var(--text-primary);
             font-size: 15px;
             margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .result-item a {
             color: var(--accent-blue);
             text-decoration: none;
             word-break: break-all;
+            display: inline-block;
+            margin-top: 4px;
         }
 
         .result-item a:hover {
@@ -207,6 +276,24 @@
             color: var(--text-secondary);
             font-size: 13px;
             margin: 6px 0 0;
+            line-height: 1.6;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .source-tag {
+            background: rgba(74, 144, 226, 0.15);
+            color: var(--accent-blue);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
         }
 
         .collapsible {
@@ -218,6 +305,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 13px;
         }
 
         .collapsible:hover {
@@ -231,6 +319,11 @@
             background: var(--bg-card);
             border-radius: 6px;
             border: 1px solid var(--border-color);
+            font-size: 12px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow: auto;
         }
 
         .collapsible-content.active {
@@ -260,6 +353,32 @@
         .empty-state p {
             font-size: 14px;
             line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .suggestion-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .suggestion-tag {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-tag:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
         }
 
         .typing-indicator {
@@ -297,7 +416,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
-            max-width: 420px;
+            max-width: 480px;
             background: linear-gradient(to top, var(--bg-secondary) 80%, transparent);
             padding: 20px;
             backdrop-filter: blur(30px);
@@ -362,7 +481,7 @@
         }
 
         .send-button:hover:not(:disabled) {
-            background: var(--bg-code);
+            background: var(--accent-blue);
             transform: scale(1.1);
             box-shadow: var(--shadow);
         }
@@ -405,6 +524,23 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .ai-insights {
+            background: rgba(74, 144, 226, 0.1);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .ai-insights h5 {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent-blue);
+            margin-bottom: 8px;
+        }
+
         @media (max-width: 480px) {
             .app-container {
                 max-width: 100%;
@@ -421,6 +557,7 @@
             .activity-title { font-size: 15px; }
             .activity-message { font-size: 13px; }
             .timeline::before { left: 40px; }
+            .app-header { padding: 12px 16px; }
         }
 
         @media (max-width: 360px) {
@@ -434,19 +571,43 @@
 </head>
 <body>
     <div class="app-container">
+        <div class="app-header">
+            <div class="header-content">
+                <div class="app-title">
+                    <i class="bi bi-binoculars"></i>
+                    OSINT Tracker Pro
+                </div>
+                <div class="search-tools">
+                    <div class="tool-btn" title="Save Search">
+                        <i class="bi bi-bookmark"></i>
+                    </div>
+                    <div class="tool-btn" title="Export Results">
+                        <i class="bi bi-download"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="timeline-container">
             <div class="timeline" id="timeline">
                 <div class="empty-state" id="emptyState">
-                    <i class="bi bi-search"></i>
-                    <h3>Start Your OSINT Search</h3>
-                    <p>Enter a query to begin searching social media for open-source intelligence.</p>
+                    <i class="bi bi-search-heart"></i>
+                    <h3>Intelligent OSINT Search</h3>
+                    <p>Enter a name, username, or keyword to uncover digital footprints across multiple platforms</p>
+                    
+                    <div class="suggestion-box">
+                        <div class="suggestion-tag" data-query="elon musk">@elonmusk</div>
+                        <div class="suggestion-tag" data-query="cybersecurity">#cybersecurity</div>
+                        <div class="suggestion-tag" data-query="openai">OpenAI</div>
+                        <div class="suggestion-tag" data-query="data breach">Data Breach 2023</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="input-section">
             <div class="typing-indicator" id="typingIndicator">
-                <span>Searching...</span>
+                <span>Searching 12 platforms...</span>
                 <div class="typing-dots">
                     <span></span>
                     <span></span>
@@ -456,11 +617,11 @@
             <div class="input-wrapper">
                 <textarea 
                     class="message-input" 
-                    placeholder="Enter your OSINT query..." 
+                    placeholder="Search username, email, or keyword..." 
                     id="messageInput"
                     rows="1"></textarea>
                 <button class="send-button" id="sendBtn">
-                    <i class="bi bi-send-fill"></i>
+                    <i class="bi bi-search"></i>
                 </button>
             </div>
         </div>
@@ -503,6 +664,16 @@
                     this.updateSendButton();
                 });
                 window.addEventListener('resize', () => this.scrollToBottom());
+                
+                // Bind suggestion tags
+                document.querySelectorAll('.suggestion-tag').forEach(tag => {
+                    tag.addEventListener('click', (e) => {
+                        this.messageInput.value = e.target.dataset.query;
+                        this.updateSendButton();
+                        this.autoResizeTextarea();
+                        this.sendQuery();
+                    });
+                });
             }
 
             autoResizeTextarea() {
@@ -534,7 +705,7 @@
                 this.hideEmptyState();
                 
                 const userTime = this.generateUniqueTime();
-                this.addActivityToTimeline('You', `Searching for: ${query}`, 'user', userTime);
+                this.addActivityToTimeline('You', `Searching for: <strong>${this.escapeHtml(query)}</strong>`, 'user', userTime);
                 
                 this.messageInput.value = '';
                 this.autoResizeTextarea();
@@ -545,8 +716,14 @@
                 try {
                     const response = await fetch('/api/search', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ query })
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'X-Request-ID': Math.random().toString(36).substring(2, 12)
+                        },
+                        body: JSON.stringify({ 
+                            query,
+                            platforms: ['twitter', 'instagram', 'linkedin', 'github', 'facebook']
+                        })
                     });
 
                     if (!response.ok) {
@@ -558,53 +735,43 @@
                         throw new Error(data.message);
                     }
 
-                    const { bing, duckduckgo } = data.data;
                     const aiTime = this.generateUniqueTime();
+                    
+                    // Add AI analysis
+                    if (data.insights) {
+                        this.addActivityToTimeline('OSINT Analyst', this.generateAIAnalysis(data.insights), 'info', aiTime);
+                    }
 
-                    if (bing.length > 0 || duckduckgo.length > 0) {
+                    // Add search results
+                    if (data.results && data.results.length > 0) {
                         let content = '<div class="result-section">';
-                        if (bing.length > 0) {
-                            content += '<h4>Bing Results</h4>';
-                            bing.forEach((item, index) => {
-                                content += `
-                                    <div class="result-item">
-                                        <h4>${item.title}</h4>
-                                        <a href="${item.link}" target="_blank">${item.link}</a>
-                                        <p>${item.snippet}</p>
-                                        <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
-                                            <span>View Details</span>
-                                            <i class="bi bi-chevron-down"></i>
-                                        </div>
-                                        <div class="collapsible-content">
-                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '"')}
-                                        </div>
+                        content += `<h4><i class="bi bi-collection"></i> ${data.results.length} Results Found</h4>`;
+                        
+                        data.results.forEach((result, index) => {
+                            content += `
+                                <div class="result-item">
+                                    <h5><i class="bi bi-${result.icon || 'link-45deg'}"></i> ${this.escapeHtml(result.title)}</h5>
+                                    <span class="source-tag">${result.source}</span>
+                                    <a href="${result.url}" target="_blank">${this.shortenUrl(result.url)}</a>
+                                    <p>${this.escapeHtml(result.description || 'No description available')}</p>
+                                    <div class="result-meta">
+                                        <span><i class="bi bi-calendar"></i> ${result.date || 'Unknown date'}</span>
+                                        <span><i class="bi bi-geo-alt"></i> ${result.location || 'Unknown location'}</span>
                                     </div>
-                                `;
-                            });
-                        }
-                        if (duckduckgo.length > 0) {
-                            content += '<h4>DuckDuckGo Results</h4>';
-                            duckduckgo.forEach((item, index) => {
-                                content += `
-                                    <div class="result-item">
-                                        <h4>${item.title}</h4>
-                                        <a href="${item.link}" target="_blank">${item.link}</a>
-                                        <p>${item.snippet}</p>
-                                        <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
-                                            <span>View Details</span>
-                                            <i class="bi bi-chevron-down"></i>
-                                        </div>
-                                        <div class="collapsible-content">
-                                            <strong>Raw Data:</strong> ${JSON.stringify(item).replace(/"/g, '"')}
-                                        </div>
+                                    <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
+                                        <span>View Raw Data</span>
+                                        <i class="bi bi-chevron-down"></i>
                                     </div>
-                                `;
-                            });
-                        }
+                                    <div class="collapsible-content">
+                                        ${JSON.stringify(result, null, 2)}
+                                    </div>
+                                </div>
+                            `;
+                        });
                         content += '</div>';
-                        this.addActivityToTimeline('OSINT Scraper', content, 'success', aiTime);
+                        this.addActivityToTimeline('Search Engine', content, 'success', aiTime);
                     } else {
-                        this.addActivityToTimeline('OSINT Scraper', 'No results found from search engines.', 'warning', aiTime);
+                        this.addActivityToTimeline('Search Engine', 'No results found from search engines.', 'warning', aiTime);
                     }
 
                 } catch (error) {
@@ -628,13 +795,31 @@
                 }
             }
 
+            generateAIAnalysis(insights) {
+                return `
+                    <div class="ai-insights">
+                        <h5><i class="bi bi-lightbulb"></i> AI Analysis</h5>
+                        <p>${insights.summary}</p>
+                        <p><strong>Key Findings:</strong> ${insights.keyFindings}</p>
+                        <p><strong>Recommendations:</strong> ${insights.recommendations}</p>
+                    </div>
+                `;
+            }
+
+            shortenUrl(url) {
+                if (url.length > 50) {
+                    return url.substring(0, 30) + '...' + url.substring(url.length - 20);
+                }
+                return url;
+            }
+
             escapeHtml(unsafe) {
                 return (unsafe || '')
-                    .replace(/&/g, "&")
-                    .replace(/</g, "<")
-                    .replace(/>/g, ">")
-                    .replace(/"/g, """)
-                    .replace(/'/g, "'");
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
             }
 
             scrollToBottom() {
@@ -653,6 +838,7 @@
                 const timeToUse = customTime || this.generateUniqueTime();
                 const activityItem = document.createElement('div');
                 activityItem.className = 'activity-item';
+                activityItem.style.animationDelay = `${this.messageCount * 0.1}s`;
                 
                 let iconClass;
                 switch (type) {
@@ -660,6 +846,7 @@
                     case 'success': iconClass = 'bi-check-circle-fill'; break;
                     case 'error': iconClass = 'bi-exclamation-triangle-fill'; break;
                     case 'warning': iconClass = 'bi-exclamation-circle-fill'; break;
+                    case 'info': iconClass = 'bi-info-circle-fill'; break;
                     default: iconClass = 'bi-search';
                 }
 
@@ -671,10 +858,6 @@
                     <div class="activity-content">
                         <div class="activity-title">${this.escapeHtml(title)}</div>
                         ${content ? `<div class="activity-message">${content}</div>` : ''}
-                        <div class="message-status">
-                            <i class="bi-check2-all status-icon"></i>
-                            ${type === 'user' ? 'Sent' : 'Delivered'}
-                        </div>
                     </div>
                 `;
 
@@ -697,7 +880,7 @@
                         </div>
                     `;
                 } else {
-                    this.sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+                    this.sendBtn.innerHTML = '<i class="bi bi-search"></i>';
                 }
             }
 
@@ -725,3 +908,4 @@
     </script>
 </body>
 </html>
+
