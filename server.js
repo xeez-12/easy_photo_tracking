@@ -12,15 +12,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 
-// Enhanced header configuration with rotating user agents
+// Fixed user agent generation with robust fallback
 const getRandomHeaders = (reqId) => {
-    const ua = new userAgent([
-        { deviceCategory: 'desktop' },
-        { deviceCategory: 'mobile' },
-        { platform: 'Win32' },
-        { platform: 'MacIntel' },
-        { platform: 'Linux x86_64' }
-    ]).toString();
+    // Generate random device type
+    const deviceTypes = ['desktop', 'mobile'];
+    const randomDevice = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
+    
+    // Generate user agent with fallback
+    let ua;
+    try {
+        ua = new userAgent({ deviceCategory: randomDevice }).toString();
+    } catch (e) {
+        // Fallback user agents
+        const fallbackAgents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            'Mozilla/5.0 (Linux; Android 13; SM-S901U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36'
+        ];
+        ua = fallbackAgents[Math.floor(Math.random() * fallbackAgents.length)];
+    }
     
     return {
         'User-Agent': ua,
@@ -29,7 +40,7 @@ const getRandomHeaders = (reqId) => {
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'X-Request-ID': reqId,
         'X-Forwarded-For': `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
@@ -42,7 +53,7 @@ const getRandomHeaders = (reqId) => {
     };
 };
 
-// Search engine scrapers with enhanced bypass techniques
+// Enhanced search engine scrapers with profile extraction
 const searchEngines = {
     bing: {
         url: (query, page = 0) => `https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${page * 10 + 1}`,
@@ -55,6 +66,13 @@ const searchEngines = {
                 const dateElement = $(el).find('.news_dt');
                 const date = dateElement.length ? dateElement.text().trim() : '';
                 
+                // Extract profile information
+                let profile = '';
+                const profileElement = $(el).find('.b_attribution cite');
+                if (profileElement.length) {
+                    profile = profileElement.text().trim();
+                }
+                
                 if (title && url && !url.includes('bing.com')) {
                     results.push({ 
                         title, 
@@ -62,7 +80,8 @@ const searchEngines = {
                         snippet,
                         date,
                         source: 'Bing',
-                        icon: 'search'
+                        icon: 'search',
+                        profile
                     });
                 }
             });
@@ -78,17 +97,24 @@ const searchEngines = {
                 const title = linkElement.text().trim() || 'No title';
                 let url = linkElement.attr('href') || '';
                 
-                // Fix DuckDuckGo URL parsing
+                // Improved URL parsing
                 if (url.startsWith('/l/?uddg=')) {
                     try {
-                        const decoded = decodeURIComponent(url.split('uddg=')[1]);
-                        url = new URL(decoded).href;
+                        const params = new URLSearchParams(url.split('?')[1]);
+                        url = params.get('uddg') ? decodeURIComponent(params.get('uddg')) : url;
                     } catch (e) {
-                        // Use fallback if parsing fails
+                        // Fallback to original URL
                     }
                 }
                 
                 const snippet = $(el).find('.result__snippet').text().trim() || '';
+                
+                // Extract profile information
+                let profile = '';
+                const profileElement = $(el).find('.result__url');
+                if (profileElement.length) {
+                    profile = profileElement.text().trim();
+                }
                 
                 if (title && url) {
                     results.push({ 
@@ -96,7 +122,8 @@ const searchEngines = {
                         url: url.startsWith('//') ? `https:${url}` : url,
                         snippet,
                         source: 'DuckDuckGo',
-                        icon: 'search'
+                        icon: 'search',
+                        profile
                     });
                 }
             });
@@ -105,7 +132,7 @@ const searchEngines = {
     }
 };
 
-// Enhanced scraping function with retries and pagination
+// Enhanced scraping function with robust error handling
 const scrapeEngine = async (reqId, engine, query) => {
     const results = [];
     let page = 0;
@@ -120,21 +147,29 @@ const scrapeEngine = async (reqId, engine, query) => {
             const response = await axios.get(url, {
                 headers: getRandomHeaders(reqId),
                 timeout: 20000,
-                validateStatus: () => true
+                validateStatus: () => true // Bypass status code errors
             });
             
-            // Check for blocking
+            // Handle blocking
             if (response.status === 403 || response.status === 429) {
                 log(reqId, `Blocked by ${engine} with status ${response.status}`, 'warn');
+                break;
+            }
+            
+            // Handle CAPTCHAs
+            if (response.data.includes('captcha') || response.data.includes('CAPTCHA')) {
+                log(reqId, `CAPTCHA detected on ${engine} page ${page + 1}`, 'warn');
                 break;
             }
             
             const $ = cheerio.load(response.data);
             const pageResults = searchEngines[engine].parser($);
             
-            // Filter out duplicates
+            // Filter out duplicates and invalid URLs
             pageResults.forEach(result => {
-                if (!results.some(r => r.url === result.url)) {
+                if (result.url && 
+                    !results.some(r => r.url === result.url) &&
+                    result.url.startsWith('http')) {
                     results.push(result);
                 }
             });
@@ -147,22 +182,35 @@ const scrapeEngine = async (reqId, engine, query) => {
             page++;
             
             // Random delay between requests
-            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
         } catch (error) {
             log(reqId, `Error scraping ${engine} page ${page + 1}: ${error.message}`, 'error');
-            break;
+            // Add delay before retry
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
     }
     
     return results.slice(0, maxResults);
 };
 
-// Enhanced AI analysis with social media detection
+// Enhanced AI analysis with profile extraction
 const generateInsights = (results) => {
     const insights = {};
     
     // Basic analysis
     insights.summary = `Found ${results.length} relevant results across multiple sources.`;
+    
+    // Extract profiles
+    const profiles = results
+        .filter(result => result.profile)
+        .map(result => result.profile)
+        .filter((value, index, self) => self.indexOf(value) === index);
+    
+    if (profiles.length > 0) {
+        insights.keyFindings = `Identified ${profiles.length} unique profiles: ${profiles.slice(0, 3).join(', ')}${profiles.length > 3 ? '...' : ''}`;
+    } else {
+        insights.keyFindings = 'No profile information extracted';
+    }
     
     // Social media detection
     const socialMediaKeywords = ['twitter', 'facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'];
@@ -174,9 +222,7 @@ const generateInsights = (results) => {
     );
     
     if (socialMediaResults.length > 0) {
-        insights.keyFindings = `Found ${socialMediaResults.length} social media references`;
-    } else {
-        insights.keyFindings = 'No significant social media presence detected';
+        insights.keyFindings += `. Found ${socialMediaResults.length} social media references`;
     }
     
     // Risk assessment
@@ -192,8 +238,12 @@ const generateInsights = (results) => {
     // Recommendations
     insights.recommendations = 'Verify all sources and cross-reference information';
     
+    if (profiles.length > 0) {
+        insights.recommendations += '. Analyze extracted profiles for connections';
+    }
+    
     if (socialMediaResults.length > 0) {
-        insights.recommendations += '. Consider investigating social media profiles';
+        insights.recommendations += '. Investigate social media references';
     }
     
     if (hasRisk) {
@@ -203,23 +253,33 @@ const generateInsights = (results) => {
     return insights;
 };
 
-// Main search function
+// Main search function with error resilience
 const performSearch = async (reqId, query) => {
     const results = [];
     
     try {
-        // Scrape both engines in parallel
-        const [bingResults, duckduckgoResults] = await Promise.all([
-            scrapeEngine(reqId, 'bing', query),
-            scrapeEngine(reqId, 'duckduckgo', query)
-        ]);
+        // Scrape both engines with independent error handling
+        let bingResults = [];
+        let duckduckgoResults = [];
+        
+        try {
+            bingResults = await scrapeEngine(reqId, 'bing', query);
+        } catch (bingError) {
+            log(reqId, `Bing search failed: ${bingError.message}`, 'error');
+        }
+        
+        try {
+            duckduckgoResults = await scrapeEngine(reqId, 'duckduckgo', query);
+        } catch (ddgError) {
+            log(reqId, `DuckDuckGo search failed: ${ddgError.message}`, 'error');
+        }
         
         // Combine results and deduplicate
         const allResults = [...bingResults, ...duckduckgoResults];
         const seenUrls = new Set();
         
         allResults.forEach(result => {
-            if (!seenUrls.has(result.url)) {
+            if (result.url && !seenUrls.has(result.url)) {
                 seenUrls.add(result.url);
                 results.push(result);
             }
@@ -233,7 +293,7 @@ const performSearch = async (reqId, query) => {
     return results.slice(0, 50);
 };
 
-// API endpoint
+// API endpoint with robust error handling
 app.post('/api/search', async (req, res) => {
     const reqId = req.headers['x-request-id'] || Math.random().toString(36).substring(2, 12);
     const { query } = req.body || {};
@@ -256,7 +316,7 @@ app.post('/api/search', async (req, res) => {
         log(reqId, `Search error: ${error.message}`, 'error');
         res.status(500).json({ 
             message: 'Search failed', 
-            error: error.message 
+            error: 'Internal server error'
         });
     }
 });
@@ -303,3 +363,4 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
 });
+
