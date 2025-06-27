@@ -14,7 +14,12 @@ const PORT = process.env.PORT || 3000;
 
 // Enhanced header configuration with rotating user agents
 const getRandomHeaders = (reqId) => {
-    const ua = new userAgent({ deviceCategory: 'desktop' }).toString();
+    const ua = new userAgent({
+        deviceCategory: 'desktop',
+        platform: Math.random() > 0.5 ? 'Win32' : 'Linux x86_64',
+        browserName: Math.random() > 0.7 ? 'chrome' : (Math.random() > 0.5 ? 'firefox' : 'safari')
+    }).toString();
+    
     return {
         'User-Agent': ua,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -32,22 +37,23 @@ const getRandomHeaders = (reqId) => {
         'Sec-Fetch-Dest': 'document',
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'same-origin',
-        'Sec-Fetch-User': '?1'
+        'Sec-Fetch-User': '?1',
+        'Cookie': `session_id=${Math.random().toString(36).substring(2)}`
     };
 };
 
 // Search engine scrapers with enhanced bypass techniques
 const searchEngines = {
     bing: {
-        url: (query, page = 0) => `https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${page * 10 + 1}`,
+        url: (query, page = 0) => `https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${page * 10 + 1}&count=10`,
         parser: ($) => {
             const results = [];
             $('li.b_algo').each((i, el) => {
-                const title = $(el).find('h2').text() || 'No title';
-                const url = $(el).find('a').attr('href') || '';
-                const snippet = $(el).find('.b_caption p').text() || '';
-                const dateElement = $(el).find('.news_dt');
-                const date = dateElement.length ? dateElement.text() : '';
+                const title = $(el).find('h2')?.text()?.trim() || 'No title';
+                const url = $(el).find('a')?.attr('href') || '';
+                const snippet = $(el).find('.b_caption p')?.text()?.trim() || '';
+                const dateElement = $(el).find('.news_dt, .news_dt+span');
+                const date = dateElement.length ? dateElement.text().trim() : '';
                 
                 if (title && url && !url.includes('bing.com')) {
                     results.push({ 
@@ -64,13 +70,13 @@ const searchEngines = {
         }
     },
     duckduckgo: {
-        url: (query, page = 0) => `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}&s=${page * 30}`,
+        url: (query, page = 0) => `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}&s=${page * 30}&dc=${page + 1}`,
         parser: ($) => {
             const results = [];
             $('.result').each((i, el) => {
                 const linkElement = $(el).find('.result__a');
-                const title = linkElement.text() || 'No title';
-                let url = linkElement.attr('href') || '';
+                const title = linkElement?.text()?.trim() || 'No title';
+                let url = linkElement?.attr('href') || '';
                 
                 // Fix for DuckDuckGo URL parsing
                 if (url.startsWith('/url?')) {
@@ -78,17 +84,20 @@ const searchEngines = {
                         const urlParams = new URLSearchParams(url.split('?')[1]);
                         url = urlParams.get('q') || '';
                     } catch (e) {
-                        console.error('Error parsing DuckDuckGo URL:', e);
+                        // Fallback to original URL if parsing fails
                     }
                 }
                 
-                const snippet = $(el).find('.result__snippet').text() || '';
+                const snippet = $(el).find('.result__snippet')?.text()?.trim() || '';
+                const dateElement = $(el).find('.result__timestamp');
+                const date = dateElement.length ? dateElement.text().trim() : '';
                 
                 if (title && url) {
                     results.push({ 
                         title, 
                         url: url.startsWith('//') ? `https:${url}` : url,
                         snippet,
+                        date,
                         source: 'DuckDuckGo',
                         icon: 'search'
                     });
@@ -103,42 +112,66 @@ const searchEngines = {
 const scrapeEngine = async (reqId, engine, query) => {
     const results = [];
     let page = 0;
-    const maxPages = 3;
-    const maxResults = 50;
+    const maxPages = 5;  // Increased from 3 to 5 for deeper search
+    const maxResults = 100;
     
     while (page < maxPages && results.length < maxResults) {
-        try {
-            const url = searchEngines[engine].url(query, page);
-            log(reqId, `Scraping ${engine} page ${page + 1}: ${url}`);
-            
-            const response = await axios.get(url, {
-                headers: getRandomHeaders(reqId),
-                timeout: 15000
-            });
-            
-            const $ = cheerio.load(response.data);
-            const pageResults = searchEngines[engine].parser($);
-            
-            // Filter out duplicates
-            pageResults.forEach(result => {
-                if (!results.some(r => r.url === result.url)) {
-                    results.push(result);
+        let attempt = 0;
+        const maxAttempts = 2;
+        let success = false;
+        
+        while (attempt < maxAttempts && !success) {
+            try {
+                const url = searchEngines[engine].url(query, page);
+                log(reqId, `Scraping ${engine} page ${page + 1}: ${url}`);
+                
+                const response = await axios.get(url, {
+                    headers: getRandomHeaders(reqId),
+                    timeout: 20000,  // Increased timeout
+                    maxRedirects: 5,
+                    proxy: process.env.PROXY_URL ? {
+                        protocol: 'http',
+                        host: process.env.PROXY_HOST,
+                        port: process.env.PROXY_PORT,
+                        auth: {
+                            username: process.env.PROXY_USER,
+                            password: process.env.PROXY_PASS
+                        }
+                    } : undefined
+                });
+                
+                const $ = cheerio.load(response.data);
+                const pageResults = searchEngines[engine].parser($);
+                
+                // Filter out duplicates
+                pageResults.forEach(result => {
+                    if (!results.some(r => r.url === result.url)) {
+                        results.push(result);
+                    }
+                });
+                
+                log(reqId, `Found ${pageResults.length} results on ${engine} page ${page + 1}`);
+                success = true;
+                
+            } catch (error) {
+                attempt++;
+                log(reqId, `Attempt ${attempt} failed for ${engine} page ${page + 1}: ${error.message}`, 'error');
+                if (attempt >= maxAttempts) {
+                    log(reqId, `Giving up on ${engine} page ${page + 1} after ${maxAttempts} attempts`, 'warn');
+                    break;
                 }
-            });
-            
-            log(reqId, `Found ${pageResults.length} results on ${engine} page ${page + 1}`);
-            
-            // Stop if we have enough results
-            if (results.length >= maxResults) break;
-            
-            page++;
-            
-            // Random delay between requests
-            await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1000) + 500));
-        } catch (error) {
-            log(reqId, `Error scraping ${engine} page ${page + 1}: ${error.message}`, 'error');
-            break;
+                // Exponential backoff
+                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+            }
         }
+        
+        // Stop if we have enough results
+        if (results.length >= maxResults) break;
+        
+        page++;
+        
+        // Random delay between requests
+        await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1500) + 500));
     }
     
     return results.slice(0, maxResults);
@@ -167,7 +200,7 @@ const generateInsights = (results) => {
     }
     
     // Risk assessment
-    const riskKeywords = ['breach', 'leak', 'hack', 'scam', 'fraud', 'exposed'];
+    const riskKeywords = ['breach', 'leak', 'hack', 'scam', 'fraud', 'exposed', 'compromise'];
     const hasRisk = results.some(result => 
         riskKeywords.some(keyword => 
             (result.title + result.snippet).toLowerCase().includes(keyword)
@@ -187,6 +220,19 @@ const generateInsights = (results) => {
         insights.recommendations += '. Sensitive content found - proceed with caution';
     }
     
+    // Add deep search insights
+    const deepSearchKeywords = ['database', 'archive', 'leak', 'breach', 'repository'];
+    const hasDeepSearchResults = results.some(result => 
+        deepSearchKeywords.some(keyword => 
+            (result.title + result.snippet).toLowerCase().includes(keyword)
+        )
+    );
+    
+    if (hasDeepSearchResults) {
+        insights.keyFindings += '. Potential deep web references detected';
+        insights.recommendations += '. Deep web sources may require specialized tools';
+    }
+    
     return insights;
 };
 
@@ -196,13 +242,17 @@ const performSearch = async (reqId, query) => {
     
     try {
         // Scrape both engines in parallel
-        const [bingResults, duckduckgoResults] = await Promise.all([
+        const [bingResults, duckduckgoResults] = await Promise.allSettled([
             scrapeEngine(reqId, 'bing', query),
             scrapeEngine(reqId, 'duckduckgo', query)
         ]);
         
+        // Process results
+        const bing = bingResults.status === 'fulfilled' ? bingResults.value : [];
+        const duckduckgo = duckduckgoResults.status === 'fulfilled' ? duckduckgoResults.value : [];
+        
         // Combine results and deduplicate
-        const allResults = [...bingResults, ...duckduckgoResults];
+        const allResults = [...bing, ...duckduckgo];
         const seenUrls = new Set();
         
         allResults.forEach(result => {
@@ -250,7 +300,12 @@ app.post('/api/search', async (req, res) => {
 
 // Logging function
 const log = (reqId, message, level = 'info') => {
-    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
+    const timestamp = new Date().toLocaleString('en-US', { 
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
     const colors = {
         info: '\x1b[36m',
         warn: '\x1b[33m',
