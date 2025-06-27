@@ -5,17 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSINT Tracker Pro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --bg-primary: #0a0a0a;
-            --bg-secondary: #161616;
-            --bg-card: rgba(30, 30, 30, 0.85);
-            --bg-input: #252525;
+            --bg-secondary: #121212;
+            --bg-card: rgba(30, 30, 30, 0.92);
+            --bg-input: #1e1e1e;
             --bg-code: #141414;
             --text-primary: #ffffff;
-            --text-secondary: #b8b8b8;
-            --text-muted: #888888;
+            --text-secondary: #b0b0b0;
+            --text-muted: #707070;
             --text-code: #e8e8e8;
             --accent-blue: #4A90E2;
             --accent-yellow: #F5A623;
@@ -24,8 +23,8 @@
             --accent-red: #D0021B;
             --border-color: #2a2a2a;
             --border-hover: #404040;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            --shadow-light: 0 4px 16px rgba(0, 0, 0, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-light: 0 4px 16px rgba(0, 0, 0, 0.3);
             --gradient-bg: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f0f0f 100%);
         }
 
@@ -36,14 +35,13 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', 'SF Pro Display', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: var(--gradient-bg);
             color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
             line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-size: 14px;
         }
 
         .app-container {
@@ -58,7 +56,7 @@
         }
 
         .timeline-container {
-            padding: 20px;
+            padding: 16px;
             padding-bottom: 140px;
             position: relative;
         }
@@ -66,7 +64,7 @@
         .timeline::before {
             content: '';
             position: absolute;
-            left: 49px;
+            left: 43px;
             top: 0;
             bottom: 140px;
             width: 2px;
@@ -77,15 +75,15 @@
         .activity-item {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
             position: relative;
-            animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes slideInUp {
             from {
                 opacity: 0;
-                transform: translateY(24px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -97,78 +95,72 @@
             color: var(--text-muted);
             font-size: 11px;
             font-weight: 600;
-            width: 38px;
+            width: 36px;
             text-align: right;
-            margin-right: 22px;
-            margin-top: 14px;
-            letter-spacing: 0.5px;
+            margin-right: 18px;
+            margin-top: 12px;
+            letter-spacing: 0.3px;
             font-variant-numeric: tabular-nums;
             position: relative;
         }
 
         .activity-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 18px;
+            margin-right: 16px;
             position: relative;
             z-index: 2;
-            font-size: 16px;
+            font-size: 14px;
             color: var(--text-primary);
             box-shadow: var(--shadow-light);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 2px solid transparent;
-            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            background: rgba(25, 25, 25, 0.9);
         }
 
-        .activity-icon:hover {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: var(--shadow);
-        }
-
-        .activity-icon.user { background: rgba(30, 30, 30, 0.7); border-color: var(--border-color); }
-        .activity-icon.success { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-green); }
-        .activity-icon.error { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-red); }
-        .activity-icon.warning { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-yellow); }
-        .activity-icon.info { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-blue); }
+        .activity-icon.user { border-color: var(--border-color); }
+        .activity-icon.success { border-color: var(--accent-green); }
+        .activity-icon.error { border-color: var(--accent-red); }
+        .activity-icon.warning { border-color: var(--accent-yellow); }
+        .activity-icon.info { border-color: var(--accent-blue); }
 
         .activity-content {
             flex: 1;
             background: var(--bg-card);
-            border-radius: 16px;
-            padding: 18px;
+            border-radius: 14px;
+            padding: 16px;
             position: relative;
             border: 1px solid var(--border-color);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(10px);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(12px);
             overflow: hidden;
         }
 
         .activity-content:hover {
             border-color: var(--border-hover);
             box-shadow: var(--shadow-light);
-            transform: translateY(-2px);
         }
 
         .activity-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             margin-bottom: 10px;
             color: var(--text-primary);
-            line-height: 1.4;
-            letter-spacing: -0.2px;
+            line-height: 1.35;
+            letter-spacing: -0.1px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .activity-message {
             color: var(--text-secondary);
-            font-size: 13.5px;
-            line-height: 1.7;
+            font-size: 13px;
+            line-height: 1.6;
             margin-bottom: 0;
         }
 
@@ -179,8 +171,8 @@
         }
 
         .result-section h4 {
-            font-size: 14.5px;
-            margin-bottom: 12px;
+            font-size: 13px;
+            margin-bottom: 10px;
             color: var(--accent-blue);
             display: flex;
             align-items: center;
@@ -191,87 +183,86 @@
         .result-item {
             background: var(--bg-code);
             border: 1px solid var(--border-hover);
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.25s ease;
             position: relative;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
         }
 
         .result-item:hover {
             background: var(--bg-input);
-            transform: translateX(5px);
         }
 
         .result-item h5 {
             color: var(--text-primary);
-            font-size: 14.5px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-        }
-
-        .result-item .link-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 6px;
-            flex-wrap: wrap;
-        }
-
-        .result-item .favicon {
-            width: 16px;
-            height: 16px;
-            border-radius: 2px;
-            object-fit: contain;
-        }
-
-        .result-item .domain {
-            color: var(--accent-blue);
             font-size: 13px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-weight: 500;
+        }
+
+        .result-item a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            word-break: break-all;
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .result-item a:hover {
+            text-decoration: underline;
         }
 
         .result-item p {
             color: var(--text-secondary);
-            font-size: 13px;
-            margin: 8px 0 0;
+            font-size: 12px;
+            margin: 6px 0 0;
             line-height: 1.6;
         }
 
         .result-meta {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-top: 8px;
-            font-size: 11.5px;
+            font-size: 11px;
             color: var(--text-muted);
         }
 
         .source-tag {
             background: rgba(74, 144, 226, 0.15);
             color: var(--accent-blue);
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
             font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+        }
+
+        .domain-badge {
+            background: rgba(120, 120, 120, 0.2);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            display: inline-block;
+            margin-left: 6px;
         }
 
         .collapsible {
             cursor: pointer;
-            margin-top: 10px;
-            padding: 8px 14px;
+            margin-top: 8px;
+            padding: 6px 10px;
             background: var(--bg-input);
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12.5px;
+            font-size: 12px;
         }
 
         .collapsible:hover {
@@ -280,13 +271,13 @@
 
         .collapsible-content {
             display: none;
-            margin-top: 10px;
-            padding: 12px;
+            margin-top: 8px;
+            padding: 10px;
             background: var(--bg-card);
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
-            font-size: 12px;
-            font-family: 'SF Mono', 'Roboto Mono', monospace;
+            font-size: 11px;
+            font-family: monospace;
             white-space: pre-wrap;
             max-height: 200px;
             overflow: auto;
@@ -299,25 +290,25 @@
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             color: var(--text-muted);
         }
 
         .empty-state i {
-            font-size: 48px;
-            margin-bottom: 16px;
+            font-size: 42px;
+            margin-bottom: 14px;
             opacity: 0.5;
         }
 
         .empty-state h3 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: var(--text-secondary);
         }
 
         .empty-state p {
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.5;
             margin-bottom: 20px;
         }
@@ -325,36 +316,34 @@
         .suggestion-box {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
-            max-width: 400px;
+            max-width: 380px;
             margin: 0 auto;
         }
 
         .suggestion-tag {
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 7px 16px;
-            font-size: 13px;
+            border-radius: 18px;
+            padding: 5px 12px;
+            font-size: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
         }
 
         .suggestion-tag:hover {
             background: var(--bg-card);
             border-color: var(--accent-blue);
-            transform: translateY(-2px);
         }
 
         .typing-indicator {
             display: none;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: var(--text-muted);
-            font-size: 13px;
-            margin-bottom: 12px;
-            padding: 0 10px;
+            font-size: 12px;
+            margin-bottom: 10px;
         }
 
         .typing-indicator.active {
@@ -374,7 +363,7 @@
 
         @keyframes typingBounce {
             0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-            40% { transform: translateY(-4px); opacity: 1; }
+            40% { transform: translateY(-3px); opacity: 1; }
         }
 
         .input-section {
@@ -385,7 +374,7 @@
             width: 100%;
             max-width: 480px;
             background: linear-gradient(to top, var(--bg-secondary) 80%, transparent);
-            padding: 20px;
+            padding: 16px;
             backdrop-filter: blur(30px);
             border-top: 1px solid var(--border-color);
             z-index: 1000;
@@ -393,32 +382,31 @@
 
         .input-wrapper {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: flex-end;
-            background: var(--bg-card);
-            border-radius: 24px;
+            background: var(--bg-input);
+            border-radius: 22px;
             padding: 8px;
-            border: 2px solid var(--border-color);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--border-color);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: var(--shadow-light);
         }
 
         .input-wrapper:focus-within {
             border-color: var(--border-hover);
-            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
         }
 
         .message-input {
             flex: 1;
             background: transparent;
             border: none;
-            padding: 14px 18px;
+            padding: 12px 16px;
             color: var(--text-primary);
-            font-size: 15px;
+            font-size: 14px;
             outline: none;
             resize: none;
-            max-height: 120px;
-            min-height: 24px;
+            max-height: 100px;
+            min-height: 22px;
             font-family: inherit;
             line-height: 1.4;
             font-weight: 400;
@@ -430,27 +418,24 @@
         }
 
         .send-button {
-            background: var(--bg-input);
+            background: var(--bg-card);
             border: none;
             border-radius: 50%;
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             color: var(--text-primary);
-            font-size: 18px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 16px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: var(--shadow-light);
-            position: relative;
-            overflow: hidden;
         }
 
         .send-button:hover:not(:disabled) {
             background: var(--bg-code);
-            transform: scale(1.1);
-            box-shadow: var(--shadow);
+            transform: scale(1.05);
         }
 
         .send-button:active:not(:disabled) {
@@ -458,11 +443,8 @@
         }
 
         .send-button:disabled {
-            background: var(--bg-input);
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .loading-dots {
@@ -471,8 +453,8 @@
         }
 
         .loading-dots span {
-            width: 5px;
-            height: 5px;
+            width: 4px;
+            height: 4px;
             background: var(--text-primary);
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
@@ -487,18 +469,17 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
+            from { opacity: 0; transform: translateY(-8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .ai-insights {
             background: rgba(74, 144, 226, 0.1);
-            border-left: 3px solid var(--accent-blue);
-            border-radius: 12px;
-            padding: 14px;
-            margin-top: 14px;
-            font-size: 13.5px;
-            backdrop-filter: blur(5px);
+            border-left: 2px solid var(--accent-blue);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 13px;
         }
 
         .ai-insights h5 {
@@ -506,28 +487,31 @@
             align-items: center;
             gap: 6px;
             color: var(--accent-blue);
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
 
         .ai-insights p {
-            margin-bottom: 6px;
-            line-height: 1.6;
+            margin-bottom: 5px;
+            font-size: 12px;
+            line-height: 1.5;
         }
 
         .ai-insights strong {
             color: var(--text-primary);
+            font-weight: 600;
         }
 
-        .platform-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 3px;
-            display: inline-flex;
+        .url-display {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            margin-right: 6px;
-            font-size: 10px;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .url-icon {
+            color: var(--text-muted);
+            font-size: 12px;
         }
 
         @media (max-width: 480px) {
@@ -537,24 +521,23 @@
                 border-right: none;
                 box-shadow: none;
             }
-            .input-section { max-width: 100%; padding: 16px; }
-            .timeline-container { padding: 16px; padding-bottom: 140px; }
-            .activity-item { margin-bottom: 24px; }
-            .time-label { font-size: 10px; width: 32px; margin-right: 16px; }
-            .activity-icon { width: 36px; height: 36px; font-size: 14px; margin-right: 14px; }
-            .activity-content { padding: 16px; }
-            .activity-title { font-size: 14px; }
-            .activity-message { font-size: 13px; }
-            .timeline::before { left: 40px; }
-            .result-item { padding: 12px; }
+            .input-section { max-width: 100%; padding: 14px; }
+            .timeline-container { padding: 14px; padding-bottom: 130px; }
+            .activity-item { margin-bottom: 22px; }
+            .time-label { font-size: 10px; width: 32px; margin-right: 14px; margin-top: 10px; }
+            .activity-icon { width: 32px; height: 32px; font-size: 13px; margin-right: 12px; }
+            .activity-content { padding: 14px; }
+            .activity-title { font-size: 13px; }
+            .activity-message { font-size: 12px; }
+            .timeline::before { left: 36px; }
+            .message-input { padding: 10px 14px; font-size: 13px; }
+            .send-button { width: 40px; height: 40px; font-size: 15px; }
         }
 
         @media (max-width: 360px) {
-            .timeline-container { padding: 12px; padding-bottom: 140px; }
+            .timeline-container { padding: 12px; padding-bottom: 120px; }
             .input-section { padding: 12px; }
-            .activity-content { padding: 14px; }
-            .message-input { padding: 12px 16px; font-size: 14px; }
-            .send-button { width: 44px; height: 44px; font-size: 16px; }
+            .activity-content { padding: 12px; }
         }
     </style>
 </head>
@@ -571,7 +554,7 @@
                         <div class="suggestion-tag" data-query="elon musk">@elonmusk</div>
                         <div class="suggestion-tag" data-query="cybersecurity">#cybersecurity</div>
                         <div class="suggestion-tag" data-query="openai">OpenAI</div>
-                        <div class="suggestion-tag" data-query="data breach">Data Breach</div>
+                        <div class="suggestion-tag" data-query="data breach">Data Breach 2023</div>
                     </div>
                 </div>
             </div>
@@ -579,7 +562,7 @@
 
         <div class="input-section">
             <div class="typing-indicator" id="typingIndicator">
-                <span>Searching 32 sources...</span>
+                <span>Searching across multiple sources...</span>
                 <div class="typing-dots">
                     <span></span>
                     <span></span>
@@ -608,22 +591,6 @@
                 this.emptyState = document.getElementById('emptyState');
                 this.typingIndicator = document.getElementById('typingIndicator');
                 this.messageCount = 0;
-                this.domainIcons = {
-                    'twitter.com': 'twitter',
-                    'facebook.com': 'facebook',
-                    'instagram.com': 'instagram',
-                    'linkedin.com': 'linkedin',
-                    'youtube.com': 'youtube',
-                    'github.com': 'github',
-                    'reddit.com': 'reddit',
-                    'tiktok.com': 'tiktok',
-                    'wikipedia.org': 'wikipedia'
-                };
-
-                if (!this.messageInput || !this.sendBtn || !this.timeline || !this.emptyState || !this.typingIndicator) {
-                    console.error('One or more DOM elements not found');
-                    return;
-                }
 
                 this.init();
             }
@@ -646,7 +613,6 @@
                     this.autoResizeTextarea();
                     this.updateSendButton();
                 });
-                window.addEventListener('resize', () => this.scrollToBottom());
                 
                 // Bind suggestion tags
                 document.querySelectorAll('.suggestion-tag').forEach(tag => {
@@ -661,7 +627,7 @@
 
             autoResizeTextarea() {
                 this.messageInput.style.height = 'auto';
-                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 120) + 'px';
+                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 100) + 'px';
             }
 
             updateSendButton() {
@@ -671,14 +637,19 @@
 
             generateUniqueTime() {
                 const now = new Date();
-                const baseTime = now.getTime();
-                const randomOffset = Math.floor(Math.random() * 300000);
-                const adjustedTime = new Date(baseTime + randomOffset);
-                return adjustedTime.toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
+                // Convert to WIB (UTC+7)
+                const wibOffset = 7 * 60 * 60 * 1000;
+                const wibTime = new Date(now.getTime() + wibOffset);
+                return wibTime.toISOString().substr(11, 5);
+            }
+
+            extractDomain(url) {
+                try {
+                    const domain = new URL(url).hostname.replace('www.', '');
+                    return domain.length > 24 ? domain.substring(0, 21) + '...' : domain;
+                } catch {
+                    return url.length > 24 ? url.substring(0, 21) + '...' : url;
+                }
             }
 
             async sendQuery() {
@@ -730,32 +701,24 @@
                         let content = '<div class="result-section">';
                         content += `<h4><i class="bi bi-collection"></i> ${data.results.length} Results Found</h4>`;
                         
-                        data.results.forEach((result, index) => {
-                            const domain = this.extractDomain(result.url);
-                            const icon = this.getDomainIcon(domain);
-                            
+                        data.results.forEach((result) => {
                             content += `
                                 <div class="result-item">
-                                    <h5><i class="bi bi-${icon}"></i> ${this.escapeHtml(result.title)}</h5>
-                                    <span class="source-tag">
-                                        <i class="bi bi-${result.source === 'Bing' ? 'microsoft' : 'search'}"></i>
-                                        ${result.source}
-                                    </span>
-                                    <div class="link-container">
-                                        <span class="domain">${domain}</span>
+                                    <h5><i class="bi bi-${result.icon || 'link-45deg'}"></i> ${this.escapeHtml(result.title)}</h5>
+                                    <span class="source-tag">${result.source}</span>
+                                    <div class="url-display">
+                                        <i class="bi bi-link-45deg url-icon"></i>
+                                        <a href="${result.url}" target="_blank">${this.extractDomain(result.url)}</a>
+                                        <span class="domain-badge">${this.extractDomain(result.url)}</span>
                                     </div>
                                     <p>${this.escapeHtml(result.description || 'No description available')}</p>
                                     ${result.date ? `<div class="result-meta"><span><i class="bi bi-calendar"></i> ${result.date}</span></div>` : ''}
                                     <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
-                                        <span>View Details</span>
+                                        <span>View Raw Data</span>
                                         <i class="bi bi-chevron-down"></i>
                                     </div>
                                     <div class="collapsible-content">
-                                        <strong>Source:</strong> ${result.source}
-                                        <br><strong>URL:</strong> ${result.url}
-                                        <br><strong>Date:</strong> ${result.date || 'N/A'}
-                                        <br><br><strong>Content:</strong> 
-                                        ${this.escapeHtml(result.description || 'No content available')}
+                                        ${JSON.stringify(result, null, 2)}
                                     </div>
                                 </div>
                             `;
@@ -787,24 +750,6 @@
                 }
             }
 
-            extractDomain(url) {
-                try {
-                    const domain = new URL(url).hostname.replace('www.', '');
-                    return domain.length > 24 ? domain.substring(0, 21) + '...' : domain;
-                } catch {
-                    return url.length > 30 ? url.substring(0, 27) + '...' : url;
-                }
-            }
-
-            getDomainIcon(domain) {
-                for (const [key, value] of Object.entries(this.domainIcons)) {
-                    if (domain.includes(key)) {
-                        return value;
-                    }
-                }
-                return 'link-45deg';
-            }
-
             generateAIAnalysis(insights) {
                 return `
                     <div class="ai-insights">
@@ -824,16 +769,6 @@
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
                     .replace(/'/g, "&#039;");
-            }
-
-            scrollToBottom() {
-                const timelineContainer = this.timeline?.parentElement;
-                if (timelineContainer) {
-                    timelineContainer.scrollTo({
-                        top: timelineContainer.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                }
             }
 
             addActivityToTimeline(title, content, type = 'message', customTime = null) {
@@ -867,7 +802,6 @@
 
                 if (this.timeline) {
                     this.timeline.appendChild(activityItem);
-                    this.scrollToBottom();
                 }
             }
 
@@ -891,7 +825,6 @@
             showTypingIndicator() {
                 if (this.typingIndicator) {
                     this.typingIndicator.classList.add('active');
-                    this.scrollToBottom();
                 }
             }
 
