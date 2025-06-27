@@ -54,59 +54,6 @@
             border-right: 1px solid var(--border-color);
         }
 
-        .app-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .app-title {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .search-tools {
-            display: flex;
-            gap: 12px;
-        }
-
-        .tool-btn {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .tool-btn:hover {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border-color: var(--accent-blue);
-        }
-
         .timeline-container {
             padding: 20px;
             padding-bottom: 140px;
@@ -541,6 +488,10 @@
             margin-bottom: 8px;
         }
 
+        .ai-insights p {
+            margin-bottom: 6px;
+        }
+
         @media (max-width: 480px) {
             .app-container {
                 max-width: 100%;
@@ -557,7 +508,6 @@
             .activity-title { font-size: 15px; }
             .activity-message { font-size: 13px; }
             .timeline::before { left: 40px; }
-            .app-header { padding: 12px 16px; }
         }
 
         @media (max-width: 360px) {
@@ -571,29 +521,12 @@
 </head>
 <body>
     <div class="app-container">
-        <div class="app-header">
-            <div class="header-content">
-                <div class="app-title">
-                    <i class="bi bi-binoculars"></i>
-                    OSINT Tracker Pro
-                </div>
-                <div class="search-tools">
-                    <div class="tool-btn" title="Save Search">
-                        <i class="bi bi-bookmark"></i>
-                    </div>
-                    <div class="tool-btn" title="Export Results">
-                        <i class="bi bi-download"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div class="timeline-container">
             <div class="timeline" id="timeline">
                 <div class="empty-state" id="emptyState">
-                    <i class="bi bi-search-heart"></i>
-                    <h3>Intelligent OSINT Search</h3>
-                    <p>Enter a name, username, or keyword to uncover digital footprints across multiple platforms</p>
+                    <i class="bi bi-binoculars"></i>
+                    <h3>OSINT Tracker Pro</h3>
+                    <p>Enter a name, username, or keyword to uncover digital footprints</p>
                     
                     <div class="suggestion-box">
                         <div class="suggestion-tag" data-query="elon musk">@elonmusk</div>
@@ -607,7 +540,7 @@
 
         <div class="input-section">
             <div class="typing-indicator" id="typingIndicator">
-                <span>Searching 12 platforms...</span>
+                <span>Searching 32 sources...</span>
                 <div class="typing-dots">
                     <span></span>
                     <span></span>
@@ -617,11 +550,11 @@
             <div class="input-wrapper">
                 <textarea 
                     class="message-input" 
-                    placeholder="Search username, email, or keyword..." 
+                    placeholder="Enter your OSINT query..." 
                     id="messageInput"
                     rows="1"></textarea>
                 <button class="send-button" id="sendBtn">
-                    <i class="bi bi-search"></i>
+                    <i class="bi bi-send-fill"></i>
                 </button>
             </div>
         </div>
@@ -722,7 +655,7 @@
                         },
                         body: JSON.stringify({ 
                             query,
-                            platforms: ['twitter', 'instagram', 'linkedin', 'github', 'facebook']
+                            deepSearch: true
                         })
                     });
 
@@ -754,10 +687,7 @@
                                     <span class="source-tag">${result.source}</span>
                                     <a href="${result.url}" target="_blank">${this.shortenUrl(result.url)}</a>
                                     <p>${this.escapeHtml(result.description || 'No description available')}</p>
-                                    <div class="result-meta">
-                                        <span><i class="bi bi-calendar"></i> ${result.date || 'Unknown date'}</span>
-                                        <span><i class="bi bi-geo-alt"></i> ${result.location || 'Unknown location'}</span>
-                                    </div>
+                                    ${result.date ? `<div class="result-meta"><span><i class="bi bi-calendar"></i> ${result.date}</span></div>` : ''}
                                     <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
                                         <span>View Raw Data</span>
                                         <i class="bi bi-chevron-down"></i>
@@ -798,10 +728,11 @@
             generateAIAnalysis(insights) {
                 return `
                     <div class="ai-insights">
-                        <h5><i class="bi bi-lightbulb"></i> AI Analysis</h5>
-                        <p>${insights.summary}</p>
-                        <p><strong>Key Findings:</strong> ${insights.keyFindings}</p>
-                        <p><strong>Recommendations:</strong> ${insights.recommendations}</p>
+                        <h5><i class="bi bi-robot"></i> AI Analysis</h5>
+                        <p><strong>Summary:</strong> ${insights.summary || 'No summary available'}</p>
+                        ${insights.keyFindings ? `<p><strong>Key Findings:</strong> ${insights.keyFindings}</p>` : ''}
+                        ${insights.recommendations ? `<p><strong>Recommendations:</strong> ${insights.recommendations}</p>` : ''}
+                        ${insights.riskLevel ? `<p><strong>Risk Level:</strong> ${insights.riskLevel}</p>` : ''}
                     </div>
                 `;
             }
@@ -880,7 +811,7 @@
                         </div>
                     `;
                 } else {
-                    this.sendBtn.innerHTML = '<i class="bi bi-search"></i>';
+                    this.sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
                 }
             }
 
