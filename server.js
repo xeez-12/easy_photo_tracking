@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const userAgent = require('user-agents');
 const cors = require('cors');
 const path = require('path');
+const utils = require('./utils');
 
 const app = express();
 app.use(cors());
@@ -12,18 +13,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 
-// Robust user agent generation with fallback
+// Enhanced user agent generation
 const getRandomHeaders = (reqId) => {
-    // Generate random device type
     const deviceTypes = ['desktop', 'mobile'];
     const randomDevice = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
     
-    // Generate user agent
     let ua;
     try {
         ua = new userAgent({ deviceCategory: randomDevice }).toString();
     } catch (e) {
-        // Fallback user agents
         const fallbackAgents = [
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
@@ -53,7 +51,88 @@ const getRandomHeaders = (reqId) => {
     };
 };
 
-// Enhanced search engine scrapers with image and profile extraction
+// Social media scrapers
+const socialMediaScrapers = {
+    twitter: {
+        url: (username) => `https://twitter.com/${username}`,
+        parser: ($, username) => {
+            const name = $('div[data-testid="UserName"] div span').first().text().trim();
+            const handle = $('div[data-testid="UserName"] div span').eq(1).text().trim();
+            const bio = $('div[data-testid="UserDescription"]').text().trim();
+            const location = $('div[data-testid="UserLocation"] span').text().trim();
+            const website = $('div[data-testid="UserUrl"] a').attr('href') || '';
+            const joinDate = $('div[data-testid="UserJoinDate"] span').text().trim();
+            const profileImage = $('img[alt="Opens profile photo"]').attr('src') || '';
+            
+            const tweets = [];
+            $('article[data-testid="tweet"]').each((i, el) => {
+                const tweet = {
+                    id: $(el).attr('data-tweet-id'),
+                    text: $(el).find('div[data-testid="tweetText"]').text().trim(),
+                    timestamp: $(el).find('time').attr('datetime'),
+                    likes: parseInt($(el).find('div[data-testid="like"]').text().replace(/\D/g, '') || 0,
+                    retweets: parseInt($(el).find('div[data-testid="retweet"]').text().replace(/\D/g, '') || 0,
+                    replies: parseInt($(el).find('div[data-testid="reply"]').text().replace(/\D/g, '') || 0),
+                    images: []
+                };
+                
+                $(el).find('img[alt="Image"]').each((i, img) => {
+                    const imageUrl = $(img).attr('src');
+                    if (imageUrl) tweet.images.push(imageUrl);
+                });
+                
+                tweets.push(tweet);
+            });
+            
+            return {
+                platform: 'Twitter',
+                name,
+                handle,
+                bio,
+                location,
+                website,
+                joinDate,
+                profileImage,
+                tweets: tweets.slice(0, 5) // Return first 5 tweets
+            };
+        }
+    },
+    instagram: {
+        url: (username) => `https://www.instagram.com/${username}/`,
+        parser: ($, username) => {
+            const name = $('meta[property="og:title"]').attr('content') || '';
+            const bio = $('meta[property="og:description"]').attr('content') || '';
+            const profileImage = $('meta[property="og:image"]').attr('content') || '';
+            
+            const posts = [];
+            $('article a[href*="/p/"]').each((i, el) => {
+                const postUrl = $(el).attr('href');
+                const postId = postUrl.split('/p/')[1].replace(/\//g, '');
+                const image = $(el).find('img').attr('src') || '';
+                
+                if (postId && image) {
+                    posts.push({
+                        id: postId,
+                        url: `https://www.instagram.com${postUrl}`,
+                        image
+                    });
+                }
+            });
+            
+            return {
+                platform: 'Instagram',
+                name,
+                bio,
+                profileImage,
+                posts: posts.slice(0, 9) // Return first 9 posts
+            };
+        }
+    },
+    // Add more social media scrapers as needed
+    // facebook, linkedin, tiktok, youtube, etc.
+};
+
+// Enhanced search engine scrapers with social media detection
 const searchEngines = {
     bing: {
         url: (query, page = 0) => `https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${page * 10 + 1}`,
@@ -61,7 +140,7 @@ const searchEngines = {
             const results = [];
             $('li.b_algo').each((i, el) => {
                 const title = $(el).find('h2').text().trim() || 'No title';
-                const url = $(el).find('a').attr('href') || '';
+                let url = $(el).find('a').attr('href') || '';
                 const snippet = $(el).find('.b_caption p').text().trim() || '';
                 const dateElement = $(el).find('.news_dt');
                 const date = dateElement.length ? dateElement.text().trim() : '';
@@ -71,7 +150,6 @@ const searchEngines = {
                 const imgElement = $(el).find('img');
                 if (imgElement.length && imgElement.attr('src')) {
                     image = imgElement.attr('src');
-                    // Convert relative URLs to absolute
                     if (image.startsWith('//')) {
                         image = 'https:' + image;
                     } else if (image.startsWith('/')) {
@@ -87,11 +165,7 @@ const searchEngines = {
                     const profileName = profileElement.text().trim();
                     
                     if (profileName) {
-                        profile = {
-                            name: profileName,
-                            url: profileUrl,
-                            source: 'Bing'
-                        };
+                        profile = utils.extractSocialProfile(profileUrl, title, snippet);
                     }
                 }
                 
@@ -150,26 +224,7 @@ const searchEngines = {
                     const profileText = profileElement.text().trim();
                     
                     if (profileText) {
-                        // Extract handle from social media URLs
-                        let handle = '';
-                        const socialDomains = [
-                            'twitter.com', 'instagram.com', 'facebook.com', 
-                            'linkedin.com', 'tiktok.com', 'youtube.com'
-                        ];
-                        
-                        for (const domain of socialDomains) {
-                            if (profileUrl.includes(domain)) {
-                                handle = profileUrl.split('/').pop() || '';
-                                break;
-                            }
-                        }
-                        
-                        profile = {
-                            name: profileText,
-                            handle: handle,
-                            url: profileUrl,
-                            source: 'DuckDuckGo'
-                        };
+                        profile = utils.extractSocialProfile(profileUrl, title, snippet);
                     }
                 }
                 
@@ -190,7 +245,43 @@ const searchEngines = {
     }
 };
 
-// Enhanced scraping function with robust error handling
+// Scrape social media profile
+const scrapeSocialProfile = async (reqId, platform, username) => {
+    try {
+        if (!socialMediaScrapers[platform]) {
+            throw new Error(`Unsupported platform: ${platform}`);
+        }
+        
+        const url = socialMediaScrapers[platform].url(username);
+        log(reqId, `Scraping ${platform} profile: ${url}`);
+        
+        const response = await axios.get(url, {
+            headers: getRandomHeaders(reqId),
+            timeout: 20000,
+            validateStatus: () => true
+        });
+        
+        // Handle blocking
+        if (response.status === 403 || response.status === 429) {
+            log(reqId, `Blocked by ${platform} with status ${response.status}`, 'warn');
+            return null;
+        }
+        
+        // Handle CAPTCHAs
+        if (response.data.includes('captcha') || response.data.includes('CAPTCHA')) {
+            log(reqId, `CAPTCHA detected on ${platform}`, 'warn');
+            return null;
+        }
+        
+        const $ = cheerio.load(response.data);
+        return socialMediaScrapers[platform].parser($, username);
+    } catch (error) {
+        log(reqId, `Error scraping ${platform} profile: ${error.message}`, 'error');
+        return null;
+    }
+};
+
+// Enhanced scraping function
 const scrapeEngine = async (reqId, engine, query) => {
     const results = [];
     let page = 0;
@@ -313,7 +404,7 @@ const generateInsights = (results) => {
     return insights;
 };
 
-// Main search function with error resilience
+// Main search function
 const performSearch = async (reqId, query) => {
     const results = [];
     
@@ -346,14 +437,39 @@ const performSearch = async (reqId, query) => {
         });
         
         log(reqId, `Total unique results: ${results.length}`);
+        
+        // Enhance social media profiles with additional scraping
+        const enhancedResults = await Promise.all(results.map(async result => {
+            if (result.profile) {
+                try {
+                    const platform = utils.getPlatformFromUrl(result.profile.url);
+                    if (platform) {
+                        const username = utils.getUsernameFromUrl(result.profile.url, platform);
+                        if (username) {
+                            const detailedProfile = await scrapeSocialProfile(reqId, platform, username);
+                            if (detailedProfile) {
+                                result.profile = {
+                                    ...result.profile,
+                                    ...detailedProfile
+                                };
+                            }
+                        }
+                    }
+                } catch (e) {
+                    log(reqId, `Error enhancing profile: ${e.message}`, 'error');
+                }
+            }
+            return result;
+        }));
+        
+        return enhancedResults;
     } catch (error) {
         log(reqId, `Search error: ${error.message}`, 'error');
+        return results.slice(0, 50);
     }
-    
-    return results.slice(0, 50);
 };
 
-// API endpoint with robust error handling
+// API endpoint
 app.post('/api/search', async (req, res) => {
     const reqId = req.headers['x-request-id'] || Math.random().toString(36).substring(2, 12);
     const { query } = req.body || {};
