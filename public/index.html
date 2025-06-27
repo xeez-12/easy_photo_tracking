@@ -9,7 +9,7 @@
         :root {
             --bg-primary: #0a0a0a;
             --bg-secondary: #161616;
-            --bg-card: #1e1e1e;
+            --bg-card: rgba(30, 30, 30, 0.85);
             --bg-input: #252525;
             --bg-code: #141414;
             --text-primary: #ffffff;
@@ -118,6 +118,7 @@
             box-shadow: var(--shadow-light);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             border: 2px solid transparent;
+            backdrop-filter: blur(10px);
         }
 
         .activity-icon:hover {
@@ -125,11 +126,11 @@
             box-shadow: var(--shadow);
         }
 
-        .activity-icon.user { background: var(--bg-card); border-color: var(--border-color); }
-        .activity-icon.success { background: var(--bg-card); border-color: var(--accent-green); }
-        .activity-icon.error { background: var(--bg-card); border-color: var(--accent-red); }
-        .activity-icon.warning { background: var(--bg-card); border-color: var(--accent-yellow); }
-        .activity-icon.info { background: var(--bg-card); border-color: var(--accent-blue); }
+        .activity-icon.user { background: rgba(30, 30, 30, 0.7); border-color: var(--border-color); }
+        .activity-icon.success { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-green); }
+        .activity-icon.error { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-red); }
+        .activity-icon.warning { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-yellow); }
+        .activity-icon.info { background: rgba(30, 30, 30, 0.7); border-color: var(--accent-blue); }
 
         .activity-content {
             flex: 1;
@@ -191,6 +192,7 @@
             margin-bottom: 10px;
             transition: all 0.3s ease;
             position: relative;
+            backdrop-filter: blur(10px);
         }
 
         .result-item:hover {
@@ -478,6 +480,7 @@
             padding: 12px;
             margin-top: 12px;
             font-size: 14px;
+            backdrop-filter: blur(5px);
         }
 
         .ai-insights h5 {
@@ -839,3 +842,4 @@
     </script>
 </body>
 </html>
+
