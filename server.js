@@ -12,13 +12,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 
-// Fixed user agent generation with robust fallback
+// Robust user agent generation with fallback
 const getRandomHeaders = (reqId) => {
     // Generate random device type
     const deviceTypes = ['desktop', 'mobile'];
     const randomDevice = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
     
-    // Generate user agent with fallback
+    // Generate user agent
     let ua;
     try {
         ua = new userAgent({ deviceCategory: randomDevice }).toString();
@@ -53,7 +53,7 @@ const getRandomHeaders = (reqId) => {
     };
 };
 
-// Enhanced search engine scrapers with profile extraction
+// Enhanced search engine scrapers with image and profile extraction
 const searchEngines = {
     bing: {
         url: (query, page = 0) => `https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${page * 10 + 1}`,
@@ -66,11 +66,33 @@ const searchEngines = {
                 const dateElement = $(el).find('.news_dt');
                 const date = dateElement.length ? dateElement.text().trim() : '';
                 
+                // Extract image
+                let image = '';
+                const imgElement = $(el).find('img');
+                if (imgElement.length && imgElement.attr('src')) {
+                    image = imgElement.attr('src');
+                    // Convert relative URLs to absolute
+                    if (image.startsWith('//')) {
+                        image = 'https:' + image;
+                    } else if (image.startsWith('/')) {
+                        image = 'https://www.bing.com' + image;
+                    }
+                }
+                
                 // Extract profile information
-                let profile = '';
+                let profile = null;
                 const profileElement = $(el).find('.b_attribution cite');
                 if (profileElement.length) {
-                    profile = profileElement.text().trim();
+                    const profileUrl = $(el).find('.b_attribution a').attr('href') || '';
+                    const profileName = profileElement.text().trim();
+                    
+                    if (profileName) {
+                        profile = {
+                            name: profileName,
+                            url: profileUrl,
+                            source: 'Bing'
+                        };
+                    }
                 }
                 
                 if (title && url && !url.includes('bing.com')) {
@@ -79,9 +101,10 @@ const searchEngines = {
                         url, 
                         snippet,
                         date,
+                        image,
+                        profile,
                         source: 'Bing',
-                        icon: 'search',
-                        profile
+                        icon: 'search'
                     });
                 }
             });
@@ -97,7 +120,7 @@ const searchEngines = {
                 const title = linkElement.text().trim() || 'No title';
                 let url = linkElement.attr('href') || '';
                 
-                // Improved URL parsing
+                // Fix DuckDuckGo URL parsing
                 if (url.startsWith('/l/?uddg=')) {
                     try {
                         const params = new URLSearchParams(url.split('?')[1]);
@@ -109,11 +132,45 @@ const searchEngines = {
                 
                 const snippet = $(el).find('.result__snippet').text().trim() || '';
                 
+                // Extract image
+                let image = '';
+                const imgElement = $(el).find('img');
+                if (imgElement.length && imgElement.attr('src')) {
+                    image = imgElement.attr('src');
+                    if (image.startsWith('//')) {
+                        image = 'https:' + image;
+                    }
+                }
+                
                 // Extract profile information
-                let profile = '';
+                let profile = null;
                 const profileElement = $(el).find('.result__url');
                 if (profileElement.length) {
-                    profile = profileElement.text().trim();
+                    const profileUrl = $(el).find('.result__url').attr('href') || '';
+                    const profileText = profileElement.text().trim();
+                    
+                    if (profileText) {
+                        // Extract handle from social media URLs
+                        let handle = '';
+                        const socialDomains = [
+                            'twitter.com', 'instagram.com', 'facebook.com', 
+                            'linkedin.com', 'tiktok.com', 'youtube.com'
+                        ];
+                        
+                        for (const domain of socialDomains) {
+                            if (profileUrl.includes(domain)) {
+                                handle = profileUrl.split('/').pop() || '';
+                                break;
+                            }
+                        }
+                        
+                        profile = {
+                            name: profileText,
+                            handle: handle,
+                            url: profileUrl,
+                            source: 'DuckDuckGo'
+                        };
+                    }
                 }
                 
                 if (title && url) {
@@ -121,9 +178,10 @@ const searchEngines = {
                         title, 
                         url: url.startsWith('//') ? `https:${url}` : url,
                         snippet,
+                        image,
+                        profile,
                         source: 'DuckDuckGo',
-                        icon: 'search',
-                        profile
+                        icon: 'search'
                     });
                 }
             });
@@ -147,7 +205,7 @@ const scrapeEngine = async (reqId, engine, query) => {
             const response = await axios.get(url, {
                 headers: getRandomHeaders(reqId),
                 timeout: 20000,
-                validateStatus: () => true // Bypass status code errors
+                validateStatus: () => true
             });
             
             // Handle blocking
@@ -204,10 +262,12 @@ const generateInsights = (results) => {
     const profiles = results
         .filter(result => result.profile)
         .map(result => result.profile)
-        .filter((value, index, self) => self.indexOf(value) === index);
+        .filter((value, index, self) => 
+            index === self.findIndex(p => p.url === value.url)
+        );
     
     if (profiles.length > 0) {
-        insights.keyFindings = `Identified ${profiles.length} unique profiles: ${profiles.slice(0, 3).join(', ')}${profiles.length > 3 ? '...' : ''}`;
+        insights.keyFindings = `Identified ${profiles.length} profiles: ${profiles.slice(0, 3).map(p => p.name).join(', ')}${profiles.length > 3 ? '...' : ''}`;
     } else {
         insights.keyFindings = 'No profile information extracted';
     }
@@ -217,7 +277,7 @@ const generateInsights = (results) => {
     const socialMediaResults = results.filter(result => 
         socialMediaKeywords.some(keyword => 
             result.url.toLowerCase().includes(keyword) ||
-            result.title.toLowerCase().includes(keyword)
+            (result.profile && result.profile.url.toLowerCase().includes(keyword))
         )
     );
     
@@ -363,4 +423,3 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
 });
-
