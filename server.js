@@ -14,7 +14,14 @@ const PORT = process.env.PORT || 3000;
 
 // Enhanced header configuration with rotating user agents
 const getRandomHeaders = (reqId) => {
-    const ua = new userAgent({ deviceCategory: 'desktop' }).toString();
+    const ua = new userAgent([
+        { deviceCategory: 'desktop' },
+        { deviceCategory: 'mobile' },
+        { platform: 'Win32' },
+        { platform: 'MacIntel' },
+        { platform: 'Linux x86_64' }
+    ]).toString();
+    
     return {
         'User-Agent': ua,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -22,13 +29,12 @@ const getRandomHeaders = (reqId) => {
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0',
-        'TE': 'Trailers',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
         'X-Request-ID': reqId,
         'X-Forwarded-For': `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
         'Referer': `https://www.google.com/`,
         'DNT': '1',
-        'Pragma': 'no-cache',
         'Sec-Fetch-Dest': 'document',
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'same-origin',
@@ -43,11 +49,11 @@ const searchEngines = {
         parser: ($) => {
             const results = [];
             $('li.b_algo').each((i, el) => {
-                const title = $(el).find('h2').text() || 'No title';
+                const title = $(el).find('h2').text().trim() || 'No title';
                 const url = $(el).find('a').attr('href') || '';
-                const snippet = $(el).find('.b_caption p').text() || '';
+                const snippet = $(el).find('.b_caption p').text().trim() || '';
                 const dateElement = $(el).find('.news_dt');
-                const date = dateElement.length ? dateElement.text() : '';
+                const date = dateElement.length ? dateElement.text().trim() : '';
                 
                 if (title && url && !url.includes('bing.com')) {
                     results.push({ 
@@ -69,20 +75,20 @@ const searchEngines = {
             const results = [];
             $('.result').each((i, el) => {
                 const linkElement = $(el).find('.result__a');
-                const title = linkElement.text() || 'No title';
+                const title = linkElement.text().trim() || 'No title';
                 let url = linkElement.attr('href') || '';
                 
-                // Fix for DuckDuckGo URL parsing
-                if (url.startsWith('/url?')) {
+                // Fix DuckDuckGo URL parsing
+                if (url.startsWith('/l/?uddg=')) {
                     try {
-                        const urlParams = new URLSearchParams(url.split('?')[1]);
-                        url = urlParams.get('q') || '';
+                        const decoded = decodeURIComponent(url.split('uddg=')[1]);
+                        url = new URL(decoded).href;
                     } catch (e) {
-                        console.error('Error parsing DuckDuckGo URL:', e);
+                        // Use fallback if parsing fails
                     }
                 }
                 
-                const snippet = $(el).find('.result__snippet').text() || '';
+                const snippet = $(el).find('.result__snippet').text().trim() || '';
                 
                 if (title && url) {
                     results.push({ 
@@ -103,7 +109,7 @@ const searchEngines = {
 const scrapeEngine = async (reqId, engine, query) => {
     const results = [];
     let page = 0;
-    const maxPages = 3;
+    const maxPages = 5;
     const maxResults = 50;
     
     while (page < maxPages && results.length < maxResults) {
@@ -113,8 +119,15 @@ const scrapeEngine = async (reqId, engine, query) => {
             
             const response = await axios.get(url, {
                 headers: getRandomHeaders(reqId),
-                timeout: 15000
+                timeout: 20000,
+                validateStatus: () => true
             });
+            
+            // Check for blocking
+            if (response.status === 403 || response.status === 429) {
+                log(reqId, `Blocked by ${engine} with status ${response.status}`, 'warn');
+                break;
+            }
             
             const $ = cheerio.load(response.data);
             const pageResults = searchEngines[engine].parser($);
@@ -134,7 +147,7 @@ const scrapeEngine = async (reqId, engine, query) => {
             page++;
             
             // Random delay between requests
-            await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1000) + 500));
+            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
         } catch (error) {
             log(reqId, `Error scraping ${engine} page ${page + 1}: ${error.message}`, 'error');
             break;
@@ -290,6 +303,3 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
 });
-
-
-
