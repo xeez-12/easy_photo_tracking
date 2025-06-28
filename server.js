@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 
-// Enhanced user agent generation with rotating proxies
+// Enhanced user agent generation
 const getRandomHeaders = (reqId) => {
     const deviceTypes = ['desktop', 'mobile'];
     const randomDevice = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
@@ -43,7 +43,6 @@ const getRandomHeaders = (reqId) => {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'X-Request-ID': reqId,
-        'X-Forwarded-For': `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
         'Referer': `https://www.google.com/`,
         'DNT': '1',
         'Sec-Fetch-Dest': 'document',
@@ -53,7 +52,7 @@ const getRandomHeaders = (reqId) => {
     };
 };
 
-// Social media scrapers with improved mobile support
+// Social media scrapers
 const socialMediaScrapers = {
     twitter: {
         url: (username) => `https://nitter.net/${username}`,
@@ -62,9 +61,6 @@ const socialMediaScrapers = {
                 const name = $('.profile-card-fullname').first().text().trim() || 'Unknown';
                 const handle = $('.profile-card-username').first().text().trim() || `@${username}`;
                 const bio = $('.profile-bio').first().text().trim() || '';
-                const location = $('.profile-location').first().text().trim() || '';
-                const website = $('.profile-website').first().text().trim() || '';
-                const joinDate = $('.profile-joindate').first().text().trim() || '';
                 let profileImage = $('.profile-card-avatar').attr('src') || '';
                 
                 if (profileImage && !profileImage.startsWith('http')) {
@@ -93,9 +89,6 @@ const socialMediaScrapers = {
                     name,
                     handle,
                     bio,
-                    location,
-                    website,
-                    joinDate,
                     profileImage,
                     stats: {
                         tweets,
@@ -117,12 +110,10 @@ const socialMediaScrapers = {
                 const bio = $('meta[property="og:description"]').attr('content') || '';
                 let profileImage = $('meta[property="og:image"]').attr('content') || '';
                 
-                // Fallback for mobile view
                 if (!profileImage) {
                     profileImage = $('img[data-testid="user-avatar"]').attr('src') || '';
                 }
                 
-                // Extract stats
                 let stats = { followers: '0', following: '0', posts: '0' };
                 const statElements = $('header section ul li');
                 if (statElements.length >= 3) {
@@ -163,7 +154,51 @@ const socialMediaScrapers = {
             }
         }
     },
-    // Other scrapers similar to above with improved error handling
+    linkedin: {
+        url: (username) => `https://www.linkedin.com/in/${username}/`,
+        parser: ($, username) => {
+            try {
+                const name = $('h1.top-card-layout__title').text().trim() || 'Unknown';
+                const headline = $('h2.top-card-layout__headline').text().trim() || '';
+                const location = $('span.top-card__subline-item').text().trim() || '';
+                let profileImage = $('img.top-card__profile-image').attr('src') || '';
+                
+                return {
+                    platform: 'LinkedIn',
+                    name,
+                    headline,
+                    location,
+                    profileImage
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+    },
+    youtube: {
+        url: (username) => `https://www.youtube.com/@${username}/about`,
+        parser: ($, username) => {
+            try {
+                const name = $('meta[property="og:title"]').attr('content') || '';
+                const description = $('meta[property="og:description"]').attr('content') || '';
+                let profileImage = $('link[itemprop="thumbnailUrl"]').attr('href') || '';
+                
+                const subs = $('yt-formatted-string#subscriber-count').text().trim() || '0';
+                
+                return {
+                    platform: 'YouTube',
+                    name,
+                    description,
+                    profileImage,
+                    stats: {
+                        subscribers: subs
+                    }
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+    }
 };
 
 // Prioritize social media domains
@@ -187,7 +222,6 @@ const searchEngines = {
                     const dateElement = $(el).find('.news_dt');
                     const date = dateElement.length ? dateElement.text().trim() : '';
                     
-                    // Extract image
                     let image = '';
                     const imgElement = $(el).find('img');
                     if (imgElement.length && imgElement.attr('src')) {
@@ -199,7 +233,6 @@ const searchEngines = {
                         }
                     }
                     
-                    // Extract profile information
                     let profile = null;
                     const profileElement = $(el).find('.b_attribution cite');
                     if (profileElement.length) {
@@ -212,7 +245,6 @@ const searchEngines = {
                     }
                     
                     if (title && url && !url.includes('bing.com') && !utils.isBlockedDomain(url)) {
-                        // Check if social media
                         const isSocialMedia = SOCIAL_MEDIA_DOMAINS.some(domain => url.includes(domain));
                         
                         results.push({ 
@@ -223,12 +255,11 @@ const searchEngines = {
                             image,
                             profile,
                             source: 'Bing',
-                            icon: 'search',
                             isSocialMedia
                         });
                     }
                 } catch (e) {
-                    // Skip this result if error occurs
+                    // Skip this result
                 }
             });
             return results;
@@ -244,19 +275,17 @@ const searchEngines = {
                     const title = linkElement.text().trim() || 'No title';
                     let url = linkElement.attr('href') || '';
                     
-                    // Fix DuckDuckGo URL parsing
                     if (url.startsWith('/l/?uddg=')) {
                         try {
                             const params = new URLSearchParams(url.split('?')[1]);
                             url = params.get('uddg') ? decodeURIComponent(params.get('uddg')) : url;
                         } catch (e) {
-                            // Fallback to original URL
+                            // Fallback
                         }
                     }
                     
                     const snippet = $(el).find('.result__snippet').text().trim() || '';
                     
-                    // Extract image
                     let image = '';
                     const imgElement = $(el).find('img');
                     if (imgElement.length && imgElement.attr('src')) {
@@ -266,7 +295,6 @@ const searchEngines = {
                         }
                     }
                     
-                    // Extract profile information
                     let profile = null;
                     const profileElement = $(el).find('.result__url');
                     if (profileElement.length) {
@@ -279,7 +307,6 @@ const searchEngines = {
                     }
                     
                     if (title && url && !utils.isBlockedDomain(url)) {
-                        // Check if social media
                         const isSocialMedia = SOCIAL_MEDIA_DOMAINS.some(domain => url.includes(domain));
                         
                         results.push({ 
@@ -289,12 +316,11 @@ const searchEngines = {
                             image,
                             profile,
                             source: 'DuckDuckGo',
-                            icon: 'search',
                             isSocialMedia
                         });
                     }
                 } catch (e) {
-                    // Skip this result if error occurs
+                    // Skip this result
                 }
             });
             return results;
@@ -302,29 +328,25 @@ const searchEngines = {
     }
 };
 
-// Scrape social media profile with timeout and fallback
+// Scrape social media profile
 const scrapeSocialProfile = async (reqId, platform, username) => {
     try {
-        if (!socialMediaScrapers[platform]) {
-            return null;
-        }
+        if (!socialMediaScrapers[platform]) return null;
         
         const url = socialMediaScrapers[platform].url(username);
         log(reqId, `Scraping ${platform} profile: ${url}`);
         
         const response = await axios.get(url, {
             headers: getRandomHeaders(reqId),
-            timeout: 15000,  // 15 seconds timeout
+            timeout: 15000,
             validateStatus: () => true
         });
         
-        // Handle blocking
         if (response.status === 403 || response.status === 429) {
             log(reqId, `Blocked by ${platform} with status ${response.status}`, 'warn');
             return null;
         }
         
-        // Handle CAPTCHAs
         if (response.data.includes('captcha') || response.data.includes('CAPTCHA')) {
             log(reqId, `CAPTCHA detected on ${platform}`, 'warn');
             return null;
@@ -333,7 +355,6 @@ const scrapeSocialProfile = async (reqId, platform, username) => {
         const $ = cheerio.load(response.data);
         const profile = socialMediaScrapers[platform].parser($, username);
         
-        // Enhance with image dimensions
         if (profile && profile.profileImage) {
             try {
                 const imageResponse = await axios.get(profile.profileImage, {
@@ -343,7 +364,7 @@ const scrapeSocialProfile = async (reqId, platform, username) => {
                 const dimensions = sizeOf(imageResponse.data);
                 profile.profileImageDimensions = dimensions;
             } catch (e) {
-                // Skip if image fails to load
+                // Skip image loading error
             }
         }
         
@@ -354,12 +375,12 @@ const scrapeSocialProfile = async (reqId, platform, username) => {
     }
 };
 
-// Enhanced scraping function with proxy rotation
+// Enhanced scraping function
 const scrapeEngine = async (reqId, engine, query) => {
     const results = [];
     let page = 0;
-    const maxPages = 3;  // Reduced to avoid blocking
-    const maxResults = 30;
+    const maxPages = 2;
+    const maxResults = 25;
     
     while (page < maxPages && results.length < maxResults) {
         try {
@@ -372,7 +393,6 @@ const scrapeEngine = async (reqId, engine, query) => {
                 validateStatus: () => true
             });
             
-            // Handle blocking
             if (response.status === 403 || response.status === 429) {
                 log(reqId, `Blocked by ${engine} with status ${response.status}`, 'warn');
                 break;
@@ -381,7 +401,6 @@ const scrapeEngine = async (reqId, engine, query) => {
             const $ = cheerio.load(response.data);
             const pageResults = searchEngines[engine].parser($);
             
-            // Filter out duplicates and invalid URLs
             pageResults.forEach(result => {
                 if (result.url && 
                     !results.some(r => r.url === result.url) &&
@@ -392,16 +411,13 @@ const scrapeEngine = async (reqId, engine, query) => {
             
             log(reqId, `Found ${pageResults.length} results on ${engine} page ${page + 1}`);
             
-            // Stop if we have enough results
             if (results.length >= maxResults) break;
             
             page++;
             
-            // Random delay between requests
             await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500));
         } catch (error) {
             log(reqId, `Error scraping ${engine} page ${page + 1}: ${error.message}`, 'error');
-            // Add delay before retry
             await new Promise(resolve => setTimeout(resolve, 3000));
         }
     }
@@ -409,12 +425,11 @@ const scrapeEngine = async (reqId, engine, query) => {
     return results.slice(0, maxResults);
 };
 
-// Main search function with social media prioritization
+// Main search function
 const performSearch = async (reqId, query) => {
     const results = [];
     
     try {
-        // Scrape both engines with independent error handling
         let bingResults = [];
         let duckduckgoResults = [];
         
@@ -430,7 +445,6 @@ const performSearch = async (reqId, query) => {
             log(reqId, `DuckDuckGo search failed: ${ddgError.message}`, 'error');
         }
         
-        // Combine results and deduplicate
         const allResults = [...bingResults, ...duckduckgoResults];
         const seenUrls = new Set();
         
@@ -443,18 +457,15 @@ const performSearch = async (reqId, query) => {
         
         log(reqId, `Total unique results: ${results.length}`);
         
-        // Separate social media and other results
         const socialMediaResults = results.filter(r => r.isSocialMedia);
         const otherResults = results.filter(r => !r.isSocialMedia);
         
-        // Sort social media by platform importance
         const platformPriority = {
             'twitter.com': 1,
             'instagram.com': 2,
             'facebook.com': 3,
             'linkedin.com': 4,
-            'tiktok.com': 5,
-            'youtube.com': 6
+            'youtube.com': 5
         };
         
         socialMediaResults.sort((a, b) => {
@@ -467,10 +478,8 @@ const performSearch = async (reqId, query) => {
             return aPriority - bPriority;
         });
         
-        // Combine with social media first
         const finalResults = [...socialMediaResults, ...otherResults];
         
-        // Enhance profiles
         for (const result of finalResults) {
             if (result.profile) {
                 try {
@@ -493,7 +502,7 @@ const performSearch = async (reqId, query) => {
             }
         }
         
-                return finalResults;
+        return finalResults;
     } catch (error) {
         log(reqId, `Search error: ${error.message}`, 'error');
         return [];
