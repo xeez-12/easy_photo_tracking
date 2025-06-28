@@ -1,14 +1,25 @@
-// Utility functions for enhanced scraping
+// utils.js - Enhanced Utility Functions
+const SOCIAL_MEDIA_DOMAINS = [
+    'twitter.com', 'facebook.com', 'instagram.com', 
+    'linkedin.com', 'tiktok.com', 'youtube.com',
+    'reddit.com', 'pinterest.com', 'tumblr.com',
+    'flickr.com', 'vimeo.com', 'github.com',
+    'gitlab.com', 'medium.com', 'vk.com',
+    'weibo.com', 'telegram.org', 'discord.com',
+    'twitch.tv', 'patreon.com'
+];
+
 const getPlatformFromUrl = (url) => {
     if (!url) return null;
     
     const domainMappings = {
-        'twitter.com': 'twitter', 'x.com': 'twitter',
-        'facebook.com': 'facebook', 'fb.com': 'facebook',
-        'instagram.com': 'instagram', 'instagr.am': 'instagram',
+        'twitter.com': 'twitter',
+        'facebook.com': 'facebook',
+        'instagram.com': 'instagram',
         'linkedin.com': 'linkedin',
         'tiktok.com': 'tiktok',
-        'youtube.com': 'youtube', 'youtu.be': 'youtube',
+        'youtube.com': 'youtube',
+        'youtu.be': 'youtube',
         'reddit.com': 'reddit',
         'pinterest.com': 'pinterest',
         'tumblr.com': 'tumblr',
@@ -25,31 +36,23 @@ const getPlatformFromUrl = (url) => {
         't.me': 'telegram',
         'snapchat.com': 'snapchat',
         'whatsapp.com': 'whatsapp',
-        'discord.com': 'discord', 'discord.gg': 'discord',
+        'discord.com': 'discord',
         'twitch.tv': 'twitch',
         'patreon.com': 'patreon',
         'onlyfans.com': 'onlyfans',
         'fiverr.com': 'fiverr',
-        'upwork.com': 'upwork',
-        'quora.com': 'quora',
-        'stackoverflow.com': 'stackoverflow',
-        'producthunt.com': 'producthunt',
-        'behance.net': 'behance',
-        'dribbble.com': 'dribbble',
-        'soundcloud.com': 'soundcloud',
-        'spotify.com': 'spotify',
-        'imdb.com': 'imdb',
-        'wikipedia.org': 'wikipedia',
-        'researchgate.net': 'researchgate',
-        'slideshare.net': 'slideshare',
-        'ted.com': 'ted',
-        'kickstarter.com': 'kickstarter'
+        'upwork.com': 'upwork'
     };
     
-    for (const [domain, platform] of Object.entries(domainMappings)) {
-        if (url.includes(domain)) {
-            return platform;
+    try {
+        const domain = new URL(url).hostname.replace('www.', '');
+        for (const [pattern, platform] of Object.entries(domainMappings)) {
+            if (domain.includes(pattern)) {
+                return platform;
+            }
         }
+    } catch (e) {
+        // Invalid URL
     }
     
     return null;
@@ -69,54 +72,19 @@ const getUsernameFromUrl = (url, platform) => {
             case 'github':
             case 'gitlab':
             case 'medium':
-            case 'pinterest':
-            case 'tumblr':
-            case 'flickr':
-            case 'vimeo':
-            case 'deviantart':
-            case 'vk':
-            case 'weibo':
-            case 'douyin':
-            case 'snapchat':
-            case 'whatsapp':
-            case 'twitch':
-            case 'patreon':
-            case 'onlyfans':
-            case 'fiverr':
-            case 'upwork':
-            case 'quora':
-            case 'behance':
-            case 'dribbble':
-            case 'soundcloud':
-            case 'spotify':
-            case 'imdb':
-            case 'wikipedia':
-            case 'researchgate':
-            case 'slideshare':
-            case 'ted':
-            case 'kickstarter':
                 return pathParts[0] || null;
             case 'youtube':
                 if (pathParts[0] === 'channel') return pathParts[1] || null;
                 if (pathParts[0] === 'c' || pathParts[0] === 'user') return pathParts[1] || null;
                 return pathParts[0] || null;
             case 'facebook':
-                return pathParts[1] || pathParts[0] || null;
+                return pathParts[1] || null;
             case 'linkedin':
                 if (pathParts[0] === 'in') return pathParts[1] || null;
                 return pathParts[0] || null;
             case 'reddit':
                 if (pathParts[0] === 'user') return pathParts[1] || null;
                 return pathParts[0] ? pathParts[0].replace('u/', '') : null;
-            case 'telegram':
-                if (pathParts[0] === 's') return pathParts[1] || null;
-                return pathParts[0] || null;
-            case 'discord':
-                return pathParts[0] ? pathParts[0].replace('invite/', '') : null;
-            case 'stackoverflow':
-                return pathParts[1] || pathParts[0] || null;
-            case 'producthunt':
-                return pathParts[0] ? pathParts[0].replace('@', '') : null;
             default:
                 return pathParts[0] || null;
         }
@@ -141,7 +109,8 @@ const extractSocialProfile = (url, title, snippet) => {
             handle: username ? `@${username}` : '',
             url,
             platform: platformData.name,
-            icon: platformData.icon
+            icon: platformData.icon,
+            extractedFrom: snippet || ''
         };
     } catch (e) {
         return {
@@ -149,7 +118,8 @@ const extractSocialProfile = (url, title, snippet) => {
             handle: '',
             url,
             platform: platformData.name,
-            icon: platformData.icon
+            icon: platformData.icon,
+            extractedFrom: snippet || ''
         };
     }
 };
@@ -172,7 +142,7 @@ const normalizeImageUrl = (url, baseDomain) => {
 const extractUsernames = (text) => {
     if (!text) return [];
     // Match @username and username patterns
-    const pattern = /(?:^|\s)(?:@)?([a-zA-Z0-9_]+)(?=\s|$)/g;
+    const pattern = /(?:^|\s)(?:@)?([a-zA-Z0-9_.-]+)(?=\s|$)/g;
     const usernames = [];
     let match;
     while ((match = pattern.exec(text)) !== null) {
@@ -193,7 +163,10 @@ const isBlockedDomain = (url) => {
         't.co',
         'bit.ly',
         'goo.gl',
-        'tinyurl.com'
+        'tinyurl.com',
+        'ow.ly',
+        'buff.ly',
+        'adf.ly'
     ];
     
     try {
@@ -204,11 +177,22 @@ const isBlockedDomain = (url) => {
     }
 };
 
+const isValidUrl = (url) => {
+    try {
+        new URL(url);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+
 module.exports = {
+    SOCIAL_MEDIA_DOMAINS,
     getPlatformFromUrl,
     getUsernameFromUrl,
     extractSocialProfile,
     normalizeImageUrl,
     extractUsernames,
-    isBlockedDomain
+    isBlockedDomain,
+    isValidUrl
 };
