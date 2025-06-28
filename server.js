@@ -7,6 +7,7 @@ const path = require('path');
 const sizeOf = require('image-size');
 const utils = require('./utils');
 const ai = require('./ai');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 app.use(cors());
@@ -163,6 +164,39 @@ const socialMediaScrapers = {
             }
         }
     },
+    linkedin: {
+        url: (username) => `https://www.linkedin.com/in/${username}`,
+        parser: ($, username) => {
+            try {
+                const name = $('h1.top-card-layout__title').text().trim() || '';
+                const headline = $('h2.top-card-layout__headline').text().trim() || '';
+                const location = $('span.top-card__subline-item:first-child').text().trim() || '';
+                let profileImage = $('img.top-card__profile-image').attr('src') || '';
+                
+                const about = $('section.summary div.core-section-container__content p').text().trim() || '';
+                
+                const experience = [];
+                $('section.experience-section li.experience-item').each((i, el) => {
+                    const title = $(el).find('h3.experience-item__title').text().trim();
+                    const company = $(el).find('h4.experience-item__company').text().trim();
+                    const duration = $(el).find('span.experience-item__duration').text().trim();
+                    experience.push({ title, company, duration });
+                });
+                
+                return {
+                    platform: 'LinkedIn',
+                    name,
+                    headline,
+                    location,
+                    profileImage,
+                    about,
+                    experience: experience.slice(0, 3)
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+    },
     facebook: {
         url: (username) => `https://www.facebook.com/${username}`,
         parser: ($, username) => {
@@ -198,33 +232,72 @@ const socialMediaScrapers = {
             }
         }
     },
-    linkedin: {
-        url: (username) => `https://www.linkedin.com/in/${username}`,
+    tiktok: {
+        url: (username) => `https://www.tiktok.com/@${username}`,
         parser: ($, username) => {
             try {
-                const name = $('h1.top-card-layout__title').text().trim() || '';
-                const headline = $('h2.top-card-layout__headline').text().trim() || '';
-                const location = $('span.top-card__subline-item:first-child').text().trim() || '';
-                let profileImage = $('img.top-card__profile-image').attr('src') || '';
+                const name = $('h1.share-title').text().trim() || '';
+                const bio = $('h2.share-sub-title').text().trim() || '';
+                let profileImage = $('img.share-avatar').attr('src') || '';
                 
-                const about = $('section.summary div.core-section-container__content p').text().trim() || '';
-                
-                const experience = [];
-                $('section.experience-section li.experience-item').each((i, el) => {
-                    const title = $(el).find('h3.experience-item__title').text().trim();
-                    const company = $(el).find('h4.experience-item__company').text().trim();
-                    const duration = $(el).find('span.experience-item__duration').text().trim();
-                    experience.push({ title, company, duration });
+                const stats = {};
+                $('div.share-desc').each((i, el) => {
+                    const statText = $(el).text().trim();
+                    if (statText.includes('Following')) {
+                        stats.following = statText.replace('Following', '').trim();
+                    } else if (statText.includes('Followers')) {
+                        stats.followers = statText.replace('Followers', '').trim();
+                    } else if (statText.includes('Likes')) {
+                        stats.likes = statText.replace('Likes', '').trim();
+                    }
                 });
                 
                 return {
-                    platform: 'LinkedIn',
+                    platform: 'TikTok',
                     name,
-                    headline,
-                    location,
+                    bio,
                     profileImage,
-                    about,
-                    experience: experience.slice(0, 3)
+                    stats
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+    },
+    reddit: {
+        url: (username) => `https://www.reddit.com/user/${username}`,
+        parser: ($, username) => {
+            try {
+                const name = $('h1').text().trim() || '';
+                let profileImage = $('img[alt="User avatar"]').attr('src') || '';
+                
+                const karma = $('span.karma').text().trim() || '0';
+                const cakeDay = $('span.cake-day').text().trim() || '';
+                
+                const posts = [];
+                $('div.Post').each((i, el) => {
+                    const title = $(el).find('h3').text().trim() || '';
+                    const content = $(el).find('p').text().trim() || '';
+                    const timestamp = $(el).find('span[data-testid="post_timestamp"]').text().trim() || '';
+                    const votes = $(el).find('div[data-test-id="post-vote"] div:first-child').text().trim() || '0';
+                    
+                    posts.push({
+                        title,
+                        content,
+                        timestamp,
+                        votes
+                    });
+                });
+                
+                return {
+                    platform: 'Reddit',
+                    name,
+                    profileImage,
+                    stats: {
+                        karma
+                    },
+                    cakeDay,
+                    posts: posts.slice(0, 5)
                 };
             } catch (e) {
                 return null;
@@ -286,6 +359,20 @@ const searchEngines = {
                         // Check if social media
                         const isSocialMedia = SOCIAL_MEDIA_DOMAINS.some(domain => url.includes(domain));
                         
+                        // Extract profile images
+                        const profileImages = [];
+                        if (isSocialMedia) {
+                            $(el).find('img').each((i, img) => {
+                                const src = $(img).attr('src');
+                                if (src && src.includes('bcp') && !src.includes('icon')) {
+                                    profileImages.push({
+                                        url: src.startsWith('//') ? 'https:' + src : src,
+                                        source: 'Bing'
+                                    });
+                                }
+                            });
+                        }
+                        
                         results.push({ 
                             title, 
                             url, 
@@ -293,6 +380,7 @@ const searchEngines = {
                             date,
                             image,
                             profile,
+                            profileImages,
                             source: 'Bing',
                             icon: 'search',
                             isSocialMedia
@@ -349,6 +437,20 @@ const searchEngines = {
                         }
                     }
                     
+                    // Extract profile images
+                    const profileImages = [];
+                    if (profile) {
+                        $(el).find('img').each((i, img) => {
+                            const src = $(img).attr('src');
+                            if (src && !src.includes('icon')) {
+                                profileImages.push({
+                                    url: src.startsWith('//') ? 'https:' + src : src,
+                                    source: 'DuckDuckGo'
+                                });
+                            }
+                        });
+                    }
+                    
                     if (title && url && !utils.isBlockedDomain(url)) {
                         // Check if social media
                         const isSocialMedia = SOCIAL_MEDIA_DOMAINS.some(domain => url.includes(domain));
@@ -359,6 +461,7 @@ const searchEngines = {
                             snippet,
                             image,
                             profile,
+                            profileImages,
                             source: 'DuckDuckGo',
                             icon: 'search',
                             isSocialMedia
@@ -525,7 +628,8 @@ const performSearch = async (reqId, query) => {
             'facebook.com': 3,
             'linkedin.com': 4,
             'tiktok.com': 5,
-            'youtube.com': 6
+            'youtube.com': 6,
+            'reddit.com': 7
         };
         
         socialMediaResults.sort((a, b) => {
@@ -573,7 +677,7 @@ const performSearch = async (reqId, query) => {
 
 // API endpoint
 app.post('/api/search', async (req, res) => {
-    const reqId = req.headers['x-request-id'] || Math.random().toString(36).substring(2, 12);
+    const reqId = req.headers['x-request-id'] || uuidv4();
     const { query } = req.body || {};
     
     if (!query || typeof query !== 'string' || query.trim() === '') {
