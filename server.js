@@ -1,6 +1,8 @@
+// server.js
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 const userAgent = require('user-agents');
 const cors = require('cors');
 const path = require('path');
@@ -14,292 +16,323 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
+let browser; // Global browser instance for Puppeteer
 
-// Enhanced user agent generation with rotating devices and languages
-const getRandomHeaders = (reqId) => {
-    const deviceTypes = ['desktop', 'mobile', 'tablet'];
-    const languages = ['en-US', 'en-GB', 'en', 'id-ID'];
-    const randomDevice = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
-    const randomLang = languages[Math.floor(Math.random() * languages.length)];
+// Enhanced headers with rotating user agents
+const getRandomHeaders = () => {
+    const ua = new userAgent({
+        deviceCategory: ['desktop', 'mobile', 'tablet'][Math.floor(Math.random() * 3)],
+        platform: Math.random() > 0.5 ? 'Win32' : 'Linux x86_64'
+    }).toString();
 
-    let ua;
-    try {
-        ua = new userAgent({
-            deviceCategory: randomDevice,
-            platform: Math.random() > 0.5 ? 'Win32' : 'Linux x86_64',
-            userAgent: Math.random() > 0.5 ? 'Chrome' : 'Firefox'
-        }).toString();
-    } catch (e) {
-        const fallbackAgents = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-            'Mozilla/5.0 (Linux; Android 13; SM-S901U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
-        ];
-        ua = fallbackAgents[Math.floor(Math.random() * fallbackAgents.length)];
-    }
-    
     return {
         'User-Agent': ua,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': randomLang,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'X-Request-ID': reqId,
-        'X-Forwarded-For': `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-        'Referer': `https://www.google.com/`,
-        'DNT': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'same-origin',
-        'Sec-Fetch-User': '?1',
-        'TE': 'trailers'
+        'Referer': 'https://www.google.com/',
+        'DNT': '1'
     };
 };
 
-// Trusted domains and sources
-const TRUSTED_DOMAINS = [
-    'twitter.com', 'facebook.com', 'instagram.com', 'linkedin.com',
-    'youtube.com', 'github.com', 'reddit.com', 'medium.com',
-    'wikipedia.org', 'nytimes.com', 'bbc.com', 'theguardian.com',
-    'reuters.com', 'apnews.com', 'bloomberg.com'
-];
+// Initialize Puppeteer browser
+const initBrowser = async () => {
+    try {
+        browser = await puppeteer.launch({
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--disable-gpu',
+                '--window-size=1920x1080'
+            ]
+        });
+        console.log('Puppeteer browser launched');
+    } catch (err) {
+        console.error('Error launching browser:', err);
+    }
+};
 
-// Enhanced search engine scrapers focusing on trusted sources
-const searchEngines = {
-    bing: {
-        url: (query, page = 0) => `https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${page * 10 + 1}`,
-        parser: ($) => {
-            const results = [];
-            $('li.b_algo').each((i, el) => {
-                try {
-                    const title = $(el).find('h2').text().trim() || 'No title';
-                    let url = $(el).find('a').attr('href') || '';
-                    const snippet = $(el).find('.b_caption p').text().trim() || '';
-                    const dateElement = $(el).find('.news_dt');
-                    const date = dateElement.length ? dateElement.text().trim() : '';
+// Enhanced social media scrapers
+const socialMediaScrapers = {
+    twitter: {
+        scrape: async (username) => {
+            const url = `https://twitter.com/${username}`;
+            try {
+                const page = await browser.newPage();
+                await page.setUserAgent(getRandomHeaders()['User-Agent']);
+                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+                
+                const profile = await page.evaluate(() => {
+                    const name = document.querySelector('div[data-testid="UserName"]')?.textContent?.trim();
+                    const handle = document.querySelector('div[data-testid="UserName"] div:nth-child(2)')?.textContent?.trim();
+                    const bio = document.querySelector('div[data-testid="UserDescription"]')?.textContent?.trim();
+                    const location = document.querySelector('div[data-testid="UserLocation"]')?.textContent?.trim();
+                    const joinDate = document.querySelector('div[data-testid="UserJoinDate"]')?.textContent?.trim();
+                    const following = document.querySelector('a[href*="/following"] span')?.textContent?.trim();
+                    const followers = document.querySelector('a[href*="/followers"] span')?.textContent?.trim();
+                    const profileImage = document.querySelector('img[alt="Opens profile photo"]')?.src;
                     
-                    // Extract image
-                    let image = '';
-                    const imgElement = $(el).find('img');
-                    if (imgElement.length && imgElement.attr('src')) {
-                        image = imgElement.attr('src');
-                        if (image.startsWith('//')) {
-                            image = 'https:' + image;
-                        } else if (image.startsWith('/')) {
-                            image = 'https://www.bing.com' + image;
-                        }
-                    }
-                    
-                    // Check if from trusted domain
-                    const isTrusted = TRUSTED_DOMAINS.some(domain => url.includes(domain));
-                    if (!isTrusted) return;
-                    
-                    // Extract profile information
-                    let profile = null;
-                    const profileElement = $(el).find('.b_attribution cite');
-                    if (profileElement.length) {
-                        const profileUrl = $(el).find('.b_attribution a').attr('href') || '';
-                        const profileName = profileElement.text().trim();
+                    // Get recent tweets
+                    const tweets = [];
+                    const tweetElements = document.querySelectorAll('article[data-testid="tweet"]');
+                    tweetElements.forEach(el => {
+                        const text = el.querySelector('div[data-testid="tweetText"]')?.textContent?.trim();
+                        const likes = el.querySelector('div[data-testid="like"]')?.textContent?.trim();
+                        const retweets = el.querySelector('div[data-testid="retweet"]')?.textContent?.trim();
+                        const replies = el.querySelector('div[data-testid="reply"]')?.textContent?.trim();
+                        const time = el.querySelector('time')?.getAttribute('datetime');
                         
-                        if (profileName) {
-                            profile = utils.extractSocialProfile(profileUrl, title, snippet);
+                        if (text) {
+                            tweets.push({
+                                text,
+                                likes: likes || '0',
+                                retweets: retweets || '0',
+                                replies: replies || '0',
+                                timestamp: time || new Date().toISOString()
+                            });
                         }
+                    });
+
+                    return {
+                        name,
+                        handle,
+                        bio,
+                        location,
+                        joinDate,
+                        stats: {
+                            following: following ? parseInt(following.replace(/,/g, '')) : 0,
+                            followers: followers ? parseInt(followers.replace(/,/g, '')) : 0,
+                        },
+                        profileImage,
+                        tweets: tweets.slice(0, 5),
+                        verified: !!document.querySelector('svg[aria-label="Verified account"]')
+                    };
+                });
+
+                await page.close();
+                return {
+                    success: true,
+                    profile: {
+                        ...profile,
+                        platform: 'Twitter',
+                        url
                     }
-                    
-                    if (title && url && !url.includes('bing.com') && !utils.isBlockedDomain(url)) {
-                        results.push({ 
-                            title, 
-                            url, 
-                            snippet,
-                            date,
-                            image,
-                            profile,
-                            source: 'Bing',
-                            isTrusted
-                        });
-                    }
-                } catch (e) {
-                    // Skip this result if error occurs
-                }
-            });
-            return results;
+                };
+            } catch (err) {
+                console.error('Twitter scrape error:', err);
+                return { success: false, error: err.message };
+            }
         }
     },
-    duckduckgo: {
-        url: (query, page = 0) => `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}&s=${page * 30}`,
-        parser: ($) => {
-            const results = [];
-            $('.result').each((i, el) => {
-                try {
-                    const linkElement = $(el).find('.result__a');
-                    const title = linkElement.text().trim() || 'No title';
-                    let url = linkElement.attr('href') || '';
+    instagram: {
+        scrape: async (username) => {
+            const url = `https://www.instagram.com/${username}/`;
+            try {
+                const page = await browser.newPage();
+                await page.setUserAgent(getRandomHeaders()['User-Agent']);
+                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+                
+                const profile = await page.evaluate(() => {
+                    const name = document.querySelector('h1')?.textContent?.trim();
+                    const bio = document.querySelector('h1 + div')?.textContent?.trim();
+                    const statsElements = document.querySelectorAll('header section ul li');
+                    const posts = statsElements[0]?.querySelector('span')?.textContent?.trim();
+                    const followers = statsElements[1]?.querySelector('span')?.textContent?.trim();
+                    const following = statsElements[2]?.querySelector('span')?.textContent?.trim();
+                    const profileImage = document.querySelector('header img')?.src;
                     
-                    // Fix DuckDuckGo URL parsing
-                    if (url.startsWith('/l/?uddg=')) {
-                        try {
-                            const params = new URLSearchParams(url.split('?')[1]);
-                            url = params.get('uddg') ? decodeURIComponent(params.get('uddg')) : url;
-                        } catch (e) {
-                            // Fallback to original URL
-                        }
+                    // Get recent posts
+                    const postsElements = document.querySelectorAll('article img');
+                    const postsData = Array.from(postsElements).map(img => ({
+                        image: img.src
+                    })).slice(0, 9);
+
+                    return {
+                        name,
+                        bio,
+                        stats: {
+                            posts: posts ? parseInt(posts.replace(/,/g, '')) : 0,
+                            followers: followers ? parseInt(followers.replace(/,/g, '')) : 0,
+                            following: following ? parseInt(following.replace(/,/g, '')) : 0
+                        },
+                        profileImage,
+                        posts: postsData,
+                        verified: !!document.querySelector('svg[aria-label="Verified"]')
+                    };
+                });
+
+                await page.close();
+                return {
+                    success: true,
+                    profile: {
+                        ...profile,
+                        platform: 'Instagram',
+                        url
                     }
+                };
+            } catch (err) {
+                console.error('Instagram scrape error:', err);
+                return { success: false, error: err.message };
+            }
+        }
+    },
+    facebook: {
+        scrape: async (username) => {
+            const url = `https://www.facebook.com/${username}`;
+            try {
+                const page = await browser.newPage();
+                await page.setUserAgent(getRandomHeaders()['User-Agent']);
+                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+                
+                const profile = await page.evaluate(() => {
+                    const name = document.querySelector('h1')?.textContent?.trim();
+                    const bio = document.querySelector('div[data-testid="profile_timeline_intro_card"]')?.textContent?.trim();
+                    const profileImage = document.querySelector('img[data-visualcompletion="media-vc-image"]')?.src;
                     
-                    const snippet = $(el).find('.result__snippet').text().trim() || '';
-                    
-                    // Check if from trusted domain
-                    const isTrusted = TRUSTED_DOMAINS.some(domain => url.includes(domain));
-                    if (!isTrusted) return;
-                    
-                    // Extract image
-                    let image = '';
-                    const imgElement = $(el).find('img');
-                    if (imgElement.length && imgElement.attr('src')) {
-                        image = imgElement.attr('src');
-                        if (image.startsWith('//')) {
-                            image = 'https:' + image;
-                        }
+                    return {
+                        name,
+                        bio,
+                        profileImage,
+                        verified: !!document.querySelector('img[alt="Verified"]')
+                    };
+                });
+
+                await page.close();
+                return {
+                    success: true,
+                    profile: {
+                        ...profile,
+                        platform: 'Facebook',
+                        url
                     }
+                };
+            } catch (err) {
+                console.error('Facebook scrape error:', err);
+                return { success: false, error: err.message };
+            }
+        }
+    },
+    linkedin: {
+        scrape: async (username) => {
+            const url = `https://www.linkedin.com/in/${username}`;
+            try {
+                const page = await browser.newPage();
+                await page.setUserAgent(getRandomHeaders()['User-Agent']);
+                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+                
+                const profile = await page.evaluate(() => {
+                    const name = document.querySelector('h1')?.textContent?.trim();
+                    const headline = document.querySelector('div.text-body-medium')?.textContent?.trim();
+                    const about = document.querySelector('div.pv-shared-text-with-see-more')?.textContent?.trim();
+                    const profileImage = document.querySelector('img.pv-top-card-profile-picture__image')?.src;
                     
-                    // Extract profile information
-                    let profile = null;
-                    const profileElement = $(el).find('.result__url');
-                    if (profileElement.length) {
-                        const profileUrl = $(el).find('.result__url').attr('href') || '';
-                        const profileText = profileElement.text().trim();
+                    // Get experience
+                    const experience = [];
+                    const expElements = document.querySelectorAll('section#experience-section ul li');
+                    expElements.forEach(el => {
+                        const title = el.querySelector('h3')?.textContent?.trim();
+                        const company = el.querySelector('p:nth-child(2) span:nth-child(2)')?.textContent?.trim();
+                        const duration = el.querySelector('span.date-range span:nth-child(2)')?.textContent?.trim();
                         
-                        if (profileText) {
-                            profile = utils.extractSocialProfile(profileUrl, title, snippet);
+                        if (title) {
+                            experience.push({
+                                title,
+                                company,
+                                duration
+                            });
                         }
-                    }
-                    
-                    if (title && url && !utils.isBlockedDomain(url)) {
-                        results.push({ 
-                            title, 
-                            url: url.startsWith('//') ? `https:${url}` : url,
-                            snippet,
-                            image,
-                            profile,
-                            source: 'DuckDuckGo',
-                            isTrusted
-                        });
-                    }
-                } catch (e) {
-                    // Skip this result if error occurs
-                }
-            });
-            return results;
-        }
-    }
-};
+                    });
 
-// Enhanced scraping function with trusted sources priority
-const scrapeEngine = async (reqId, engine, query) => {
-    const results = [];
-    let page = 0;
-    const maxPages = 2;  // Reduced to avoid blocking
-    const maxResults = 20;
-    
-    while (page < maxPages && results.length < maxResults) {
-        try {
-            const url = searchEngines[engine].url(query, page);
-            log(reqId, `Scraping ${engine} page ${page + 1}: ${url}`);
-            
-            const response = await axios.get(url, {
-                headers: getRandomHeaders(reqId),
-                timeout: 20000,
-                validateStatus: () => true
-            });
-            
-            // Handle blocking
-            if (response.status === 403 || response.status === 429) {
-                log(reqId, `Blocked by ${engine} with status ${response.status}`, 'warn');
-                break;
+                    return {
+                        name,
+                        headline,
+                        about,
+                        profileImage,
+                        experience: experience.slice(0, 3)
+                    };
+                });
+
+                await page.close();
+                return {
+                    success: true,
+                    profile: {
+                        ...profile,
+                        platform: 'LinkedIn',
+                        url
+                    }
+                };
+            } catch (err) {
+                console.error('LinkedIn scrape error:', err);
+                return { success: false, error: err.message };
             }
-            
-            const $ = cheerio.load(response.data);
-            const pageResults = searchEngines[engine].parser($);
-            
-            // Filter out duplicates and invalid URLs
-            pageResults.forEach(result => {
-                if (result.url && 
-                    !results.some(r => r.url === result.url) &&
-                    result.url.startsWith('http')) {
-                    results.push(result);
-                }
-            });
-            
-            log(reqId, `Found ${pageResults.length} results on ${engine} page ${page + 1}`);
-            
-            // Stop if we have enough results
-            if (results.length >= maxResults) break;
-            
-            page++;
-            
-            // Random delay between requests
-            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
-        } catch (error) {
-            log(reqId, `Error scraping ${engine} page ${page + 1}: ${error.message}`, 'error');
-            // Add delay before retry
-            await new Promise(resolve => setTimeout(resolve, 5000));
         }
     }
-    
-    return results.slice(0, maxResults);
 };
 
-// Main search function focusing on trusted sources
-const performSearch = async (reqId, query) => {
-    const results = [];
-    
+// Enhanced search function with social media focus
+const performSearch = async (query) => {
     try {
-        // Scrape both engines with independent error handling
-        let bingResults = [];
-        let duckduckgoResults = [];
+        // First extract potential usernames from query
+        const usernames = utils.extractUsernames(query);
         
-        try {
-            bingResults = await scrapeEngine(reqId, 'bing', query);
-        } catch (bingError) {
-            log(reqId, `Bing search failed: ${bingError.message}`, 'error');
-        }
+        // Check for direct social media URLs
+        const socialUrls = utils.getPlatformFromUrl(query) ? [query] : [];
         
-        try {
-            duckduckgoResults = await scrapeEngine(reqId, 'duckduckgo', query);
-        } catch (ddgError) {
-            log(reqId, `DuckDuckGo search failed: ${ddgError.message}`, 'error');
-        }
+        // Combine all targets
+        const targets = [...usernames, ...socialUrls];
         
-        // Combine results and deduplicate
-        const allResults = [...bingResults, ...duckduckgoResults];
-        const seenUrls = new Set();
+        const results = [];
         
-        allResults.forEach(result => {
-            if (result.url && !seenUrls.has(result.url)) {
-                seenUrls.add(result.url);
-                results.push(result);
+        // Scrape each social media platform for each target
+        for (const target of targets) {
+            const platform = utils.getPlatformFromUrl(target) || 
+                           (target.startsWith('@') ? 
+                           target.substring(1).toLowerCase() : 
+                           target.toLowerCase());
+            
+            if (socialMediaScrapers[platform]) {
+                const scrapeResult = await socialMediaScrapers[platform].scrape(target);
+                if (scrapeResult.success) {
+                    results.push({
+                        title: `${scrapeResult.profile.name} (${scrapeResult.profile.platform})`,
+                        url: scrapeResult.profile.url,
+                        snippet: scrapeResult.profile.bio || scrapeResult.profile.headline || '',
+                        profile: scrapeResult.profile,
+                        source: 'Direct Scrape',
+                        isTrusted: true
+                    });
+                }
             }
-        });
+        }
         
-        log(reqId, `Total unique results: ${results.length}`);
-        
-        // Sort by trusted sources first
-        results.sort((a, b) => (b.isTrusted ? 1 : 0) - (a.isTrusted ? 1 : 0));
+        // Fallback to search engines if no direct results
+        if (results.length === 0) {
+            const searchResults = await scrapeSearchEngines(query);
+            return searchResults.slice(0, 20);
+        }
         
         return results;
-    } catch (error) {
-        log(reqId, `Search error: ${error.message}`, 'error');
+    } catch (err) {
+        console.error('Search error:', err);
         return [];
     }
 };
 
-// API endpoint
+// Search engine fallback
+const scrapeSearchEngines = async (query) => {
+    // ... (keep the existing search engine scraping code from your original server.js)
+    // This is just a placeholder - you should keep your existing search engine implementation
+    // as a fallback when direct social media scraping doesn't find results
+    return [];
+};
+
+// API endpoints
 app.post('/api/search', async (req, res) => {
-    const reqId = req.headers['x-request-id'] || Math.random().toString(36).substring(2, 12);
     const { query } = req.body || {};
     
     if (!query || typeof query !== 'string' || query.trim() === '') {
@@ -307,11 +340,7 @@ app.post('/api/search', async (req, res) => {
     }
     
     try {
-        log(reqId, `Processing query: "${query}"`);
-        
-        const results = await performSearch(reqId, query);
-        
-        // AI analysis
+        const results = await performSearch(query);
         const insights = ai.analyzeResults(results, query);
         const profileAnalysis = ai.analyzeProfiles(results);
         
@@ -323,53 +352,37 @@ app.post('/api/search', async (req, res) => {
             }
         });
     } catch (error) {
-        log(reqId, `Search error: ${error.message}`, 'error');
+        console.error('Search error:', error);
         res.status(500).json({ 
             message: 'Search failed', 
-            error: 'Internal server error'
+            error: error.message 
         });
     }
 });
 
-// Logging function
-const log = (reqId, message, level = 'info') => {
-    const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
-    const colors = {
-        info: '\x1b[36m',
-        warn: '\x1b[33m',
-        error: '\x1b[31m',
-        debug: '\x1b[35m'
-    };
-    const reset = '\x1b[0m';
-    console.log(`${colors[level] || ''}[${timestamp}] [${reqId}] [${level.toUpperCase()}] ${message}${reset}`);
+// Initialize server
+const startServer = async () => {
+    await initBrowser();
+    
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
 };
 
-// Server setup
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('*', (req, res) => {
-    res.status(404).send('Not found');
-});
-
-const server = app.listen(PORT, () => {
-    log('SERVER', `Server running on port ${PORT}`);
-});
-
 // Graceful shutdown
-process.on('SIGTERM', () => {
-    log('SERVER', 'Shutting down gracefully...');
-    server.close(() => {
-        process.exit(0);
-    });
+process.on('SIGTERM', async () => {
+    console.log('Shutting down gracefully...');
+    if (browser) await browser.close();
+    process.exit(0);
 });
 
 process.on('uncaughtException', (err) => {
-    log('SERVER', `Uncaught Exception: ${err.message}`, 'error');
+    console.error('Uncaught Exception:', err);
     process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
+    console.error('Unhandled Rejection:', reason);
 });
+
+startServer();
