@@ -1,6 +1,6 @@
 {
   "name": "osint-tracker-pro",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Advanced OSINT investigation tool with visual intelligence",
   "main": "server.js",
   "scripts": {
