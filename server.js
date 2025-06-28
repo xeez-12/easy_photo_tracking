@@ -355,23 +355,21 @@ const searchEngines = {
                         }
                     }
                     
+                    // Extract profile images
+                    const profileImages = [];
+                    $(el).find('img').each((i, img) => {
+                        const src = $(img).attr('src');
+                        if (src && src.includes('bcp') && !src.includes('icon')) {
+                            profileImages.push({
+                                url: src.startsWith('//') ? 'https:' + src : src,
+                                source: 'Bing'
+                            });
+                        }
+                    });
+                    
                     if (title && url && !url.includes('bing.com') && !utils.isBlockedDomain(url)) {
                         // Check if social media
                         const isSocialMedia = SOCIAL_MEDIA_DOMAINS.some(domain => url.includes(domain));
-                        
-                        // Extract profile images
-                        const profileImages = [];
-                        if (isSocialMedia) {
-                            $(el).find('img').each((i, img) => {
-                                const src = $(img).attr('src');
-                                if (src && src.includes('bcp') && !src.includes('icon')) {
-                                    profileImages.push({
-                                        url: src.startsWith('//') ? 'https:' + src : src,
-                                        source: 'Bing'
-                                    });
-                                }
-                            });
-                        }
                         
                         results.push({ 
                             title, 
