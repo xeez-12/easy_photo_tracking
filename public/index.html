@@ -150,101 +150,231 @@
             font-weight: 600;
         }
 
-        .result-item {
-            background: var(--bg-code);
-            border: 1px solid var(--border-hover);
+        .social-card {
+            background: rgba(138, 74, 138, 0.1);
+            border-left: 2px solid var(--accent-purple);
             border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
-            transition: all 0.25s ease;
-            position: relative;
-            backdrop-filter: blur(8px);
+            padding: 12px;
+            margin-top: 12px;
         }
 
-        .result-item:hover {
-            background: var(--bg-input);
-        }
-
-        .result-header {
+        .social-card-header {
             display: flex;
-            align-items: flex-start;
-            gap: 10px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
-        .result-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 6px;
+        .social-card-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .social-card-platform {
+            background: rgba(138, 74, 138, 0.2);
+            color: var(--accent-purple);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .profile-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             object-fit: cover;
             border: 1px solid var(--border-color);
-            background: var(--bg-input);
             flex-shrink: 0;
         }
 
-        .result-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .result-item h5 {
-            color: var(--text-primary);
+        .profile-handle {
+            color: var(--text-secondary);
             font-size: 12px;
-            margin-bottom: 6px;
-            font-weight: 500;
-            line-height: 1.4;
         }
 
-        .result-item a {
+        .profile-bio {
+            font-size: 12px;
+            margin: 8px 0;
             color: var(--text-secondary);
-            text-decoration: none;
-            word-break: break-all;
-            display: inline-block;
-            margin-top: 2px;
-            font-size: 11px;
-            transition: color 0.2s ease;
-        }
-
-        .result-item a:hover {
-            color: var(--accent-blue);
-            text-decoration: underline;
-        }
-
-        .result-item p {
-            color: var(--text-secondary);
-            font-size: 11px;
-            margin: 6px 0 0;
             line-height: 1.5;
-        }
-
-        .result-meta {
-            display: flex;
-            gap: 8px;
-            margin-top: 6px;
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-
-        .source-tag {
-            background: rgba(93, 138, 168, 0.15);
-            color: var(--accent-blue);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-weight: 600;
         }
 
         .social-stats {
             display: flex;
-            gap: 10px;
-            margin-top: 6px;
-            font-size: 10px;
+            gap: 12px;
+            margin: 10px 0;
         }
 
         .stat-item {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .social-posts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .social-post {
+            aspect-ratio: 1/1;
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--bg-input);
+            position: relative;
+        }
+
+        .social-post img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .post-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 4px;
+            font-size: 9px;
+            border-radius: 0 0 0 4px;
+        }
+
+        .web-result-card {
+            background: rgba(93, 138, 168, 0.1);
+            border-left: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .web-result-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .web-result-url {
+            color: var(--accent-blue);
+            font-size: 11px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .web-result-snippet {
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .web-result-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .web-result-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ai-insights {
+            background: rgba(93, 138, 168, 0.1);
+            border-left: 2px solid var(--accent-blue);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 12px;
+        }
+
+        .ai-insights h5 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--accent-blue);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .ai-insights p {
+            margin-bottom: 6px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .ai-insights strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .ai-next-steps {
+            background: rgba(201, 162, 39, 0.1);
+            border-left: 2px solid var(--accent-yellow);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .ai-next-steps h6 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--accent-yellow);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .next-steps-list {
+            padding-left: 20px;
+        }
+
+        .next-steps-list li {
+            margin-bottom: 6px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .profile-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .profile-gallery-item {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-source {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 4px;
+            font-size: 8px;
+            text-align: center;
         }
 
         .empty-state {
@@ -432,125 +562,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .ai-insights {
-            background: rgba(93, 138, 168, 0.1);
-            border-left: 2px solid var(--accent-blue);
-            border-radius: 6px;
-            padding: 8px;
-            margin-top: 8px;
-            font-size: 12px;
-        }
-
-        .ai-insights h5 {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--accent-blue);
-            margin-bottom: 5px;
-            font-size: 12px;
-        }
-
-        .ai-insights p {
-            margin-bottom: 4px;
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .ai-insights strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .url-display {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 3px;
-            font-size: 11px;
-        }
-
-        .url-icon {
-            color: var(--text-muted);
-            font-size: 11px;
-        }
-
-        .social-profile {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 6px;
-            padding: 5px;
-            background: rgba(50, 50, 50, 0.3);
-            border-radius: 5px;
-            font-size: 11px;
-        }
-
-        .profile-image {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid var(--border-color);
-        }
-
-        .profile-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .profile-name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .profile-handle {
-            color: var(--text-secondary);
-        }
-
-        .profile-bio {
-            font-size: 10px;
-            margin-top: 4px;
-            color: var(--text-secondary);
-        }
-
-        .social-posts {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-            margin-top: 8px;
-        }
-
-        .social-post {
-            aspect-ratio: 1/1;
-            border-radius: 4px;
-            overflow: hidden;
-            background: var(--bg-input);
-            position: relative;
-        }
-
-        .social-post img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .post-count {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: rgba(0,0,0,0.7);
-            padding: 2px 4px;
-            font-size: 8px;
-            border-radius: 0 0 0 4px;
-        }
-
         .account-match {
             background: rgba(92, 172, 92, 0.15);
             border-left: 2px solid var(--accent-green);
             border-radius: 6px;
-            padding: 8px;
-            margin-top: 8px;
-            font-size: 12px;
+            padding: 12px;
+            margin-top: 12px;
         }
 
         .account-match h6 {
@@ -558,95 +575,24 @@
             align-items: center;
             gap: 5px;
             color: var(--accent-green);
-            margin-bottom: 5px;
-            font-size: 11px;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
 
         .match-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px;
-            font-size: 11px;
+            gap: 8px;
+            padding: 6px;
+            font-size: 12px;
         }
 
         .match-item img {
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: cover;
-        }
-
-        .social-card {
-            background: rgba(138, 74, 138, 0.1);
-            border-left: 2px solid var(--accent-purple);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .social-card-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .social-card-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-
-        .social-card-platform {
-            background: rgba(138, 74, 138, 0.2);
-            color: var(--accent-purple);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 500;
-        }
-
-        .web-result-card {
-            background: rgba(93, 138, 168, 0.1);
-            border-left: 2px solid var(--accent-blue);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .web-result-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .web-result-url {
-            color: var(--accent-blue);
-            font-size: 11px;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .web-result-snippet {
-            color: var(--text-secondary);
-            font-size: 12px;
-            line-height: 1.4;
-        }
-
-        .web-result-meta {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-            color: var(--text-muted);
-            font-size: 10px;
-        }
-
-        .web-result-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            border: 1px solid var(--border-color);
         }
 
         @media (max-width: 480px) {
@@ -665,12 +611,14 @@
             .timeline::before { left: 32px; }
             .message-input { padding: 8px 12px; font-size: 12px; }
             .send-button { width: 36px; height: 36px; font-size: 14px; }
+            .profile-image { width: 40px; height: 40px; }
         }
 
         @media (max-width: 360px) {
             .timeline-container { padding: 10px; padding-bottom: 110px; }
             .input-section { padding: 10px; }
             .activity-content { padding: 10px; }
+            .social-posts { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -839,33 +787,21 @@
                         let content = '<div class="result-section">';
                         content += `<h4><i class="bi bi-collection"></i> ${data.results.length} Results Found</h4>`;
                         
-                        // Separate social media and web results
-                        const socialResults = [];
-                        const webResults = [];
-                        
-                        data.results.forEach(result => {
+                        // Process each result
+                        data.results.forEach((result) => {
                             if (result.profile) {
-                                socialResults.push(result);
+                                // Social media card
+                                content += this.renderSocialCard(result);
                             } else {
-                                webResults.push(result);
+                                // Web result card
+                                content += this.renderWebCard(result);
+                            }
+                            
+                            // Add profile images gallery if available
+                            if (result.profileImages && result.profileImages.length > 0) {
+                                content += this.renderProfileGallery(result);
                             }
                         });
-                        
-                        // Add social media cards
-                        if (socialResults.length > 0) {
-                            content += `<div class="result-section"><h4><i class="bi bi-people"></i> Social Profiles</h4></div>`;
-                            socialResults.forEach(result => {
-                                content += this.renderSocialCard(result);
-                            });
-                        }
-                        
-                        // Add web results
-                        if (webResults.length > 0) {
-                            content += `<div class="result-section"><h4><i class="bi bi-globe"></i> Web Results</h4></div>`;
-                            webResults.forEach(result => {
-                                content += this.renderWebCard(result);
-                            });
-                        }
                         
                         content += '</div>';
                         this.addActivityToTimeline('Search Engine', content, 'success', aiTime);
@@ -899,15 +835,18 @@
                 return `
                     <div class="social-card">
                         <div class="social-card-header">
-                            ${profile.profileImage ? `<img src="${profile.profileImage}" class="profile-image" onerror="this.style.display='none'">` : 
-                              `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`}
+                            ${profile.profileImage ? 
+                                `<img src="${profile.profileImage}" class="profile-image" 
+                                  onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image\'><i class=\'bi bi-person-circle\'></i></div>'" 
+                                  alt="${profile.name}">` : 
+                                `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`}
                             <div>
                                 <div class="social-card-title">${profile.name || 'Unknown'}</div>
                                 <div class="social-card-platform">${profile.platform}</div>
+                                ${profile.handle ? `<div class="profile-handle">${profile.handle}</div>` : ''}
                             </div>
                         </div>
                         
-                        ${profile.handle ? `<div class="profile-handle">${profile.handle}</div>` : ''}
                         ${profile.bio ? `<div class="profile-bio">${this.escapeHtml(profile.bio)}</div>` : ''}
                         
                         ${profile.stats ? `
@@ -915,6 +854,7 @@
                                 ${profile.stats.followers ? `<div class="stat-item"><i class="bi bi-people"></i> ${profile.stats.followers} followers</div>` : ''}
                                 ${profile.stats.following ? `<div class="stat-item"><i class="bi bi-person-plus"></i> ${profile.stats.following} following</div>` : ''}
                                 ${profile.stats.posts ? `<div class="stat-item"><i class="bi bi-images"></i> ${profile.stats.posts} posts</div>` : ''}
+                                ${profile.stats.karma ? `<div class="stat-item"><i class="bi bi-star"></i> ${profile.stats.karma} karma</div>` : ''}
                             </div>
                         ` : ''}
                         
@@ -922,11 +862,12 @@
                         
                         ${profile.posts && profile.posts.length > 0 ? `
                             <div class="social-posts">
-                                ${profile.posts.slice(0, 9).map((post, index) => `
+                                ${profile.posts.slice(0, 6).map((post, index) => `
                                     <div class="social-post">
-                                        <img src="${post.image}" alt="Post ${index + 1}">
-                                        ${index === 8 && profile.posts.length > 9 ? 
-                                            `<div class="post-count">+${profile.posts.length - 9}</div>` : ''}
+                                        <img src="${post.image}" alt="Post ${index + 1}" 
+                                          onerror="this.style.display='none'">
+                                        ${index === 5 && profile.posts.length > 6 ? 
+                                            `<div class="post-count">+${profile.posts.length - 6}</div>` : ''}
                                     </div>
                                 `).join('')}
                             </div>
@@ -934,15 +875,15 @@
                         
                         ${profile.tweets && profile.tweets.length > 0 ? `
                             <div class="result-section" style="margin-top:10px;">
-                                <h4><i class="bi bi-chat-left-text"></i> Recent Tweets</h4>
+                                <h4><i class="bi bi-chat-left-text"></i> Recent Activity</h4>
                                 ${profile.tweets.slice(0, 3).map(tweet => `
-                                    <div class="result-item" style="padding:8px;margin-bottom:6px;">
+                                    <div class="result-item" style="padding:8px;margin-bottom:6px;background:rgba(50,50,50,0.2);border-radius:8px;">
                                         <p>${this.escapeHtml(tweet.text)}</p>
-                                        <div class="result-meta">
+                                        <div class="result-meta" style="margin-top:6px;">
                                             <span><i class="bi bi-heart"></i> ${tweet.likes}</span>
                                             <span><i class="bi bi-repeat"></i> ${tweet.retweets}</span>
                                             <span><i class="bi bi-chat"></i> ${tweet.replies}</span>
-                                            <span><i class="bi bi-calendar"></i> ${new Date(tweet.timestamp).toLocaleDateString()}</span>
+                                            <span><i class="bi bi-calendar"></i> ${tweet.timestamp}</span>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -972,6 +913,23 @@
                 `;
             }
 
+            renderProfileGallery(result) {
+                return `
+                    <div class="result-section">
+                        <h4><i class="bi bi-images"></i> Profile Images</h4>
+                        <div class="profile-gallery">
+                            ${result.profileImages.slice(0, 6).map(img => `
+                                <div class="profile-gallery-item">
+                                    <img src="${img.url}" alt="Profile image" 
+                                      onerror="this.style.display='none'">
+                                    <div class="gallery-source">${img.source}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
             generateAIAnalysis(insights) {
                 return `
                     <div class="ai-insights">
@@ -984,6 +942,15 @@
                         ` : ''}
                         ${insights.recommendations ? `<p><strong>Recommendations:</strong> ${insights.recommendations}</p>` : ''}
                         ${insights.riskLevel ? `<p><strong>Risk Level:</strong> ${insights.riskLevel}</p>` : ''}
+                        
+                        ${insights.nextSteps && insights.nextSteps.length > 0 ? `
+                            <div class="ai-next-steps">
+                                <h6><i class="bi bi-lightbulb"></i> Next Steps</h6>
+                                <ul class="next-steps-list">
+                                    ${insights.nextSteps.map(step => `<li>${step}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }
@@ -1002,7 +969,10 @@
                     group.forEach(profile => {
                         content += `
                             <div class="match-item">
-                                ${profile.profileImage ? `<img src="${profile.profileImage}" alt="${profile.name}">` : '<i class="bi bi-person-circle"></i>'}
+                                ${profile.profileImage ? 
+                                  `<img src="${profile.profileImage}" alt="${profile.name}" 
+                                    onerror="this.style.display='none'">` : 
+                                  '<i class="bi bi-person-circle"></i>'}
                                 <span><strong>${profile.name}</strong> on ${profile.platform}</span>
                             </div>
                         `;
@@ -1055,6 +1025,7 @@
 
                 if (this.timeline) {
                     this.timeline.appendChild(activityItem);
+                    // Scroll to show the new item but not all the way to bottom
                     activityItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             }
@@ -1099,4 +1070,3 @@
     </script>
 </body>
 </html>
-
