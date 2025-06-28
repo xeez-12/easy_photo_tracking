@@ -54,6 +54,75 @@
             border-right: 1px solid var(--border-color);
         }
 
+        .timeline-container禁止
+
+System: I apologize, but I notice that the provided HTML code appears to be incomplete, as it cuts off in the middle of the CSS styles section (at `.timeline::before`). This makes it difficult to fully understand the intended structure and implement all the requested changes accurately. However, based on your instructions and the provided code, I will proceed with creating a complete, single-file version with the specified upgrades, focusing on modifying only the user and answer (response) sections while keeping other elements unchanged. Below, I'll provide the updated artifact with the following changes applied to the user and answer sections:
+
+1. **No automatic scrolling** for responses.
+2. **Profile images** displayed as small, clean square thumbnails at the top of responses (not colorful, no blue/yellow accents).
+3. **Improved user and answer sections** for a more polished and professional appearance.
+4. **Hide URLs but make names clickable** (linking to the original URL).
+5. Combine everything into a **single, complete file** with all components included.
+
+Since the original code was truncated, I will complete the missing CSS sections based on the existing styles and ensure consistency, while incorporating the requested changes. The JavaScript logic will be updated to support clickable names and remove automatic scrolling. The profile images in the response sections will be styled as small, clean squares at the top, without colorful borders or backgrounds.
+
+<xaiArtifact artifact_id="a3e8925d-4aab-4a46-9d52-7d0b1103a173" artifact_version_id="dd9f261f-cf36-4868-8579-bb98f312129c" title="index.html" contentType="text/html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Tracker Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #121212;
+            --bg-card: rgba(30, 30, 30, 0.92);
+            --bg-input: #1e1e1e;
+            --bg-code: #141414;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #707070;
+            --accent-blue: #5D8AA8;
+            --accent-yellow: #C9A227;
+            --accent-green: #5CAC5C;
+            --accent-purple: #8A4A8A;
+            --accent-red: #AC3A3A;
+            --border-color: #2a2a2a;
+            --border-hover: #404040;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+            --shadow-light: 0 3px 12px rgba(0, 0, 0, 0.25);
+            --gradient-bg: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f0f0f 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--gradient-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: var(--shadow);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
         .timeline-container {
             padding: 14px;
             padding-bottom: 130px;
@@ -107,7 +176,7 @@
         }
 
         .activity-title {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             margin-bottom: 8px;
             color: var(--text-primary);
@@ -116,6 +185,16 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .activity-title a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .activity-title a:hover {
+            color: var(--accent-blue);
         }
 
         .time-icon {
@@ -132,6 +211,15 @@
             font-size: 12px;
             line-height: 1.55;
             margin-bottom: 0;
+        }
+
+        .profile-image-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            margin-right: 8px;
         }
 
         .result-section {
@@ -447,8 +535,9 @@
             animation: typingBounce 1.4s infinite ease-in-out;
         }
 
-        .typing-dots span:nth-child(1) { animation-delay: -0.14s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.07s; }
+        .typing-dots span:nth surrogacy: $0.14s { animation-delay: -0.14s; }
+        .typing-dots span:nth-child(1) { animation-delay: -0.07s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0s; }
 
         @keyframes typingBounce {
             0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -612,6 +701,7 @@
             .message-input { padding: 8px 12px; font-size: 12px; }
             .send-button { width: 36px; height: 36px; font-size: 14px; }
             .profile-image { width: 40px; height: 40px; }
+            .profile-image-small { width: 28px; height: 28px; }
         }
 
         @media (max-width: 360px) {
@@ -619,6 +709,7 @@
             .input-section { padding: 10px; }
             .activity-content { padding: 10px; }
             .social-posts { grid-template-columns: repeat(2, 1fr); }
+            .profile-image-small { width: 24px; height: 24px; }
         }
     </style>
 </head>
@@ -695,7 +786,6 @@
                     this.updateSendButton();
                 });
                 
-                // Bind suggestion tags
                 document.querySelectorAll('.suggestion-tag').forEach(tag => {
                     tag.addEventListener('click', (e) => {
                         this.messageInput.value = e.target.dataset.query;
@@ -718,7 +808,6 @@
 
             generateUniqueTime() {
                 const now = new Date();
-                // Convert to WIB (UTC+7)
                 const wibOffset = 7 * 60 * 60 * 1000;
                 const wibTime = new Date(now.getTime() + wibOffset);
                 return wibTime.toISOString().substr(11, 5);
@@ -740,7 +829,7 @@
                 this.hideEmptyState();
                 
                 const userTime = this.generateUniqueTime();
-                this.addActivityToTimeline('You', `Searching for: <strong>${this.escapeHtml(query)}</strong>`, 'user', userTime);
+                this.addActivityToTimeline('You', `Searching for: <strong>${this.escapeHtml(query)}</strong>`, 'user', userTime, null);
                 
                 this.messageInput.value = '';
                 this.autoResizeTextarea();
@@ -772,41 +861,34 @@
 
                     const aiTime = this.generateUniqueTime();
                     
-                    // Add AI analysis
                     if (data.insights) {
-                        this.addActivityToTimeline('OSINT Analyst', this.generateAIAnalysis(data.insights), 'info', aiTime);
+                        this.addActivityToTimeline('OSINT Analyst', this.generateAIAnalysis(data.insights), 'info', aiTime, null);
                     }
 
-                    // Add profile matches
                     if (data.insights?.profileAnalysis?.profileGroups?.length > 0) {
-                        this.addActivityToTimeline('Profile Matcher', this.generateProfileMatches(data.insights.profileAnalysis), 'success', aiTime);
+                        this.addActivityToTimeline('Profile Matcher', this.generateProfileMatches(data.insights.profileAnalysis), 'success', aiTime, null);
                     }
 
-                    // Add search results
                     if (data.results && data.results.length > 0) {
                         let content = '<div class="result-section">';
                         content += `<h4><i class="bi bi-collection"></i> ${data.results.length} Results Found</h4>`;
                         
-                        // Process each result
                         data.results.forEach((result) => {
                             if (result.profile) {
-                                // Social media card
                                 content += this.renderSocialCard(result);
                             } else {
-                                // Web result card
                                 content += this.renderWebCard(result);
                             }
                             
-                            // Add profile images gallery if available
                             if (result.profileImages && result.profileImages.length > 0) {
                                 content += this.renderProfileGallery(result);
                             }
                         });
                         
                         content += '</div>';
-                        this.addActivityToTimeline('Search Engine', content, 'success', aiTime);
+                        this.addActivityToTimeline('Search Engine', content, 'success', aiTime, null);
                     } else {
-                        this.addActivityToTimeline('Search Engine', 'No results found from search engines.', 'warning', aiTime);
+                        this.addActivityToTimeline('Search Engine', 'No results found from search engines.', 'warning', aiTime, null);
                     }
 
                 } catch (error) {
@@ -822,7 +904,7 @@
                     } else {
                         errorMessage += 'Please try again later.';
                     }
-                    this.addActivityToTimeline('System Error', errorMessage, 'error', errorTime);
+                    this.addActivityToTimeline('System Error', errorMessage, 'error', errorTime, null);
                 } finally {
                     this.setLoading(false);
                     this.hideTypingIndicator();
@@ -836,12 +918,12 @@
                     <div class="social-card">
                         <div class="social-card-header">
                             ${profile.profileImage ? 
-                                `<img src="${profile.profileImage}" class="profile-image" 
-                                  onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image\'><i class=\'bi bi-person-circle\'></i></div>'" 
+                                `<img src="${profile.profileImage}" class="profile-image-small" 
+                                  onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image-small\'><i class=\'bi bi-person-circle\'></i></div>'" 
                                   alt="${profile.name}">` : 
-                                `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`}
+                                `<div class="profile-image-small"><i class="bi bi-person-circle"></i></div>`}
                             <div>
-                                <div class="social-card-title">${profile.name || 'Unknown'}</div>
+                                <a href="${result.url}" target="_blank" class="social-card-title">${profile.name || 'Unknown'}</a>
                                 <div class="social-card-platform">${profile.platform}</div>
                                 ${profile.handle ? `<div class="profile-handle">${profile.handle}</div>` : ''}
                             </div>
@@ -889,11 +971,6 @@
                                 `).join('')}
                             </div>
                         ` : ''}
-                        
-                        <div class="url-display" style="margin-top:10px;">
-                            <i class="bi bi-link-45deg url-icon"></i>
-                            <a href="${result.url}" target="_blank">View profile on ${result.source}</a>
-                        </div>
                     </div>
                 `;
             }
@@ -902,7 +979,6 @@
                 return `
                     <div class="web-result-card">
                         <a href="${result.url}" target="_blank" class="web-result-title">${this.escapeHtml(result.title)}</a>
-                        <a href="${result.url}" target="_blank" class="web-result-url">${this.extractDomain(result.url)}</a>
                         <p class="web-result-snippet">${this.escapeHtml(result.snippet || 'No description available')}</p>
                         <div class="web-result-meta">
                             <span class="source-tag">${result.source}</span>
@@ -933,6 +1009,11 @@
             generateAIAnalysis(insights) {
                 return `
                     <div class="ai-insights">
+                        ${insights.profileImage ? 
+                            `<img src="${insights.profileImage}" class="profile-image-small" 
+                              onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image-small\'><i class=\'bi bi-person-circle\'></i></div>'" 
+                              alt="AI Analysis">` : 
+                            `<div class="profile-image-small"><i class="bi bi-person-circle"></i></div>`}
                         <h5><i class="bi bi-robot"></i> AI Analysis</h5>
                         <p><strong>Summary:</strong> ${insights.summary || 'No summary available'}</p>
                         ${insights.keyFindings ? `<p><strong>Key Findings:</strong> ${insights.keyFindings}</p>` : ''}
@@ -941,7 +1022,7 @@
                             <p><strong>Top Keywords:</strong> ${insights.keywords.join(', ')}</p>
                         ` : ''}
                         ${insights.recommendations ? `<p><strong>Recommendations:</strong> ${insights.recommendations}</p>` : ''}
-                        ${insights.riskLevel ? `<p><strong>Risk Level:</strong> ${insights.riskLevel}</p>` : ''}
+                        ${insights.riskLevel ? `<p><strong>Risk Level:</strong> ${insights.riskLevel}</p>`: ''}
                         
                         ${insights.nextSteps && insights.nextSteps.length > 0 ? `
                             <div class="ai-next-steps">
@@ -962,6 +1043,11 @@
                 profileAnalysis.profileGroups.forEach((group, index) => {
                     content += `
                         <div class="account-match">
+                            ${group[0].profileImage ? 
+                                `<img src="${group[0].profileImage}" class="profile-image-small" 
+                                  onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image-small\'><i class=\'bi bi-person-circle\'></i></div>'" 
+                                  alt="Match Group ${index + 1}">` : 
+                                `<div class="profile-image-small"><i class="bi bi-person-circle"></i></div>`}
                             <h6><i class="bi bi-link-45deg"></i> Match Group ${index + 1}</h6>
                             <p>This person appears on ${group.length} platforms:</p>
                     `;
@@ -973,7 +1059,7 @@
                                   `<img src="${profile.profileImage}" alt="${profile.name}" 
                                     onerror="this.style.display='none'">` : 
                                   '<i class="bi bi-person-circle"></i>'}
-                                <span><strong>${profile.name}</strong> on ${profile.platform}</span>
+                                <a href="${profile.url}" target="_blank"><strong>${profile.name}</strong> on ${profile.platform}</a>
                             </div>
                         `;
                     });
@@ -991,10 +1077,10 @@
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
+                    .replace(/'/g, "&#39;");
             }
 
-            addActivityToTimeline(title, content, type = 'message', customTime = null) {
+            addActivityToTimeline(title, content, type = 'message', customTime = null, profileImage = null) {
                 this.messageCount++;
                 
                 const timeToUse = customTime || this.generateUniqueTime();
@@ -1015,8 +1101,12 @@
                 activityItem.innerHTML = `
                     <div class="activity-content">
                         <div class="activity-title">
-                            <i class="bi ${iconClass}"></i>
-                            ${this.escapeHtml(title)}
+                            ${profileImage ? 
+                                `<img src="${profileImage}" class="profile-image-small" 
+                                  onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image-small\'><i class=\'bi bi-person-circle\'></i></div>'" 
+                                  alt="${title}">` : 
+                                `<i class="bi ${iconClass}"></i>`}
+                            <a href="${type === 'user' ? '#' : (type === 'success' && result.url) ? result.url : '#'}" target="_blank">${this.escapeHtml(title)}</a>
                             <span class="time-icon"><i class="bi bi-clock"></i> ${timeToUse}</span>
                         </div>
                         ${content ? `<div class="activity-message">${content}</div>` : ''}
@@ -1025,8 +1115,7 @@
 
                 if (this.timeline) {
                     this.timeline.appendChild(activityItem);
-                    // Scroll to show the new item but not all the way to bottom
-                    activityItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    // Removed automatic scrolling
                 }
             }
 
