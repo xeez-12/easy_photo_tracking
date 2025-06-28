@@ -7,18 +7,24 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #141414;
-            --bg-card: #1a1a1a;
-            --bg-input: #1f1f1f;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #121212;
+            --bg-card: rgba(30, 30, 30, 0.92);
+            --bg-input: #1e1e1e;
+            --bg-code: #141414;
             --text-primary: #e0e0e0;
             --text-secondary: #a0a0a0;
             --text-muted: #707070;
-            --accent-blue: #4a8fc7;
-            --accent-green: #4caf50;
-            --accent-red: #f44336;
+            --accent-blue: #5D8AA8;
+            --accent-yellow: #C9A227;
+            --accent-green: #5CAC5C;
+            --accent-purple: #8A4A8A;
+            --accent-red: #AC3A3A;
             --border-color: #2a2a2a;
-            --border-hover: #3a3a3a;
+            --border-hover: #404040;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+            --shadow-light: 0 3px 12px rgba(0, 0, 0, 0.25);
+            --gradient-bg: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f0f0f 100%);
         }
 
         * {
@@ -29,7 +35,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: var(--bg-primary);
+            background: var(--gradient-bg);
             color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
@@ -43,6 +49,7 @@
             background: var(--bg-secondary);
             min-height: 100vh;
             position: relative;
+            box-shadow: var(--shadow);
             border-left: 1px solid var(--border-color);
             border-right: 1px solid var(--border-color);
         }
@@ -56,7 +63,7 @@
         .activity-item {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             position: relative;
             animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -75,15 +82,18 @@
         .activity-content {
             flex: 1;
             background: var(--bg-card);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 14px;
             position: relative;
             border: 1px solid var(--border-color);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
         }
 
         .activity-content:hover {
             border-color: var(--border-hover);
+            box-shadow: var(--shadow-light);
         }
 
         .activity-title {
@@ -92,6 +102,7 @@
             margin-bottom: 8px;
             color: var(--text-primary);
             line-height: 1.3;
+            letter-spacing: -0.1px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -130,22 +141,24 @@
         }
 
         .result-item {
-            background: rgba(30, 30, 30, 0.6);
-            border: 1px solid var(--border-color);
+            background: var(--bg-code);
+            border: 1px solid var(--border-hover);
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
             transition: all 0.25s ease;
+            position: relative;
+            backdrop-filter: blur(8px);
         }
 
         .result-item:hover {
-            background: rgba(40, 40, 40, 0.6);
+            background: var(--bg-input);
         }
 
         .result-header {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
+            gap: 10px;
         }
 
         .result-image {
@@ -189,7 +202,7 @@
         .result-item p {
             color: var(--text-secondary);
             font-size: 11px;
-            margin: 8px 0 0;
+            margin: 6px 0 0;
             line-height: 1.5;
         }
 
@@ -202,20 +215,18 @@
         }
 
         .source-tag {
-            background: rgba(74, 143, 199, 0.15);
+            background: rgba(93, 138, 168, 0.15);
             color: var(--accent-blue);
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
-            display: inline-block;
-            margin-top: 5px;
         }
 
         .social-stats {
             display: flex;
             gap: 10px;
-            margin-top: 8px;
+            margin-top: 6px;
             font-size: 10px;
         }
 
@@ -228,26 +239,25 @@
 
         .collapsible {
             cursor: pointer;
-            margin-top: 8px;
-            padding: 6px 10px;
-            background: rgba(40, 40, 40, 0.6);
+            margin-top: 6px;
+            padding: 5px 8px;
+            background: var(--bg-input);
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 11px;
-            transition: background 0.2s ease;
         }
 
         .collapsible:hover {
-            background: rgba(50, 50, 50, 0.6);
+            background: var(--bg-code);
         }
 
         .collapsible-content {
             display: none;
-            margin-top: 8px;
-            padding: 10px;
-            background: rgba(30, 30, 30, 0.6);
+            margin-top: 6px;
+            padding: 8px;
+            background: var(--bg-card);
             border-radius: 5px;
             border: 1px solid var(--border-color);
             font-size: 10px;
@@ -297,17 +307,17 @@
         }
 
         .suggestion-tag {
-            background: rgba(40, 40, 40, 0.6);
+            background: var(--bg-input);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 6px 12px;
+            padding: 4px 10px;
             font-size: 11px;
             cursor: pointer;
             transition: all 0.25s ease;
         }
 
         .suggestion-tag:hover {
-            background: rgba(50, 50, 50, 0.6);
+            background: var(--bg-card);
             border-color: var(--accent-blue);
         }
 
@@ -347,9 +357,9 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 480px;
-            background: rgba(20, 20, 20, 0.9);
+            background: linear-gradient(to top, var(--bg-secondary) 80%, transparent);
             padding: 14px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(30px);
             border-top: 1px solid var(--border-color);
             z-index: 1000;
         }
@@ -360,9 +370,10 @@
             align-items: flex-end;
             background: var(--bg-input);
             border-radius: 20px;
-            padding: 8px;
+            padding: 6px;
             border: 1px solid var(--border-color);
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-light);
         }
 
         .input-wrapper:focus-within {
@@ -391,7 +402,7 @@
         }
 
         .send-button {
-            background: rgba(40, 40, 40, 0.6);
+            background: var(--bg-card);
             border: none;
             border-radius: 50%;
             width: 40px;
@@ -403,10 +414,11 @@
             color: var(--text-primary);
             font-size: 15px;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-light);
         }
 
         .send-button:hover:not(:disabled) {
-            background: rgba(50, 50, 50, 0.6);
+            background: var(--bg-code);
             transform: scale(1.05);
         }
 
@@ -446,11 +458,11 @@
         }
 
         .ai-insights {
-            background: rgba(40, 40, 40, 0.6);
+            background: rgba(93, 138, 168, 0.1);
             border-left: 2px solid var(--accent-blue);
             border-radius: 6px;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 8px;
+            margin-top: 8px;
             font-size: 12px;
         }
 
@@ -459,12 +471,12 @@
             align-items: center;
             gap: 5px;
             color: var(--accent-blue);
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-size: 12px;
         }
 
         .ai-insights p {
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             font-size: 11px;
             line-height: 1.5;
         }
@@ -478,7 +490,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            margin-top: 5px;
+            margin-top: 3px;
             font-size: 11px;
         }
 
@@ -490,11 +502,11 @@
         .social-profile {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            padding: 8px;
-            background: rgba(30, 30, 30, 0.6);
-            border-radius: 8px;
+            gap: 6px;
+            margin-top: 6px;
+            padding: 5px;
+            background: rgba(50, 50, 50, 0.3);
+            border-radius: 5px;
             font-size: 11px;
         }
 
@@ -523,8 +535,8 @@
         }
 
         .profile-bio {
-            font-size: 11px;
-            margin-top: 5px;
+            font-size: 10px;
+            margin-top: 4px;
             color: var(--text-secondary);
             line-height: 1.4;
         }
@@ -532,13 +544,13 @@
         .social-posts {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
-            margin-top: 10px;
+            gap: 4px;
+            margin-top: 8px;
         }
 
         .social-post {
             aspect-ratio: 1/1;
-            border-radius: 5px;
+            border-radius: 4px;
             overflow: hidden;
             background: var(--bg-input);
             position: relative;
@@ -561,11 +573,11 @@
         }
 
         .account-match {
-            background: rgba(40, 40, 40, 0.6);
+            background: rgba(92, 172, 92, 0.15);
             border-left: 2px solid var(--accent-green);
             border-radius: 6px;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 8px;
+            margin-top: 8px;
             font-size: 12px;
         }
 
@@ -574,27 +586,63 @@
             align-items: center;
             gap: 5px;
             color: var(--accent-green);
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-size: 11px;
         }
 
         .match-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px;
+            gap: 6px;
+            padding: 4px;
             font-size: 11px;
         }
 
         .match-item img {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             object-fit: cover;
         }
 
-        .match-item span {
+        .match-details {
             flex: 1;
+        }
+
+        .platform-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 4px;
+        }
+
+        .profile-connections {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .connection-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px;
+            font-size: 10px;
+        }
+
+        .verification-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-blue);
+            color: white;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            font-size: 8px;
+            margin-left: 4px;
         }
 
         @media (max-width: 480px) {
@@ -602,15 +650,18 @@
                 max-width: 100%;
                 border-left: none;
                 border-right: none;
+                box-shadow: none;
             }
             .input-section { max-width: 100%; padding: 12px; }
             .timeline-container { padding: 12px; padding-bottom: 120px; }
-            .activity-item { margin-bottom: 18px; }
+            .activity-item { margin-bottom: 20px; }
             .activity-content { padding: 12px; }
             .activity-title { font-size: 12px; }
             .activity-message { font-size: 11px; }
+            .timeline::before { left: 32px; }
             .message-input { padding: 8px 12px; font-size: 12px; }
             .send-button { width: 36px; height: 36px; font-size: 14px; }
+            .profile-image { width: 36px; height: 36px; }
         }
 
         @media (max-width: 360px) {
@@ -842,10 +893,15 @@
             renderProfile(profile) {
                 let profileHtml = `
                     <div class="social-profile">
-                        ${profile.profileImage ? `<img src="${profile.profileImage}" class="profile-image" onerror="this.style.display='none'">` : 
-                          `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`}
+                        ${profile.profileImage ? 
+                            `<img src="${profile.profileImage}" class="profile-image" onerror="this.style.display='none'">` : 
+                            `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`
+                        }
                         <div class="profile-info">
-                            <div class="profile-name">${profile.name || 'Unknown'}</div>
+                            <div class="profile-name">
+                                ${profile.name || 'Unknown'}
+                                ${profile.verified ? `<span class="verification-badge" title="Verified"><i class="bi bi-check"></i></span>` : ''}
+                            </div>
                             <div class="profile-handle">${profile.handle || (profile.url ? this.extractDomain(profile.url) : '')}</div>
                             ${profile.bio ? `<div class="profile-bio">${this.escapeHtml(profile.bio)}</div>` : ''}
                             ${profile.stats ? `
@@ -895,6 +951,21 @@
                     profileHtml += `</div>`;
                 }
                 
+                // Add connections if available
+                if (profile.connections && profile.connections.length > 0) {
+                    profileHtml += `<div class="profile-connections">`;
+                    profileHtml += `<h6><i class="bi bi-people"></i> Connections</h6>`;
+                    profile.connections.slice(0, 3).forEach(conn => {
+                        profileHtml += `
+                            <div class="connection-item">
+                                <i class="bi bi-link-45deg"></i>
+                                <span>${conn.name} on ${conn.platform}</span>
+                            </div>
+                        `;
+                    });
+                    profileHtml += `</div>`;
+                }
+                
                 return profileHtml;
             }
 
@@ -907,6 +978,7 @@
                         ${insights.sentiment ? `<p><strong>Sentiment:</strong> ${insights.sentiment}</p>` : ''}
                         ${insights.recommendations ? `<p><strong>Recommendations:</strong> ${insights.recommendations}</p>` : ''}
                         <p><strong>Risk Level:</strong> ${insights.riskLevel}</p>
+                        ${insights.topTopics ? `<p><strong>Top Topics:</strong> ${insights.topTopics.join(', ')}</p>` : ''}
                     </div>
                 `;
             }
@@ -923,10 +995,22 @@
                     `;
                     
                     group.forEach(profile => {
+                        const verification = profile.verified ? 
+                            `<span class="verification-badge" title="Verified"><i class="bi bi-check"></i></span>` : '';
+                            
                         content += `
                             <div class="match-item">
-                                ${profile.profileImage ? `<img src="${profile.profileImage}" alt="${profile.name}">` : '<i class="bi bi-person-circle"></i>'}
-                                <span><strong>${profile.name}</strong> on ${profile.platform}</span>
+                                ${profile.profileImage ? 
+                                    `<img src="${profile.profileImage}" alt="${profile.name}">` : 
+                                    `<i class="bi bi-person-circle"></i>`
+                                }
+                                <div class="match-details">
+                                    <strong>${profile.name}</strong>${verification}
+                                    <div>
+                                        <span class="platform-icon">${profile.icon ? profile.icon.substring(0,1).toUpperCase() : ''}</span>
+                                        ${profile.platform}
+                                    </div>
+                                </div>
                             </div>
                         `;
                     });
@@ -1022,4 +1106,3 @@
     </script>
 </body>
 </html>
-
