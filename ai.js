@@ -1,18 +1,21 @@
-// ai.js - Enhanced OSINT AI analysis
+// ai.js - Advanced OSINT AI analysis
 const natural = require('natural');
 const stringSimilarity = require('string-similarity');
 const SentimentAnalyzer = natural.SentimentAnalyzer;
 const stemmer = natural.PorterStemmer;
 const analyzer = new SentimentAnalyzer('English', stemmer, 'afinn');
+const TfIdf = natural.TfIdf;
 
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
+const tfidf = new TfIdf();
 
 // Analyze OSINT results
 const analyzeResults = (results, query) => {
     const insights = {
         summary: `Found ${results.length} relevant results across multiple sources.`,
         keyFindings: '',
+        sentiment: 'Neutral',
         riskLevel: 'Low',
         recommendations: 'Verify all sources and cross-reference information'
     };
@@ -61,6 +64,29 @@ const analyzeResults = (results, query) => {
     );
     
     insights.riskLevel = hasRisk ? 'High (Sensitive content detected)' : 'Low';
+    
+    // Topic modeling
+    results.forEach(result => {
+        const text = `${result.title} ${result.snippet}`;
+        tfidf.addDocument(text);
+    });
+    
+    const topicScores = {};
+    tfidf.listTerms(0).forEach(item => {
+        if (item.term.length > 3) { // Only consider meaningful terms
+            topicScores[item.term] = (topicScores[item.term] || 0) + item.tfidf;
+        }
+    });
+    
+    const topTopics = Object.entries(topicScores)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([term]) => term);
+    
+    if (topTopics.length > 0) {
+        insights.topTopics = topTopics;
+        insights.keyFindings += `. Key topics: ${topTopics.join(', ')}`;
+    }
     
     // Recommendations
     if (profiles.length > 0) {
@@ -160,6 +186,20 @@ const isSimilarProfile = (profile1, profile2) => {
         const similarity = commonTerms.length / Math.max(stemmed1.length, stemmed2.length);
         
         if (similarity > 0.6) return true;
+    }
+    
+    // Image similarity (if available)
+    if (profile1.profileImage && profile2.profileImage) {
+        // This would require image comparison AI which is heavy
+        // For now, we skip or use simple dimension comparison
+        if (profile1.profileImageDimensions && profile2.profileImageDimensions) {
+            const ratio1 = profile1.profileImageDimensions.width / profile1.profileImageDimensions.height;
+            const ratio2 = profile2.profileImageDimensions.width / profile2.profileImageDimensions.height;
+            if (Math.abs(ratio1 - ratio2) < 0.1) {
+                // Similar aspect ratio might indicate same image
+                return true;
+            }
+        }
     }
     
     return false;
