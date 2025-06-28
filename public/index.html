@@ -110,13 +110,13 @@
         .activity-title {
             font-size: 15px;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             color: var(--text-primary);
             line-height: 1.4;
             letter-spacing: -0.2px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             text-transform: capitalize;
         }
 
@@ -127,6 +127,11 @@
         }
 
         .activity-title a:hover {
+            color: var(--text-secondary);
+        }
+
+        .activity-title i {
+            font-size: 18px;
             color: var(--text-secondary);
         }
 
@@ -157,234 +162,29 @@
             margin-right: 8px;
         }
 
-        .result-section {
-            margin-top: 10px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 10px;
-        }
-
-        .result-section h4 {
-            font-size: 12px;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 600;
-        }
-
-        .social-card {
-            background: rgba(138, 74, 138, 0.1);
-            border-left: 2px solid var(--accent-purple);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .social-card-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .social-card-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-
-        .social-card-platform {
-            background: rgba(138, 74, 138, 0.2);
-            color: var(--accent-purple);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 500;
-        }
-
-        .profile-image {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid var(--border-color);
-            flex-shrink: 0;
-        }
-
-        .profile-handle {
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        .profile-bio {
-            font-size: 12px;
-            margin: 8px 0;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .social-stats {
-            display: flex;
-            gap: 12px;
-            margin: 10px 0;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        .social-posts {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-top: 10px;
-        }
-
-        .social-post {
-            aspect-ratio: 1/1;
-            border-radius: 4px;
-            overflow: hidden;
-            background: var(--bg-input);
-            position: relative;
-        }
-
-        .social-post img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .post-count {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: rgba(0,0,0,0.7);
-            padding: 2px 4px;
-            font-size: 9px;
-            border-radius: 0 0 0 4px;
-        }
-
-        .web-result-card {
-            background: rgba(93, 138, 168, 0.1);
-            border-left: 2px solid var(--accent-blue);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .web-result-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .web-result-snippet {
-            color: var(--text-secondary);
-            font-size: 12px;
-            line-height: 1.4;
-        }
-
-        .web-result-meta {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-            color: var(--text-muted);
-            font-size: 10px;
-        }
-
-        .web-result-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .ai-insights {
-            background: rgba(93, 138, 168, 0.1);
-            border-left: 2px solid var(--accent-blue);
-            border-radius: 6px;
-            padding: 12px;
-            margin-top: 12px;
-            font-size: 12px;
-        }
-
-        .ai-insights h5 {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .ai-insights p {
-            margin-bottom: 6px;
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .ai-insights strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .ai-next-steps {
-            background: rgba(201, 162, 39, 0.1);
-            border-left: 2px solid var(--accent-yellow);
-            border-radius: 6px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .ai-next-steps h6 {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .next-steps-list {
-            padding-left: 20px;
-        }
-
-        .next-steps-list li {
-            margin-bottom: 6px;
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .profile-gallery {
+        .ai-photo-gallery {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin: 12px 0;
+            margin-top: 12px;
         }
 
-        .profile-gallery-item {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
+        .ai-photo-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
             overflow: hidden;
             position: relative;
             border: 1px solid var(--border-color);
         }
 
-        .profile-gallery-item img {
+        .ai-photo-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .gallery-source {
+        .ai-photo-source {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -393,415 +193,17 @@
             padding: 2px 4px;
             font-size: 8px;
             text-align: center;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 16px;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 36px;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
             color: var(--text-secondary);
-        }
-
-        .empty-state p {
-            font-size: 12px;
-            line-height: 1.5;
-            margin-bottom: 16px;
-        }
-
-        .suggestion-box {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-            max-width: 360px;
-            margin: 0 auto;
-        }
-
-        .suggestion-tag {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 4px 10px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .suggestion-tag:hover {
-            background: var(--bg-card);
-            border-color: var(--accent-blue);
-        }
-
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-muted);
-            font-size: 11px;
-            margin-bottom: 8px;
-        }
-
-        .typing-indicator.active {
-            display: flex;
-        }
-
-        .typing-dots span {
-            width: 4px;
-            height: 4px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
-        }
-
-        .typing-dots span:nth-child(1) { animation-delay: -0.14s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.07s; }
-        .typing-dots span:nth-child(3) { animation-delay: 0s; }
-
-        @keyframes typingBounce {
-            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-            40% { transform: translateY(-3px); opacity: 1; }
-        }
-
-        .input-section {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            background: linear-gradient(to top, var(--bg-secondary) 80%, transparent);
-            padding: 14px;
-            backdrop-filter: blur(30px);
-            border-top: 1px solid var(--border-color);
-            z-index: 1000;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-            background: var(--bg-input);
-            border-radius: 20px;
-            padding: 6px;
-            border: 1px solid var(--border-color);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: var(--shadow-light);
-        }
-
-        .input-wrapper:focus-within {
-            border-color: var(--border-hover);
-        }
-
-        .message-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 10px 14px;
-            color: var(--text-primary);
-            font-size: 13px;
-            outline: none;
-            resize: none;
-            max-height: 90px;
-            min-height: 20px;
-            font-family: inherit;
-            line-height: 1.4;
-            font-weight: 400;
-        }
-
-        .message-input::placeholder {
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-
-        .send-button {
-            background: var(--bg-card);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-primary);
-            font-size: 15px;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: var(--shadow-light);
-        }
-
-        .send-button:hover:not(:disabled) {
-            background: var(--bg-code);
-            transform: scale(1.05);
-        }
-
-        .send-button:active:not(:disabled) {
-            transform: scale(0.95);
-        }
-
-        .send-button:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        .loading-dots {
-            display: inline-flex;
-            gap: 2px;
-        }
-
-        .loading-dots span {
-            width: 4px;
-            height: 4px;
-            background: var(--text-primary);
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1.2); opacity: 1; }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .account-match {
-            background: rgba(92, 172, 92, 0.15);
-            border-left: 2px solid var(--accent-green);
-            border-radius: 6px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .account-match h6 {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .match-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px;
-            font-size: 12px;
-        }
-
-        .match-item img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid var(--border-color);
-        }
-
-        @media (max-width: 480px) {
-            .app-container {
-                max-width: 100%;
-                border-left: none;
-                border-right: none;
-                box-shadow: none;
-            }
-            .input-section { max-width: 100%; padding: 12px; }
-            .timeline-container { padding: 12px; padding-bottom: 120px; }
-            .activity-item { margin-bottom: 18px; }
-            .activity-content { padding: 12px; }
-            .activity-title { font-size: 13px; }
-            .activity-message { font-size: 12px; }
-            .timeline::before { left: 32px; }
-            .message-input { padding: 8px 12px; font-size: 12px; }
-            .send-button { width: 36px; height: 36px; font-size: 14px; }
-            .profile-image { width: 40px; height: 40px; }
-           லை
-
-System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact_version_id="a230eed6-3a39-4e20-8534-4df901596786" title="index.html" contentType="text/html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Tracker Pro</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #121212;
-            --bg-card: rgba(30, 30, 30, 0.95);
-            --bg-input: #1e1e1e;
-            --bg-code: #141414;
-            --text-primary: #e8e8e8;
-            --text-secondary: #a8a8a8;
-            --text-muted: #707070;
-            --accent-blue: #5D8AA8;
-            --accent-yellow: #C9A227;
-            --accent-green: #5CAC5C;
-            --accent-purple: #8A4A8A;
-            --accent-red: #AC3A3A;
-            --border-color: #2a2a2a;
-            --border-hover: #404040;
-            --shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
-            --shadow-light: 0 3px 12px rgba(0, 0, 0, 0.25);
-            --gradient-bg: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0f0f0f 100%);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: var(--gradient-bg);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            min-height: 100vh;
-            line-height: 1.6;
-            font-size: 13px;
-        }
-
-        .app-container {
-            max-width: 480px;
-            margin: 0 auto;
-            background: var(--bg-secondary);
-            min-height: 100vh;
-            position: relative;
-            box-shadow: var(--shadow);
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-        }
-
-        .timeline-container {
-            padding: 14px;
-            padding-bottom: 130px;
-            position: relative;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 36px;
-            top: 0;
-            bottom: 130px;
-            width: 1.5px;
-            background: linear-gradient(to bottom, transparent, var(--accent-purple) 10%, var(--accent-purple) 90%, transparent);
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            position: relative;
-            animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .activity-content {
-            flex: 1;
-            background: var(--bg-card);
-            border-radius: 10px;
-            padding: 16px;
-            position: relative;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(12px);
-            overflow: hidden;
-        }
-
-        .activity-content:hover {
-            border-color: var(--border-hover);
-            box-shadow: var(--shadow-light);
-            transform: translateY(-2px);
-        }
-
-        .activity-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-            line-height: 1.4;
-            letter-spacing: -0.2px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: capitalize;
-        }
-
-        .activity-title a {
-            color: var(--text-primary);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .activity-title a:hover {
-            color: var(--text-secondary);
-        }
-
-        .time-icon {
-            margin-left: auto;
-            color: var(--text-muted);
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-style: italic;
-        }
-
-        .activity-message {
-            color: var(--text-secondary);
-            font-size: 13px;
-            line-height: 1.6;
-            margin-bottom: 0;
-            font-weight: 400;
-        }
-
-        .profile-image-small {
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
-            object-fit: cover;
-            border: 1px solid var(--border-color);
-            margin-right: 8px;
         }
 
         .result-section {
-            margin-top: 10px;
+            margin-top: 12px;
             border-top: 1px solid var(--border-color);
-            padding-top: 10px;
+            padding-top: 12px;
         }
 
         .result-section h4 {
-            font-size: 12px;
+            font-size: 13px;
             margin-bottom: 8px;
             color: var(--text-secondary);
             display: flex;
@@ -965,7 +367,7 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
         }
 
         .ai-insights p {
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-size: 12px;
             line-height: 1.5;
             font-weight: 400;
@@ -1270,12 +672,14 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
             .activity-item { margin-bottom: 18px; }
             .activity-content { padding: 12px; }
             .activity-title { font-size: 13px; }
+            .activity-title i { font-size: 16px; }
             .activity-message { font-size: 12px; }
             .timeline::before { left: 32px; }
             .message-input { padding: 8px 12px; font-size: 12px; }
             .send-button { width: 36px; height: 36px; font-size: 14px; }
             .profile-image { width: 40px; height: 40px; }
             .profile-image-small { width: 32px; height: 32px; }
+            .ai-photo-item { width: 40px; height: 40px; }
         }
 
         @media (max-width: 360px) {
@@ -1284,6 +688,7 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
             .activity-content { padding: 10px; }
             .social-posts { grid-template-columns: repeat(2, 1fr); }
             .profile-image-small { width: 28px; height: 28px; }
+            .ai-photo-item { width: 36px; height: 36px; }
         }
     </style>
 </head>
@@ -1579,6 +984,21 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
                 `;
             }
 
+            renderAIPhotoGallery(insights) {
+                if (!insights.profileImages || insights.profileImages.length === 0) return '';
+                return `
+                    <div class="ai-photo-gallery">
+                        ${insights.profileImages.slice(0, 6).map(img => `
+                            <div class="ai-photo-item">
+                                <img src="${img.url}" alt="AI profile image" 
+                                  onerror="this.style.display='none'">
+                                <div class="ai-photo-source">${this.escapeHtml(img.source)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
             generateAIAnalysis(insights) {
                 return `
                     <div class="ai-insights">
@@ -1586,7 +1006,7 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
                             `<img src="${insights.profileImage}" class="profile-image-small" 
                               onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image-small\'><i class=\'bi bi-person-circle\'></i></div>'" 
                               alt="AI Analysis">` : 
-                            `<div class="profile-image-small"><i class="bi bi-person-circle"></i></div>`}
+                            `<div class="profile-image-small"><i class="bi bi-robot"></i></div>`}
                         <h5><i class="bi bi-robot"></i> AI Analysis</h5>
                         <p><strong>Summary:</strong> ${this.escapeHtml(insights.summary || 'No summary available')}</p>
                         ${insights.keyFindings ? `<p><strong>Key Findings:</strong> ${this.escapeHtml(insights.keyFindings)}</p>` : ''}
@@ -1605,6 +1025,7 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
                                 </ul>
                             </div>
                         ` : ''}
+                        ${this.renderAIPhotoGallery(insights)}
                     </div>
                 `;
             }
@@ -1651,7 +1072,7 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#39;");
+                    .replace(/'/g, "&#039;");
             }
 
             addActivityToTimeline(title, content, type = 'message', customTime = null, profileImage = null) {
@@ -1664,11 +1085,11 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
                 
                 let iconClass;
                 switch (type) {
-                    case 'user': iconClass = 'bi-person-circle'; break;
-                    case 'success': iconClass = 'bi-check-circle-fill'; break;
-                    case 'error': iconClass = 'bi-exclamation-triangle-fill'; break;
-                    case 'warning': iconClass = 'bi-exclamation-circle-fill'; break;
-                    case 'info': iconClass = 'bi-info-circle-fill'; break;
+                    case 'user': iconClass = 'bi-person-fill'; break;
+                    case 'success': iconClass = 'bi-check-circle'; break;
+                    case 'error': iconClass = 'bi-exclamation-triangle'; break;
+                    case 'warning': iconClass = 'bi-exclamation-circle'; break;
+                    case 'info': iconClass = 'bi-robot'; break;
                     default: iconClass = 'bi-search';
                 }
 
@@ -1677,7 +1098,7 @@ System: <xaiArtifact artifact_id="6305ad3c-ccca-4a3e-9fed-681ce7e92576" artifact
                         <div class="activity-title">
                             ${profileImage ? 
                                 `<img src="${profileImage}" class="profile-image-small" 
-                                  onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image-small\'><i class=\'bi bi-person-circle\'></i></div>'" 
+                                  onerror="this.onerror=null;this.src='';this.parentNode.innerHTML='<div class=\'profile-image-small\'><i class=\'bi ${iconClass}\'></i></div>'" 
                                   alt="${this.escapeHtml(title)}">` : 
                                 `<i class="bi ${iconClass}"></i>`}
                             ${type === 'user' ? this.escapeHtml(title) : `<a href="#" target="_blank">${this.escapeHtml(title)}</a>`}
