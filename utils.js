@@ -107,35 +107,6 @@ const extractSocialProfile = (url, title, snippet) => {
     }
 };
 
-const normalizeImageUrl = (url, baseDomain) => {
-    if (!url) return '';
-    
-    // Convert relative URLs to absolute
-    if (url.startsWith('//')) {
-        return 'https:' + url;
-    } else if (url.startsWith('/')) {
-        return `https://${baseDomain}${url}`;
-    } else if (!url.startsWith('http')) {
-        return `https://${baseDomain}/${url}`;
-    }
-    
-    return url;
-};
-
-const extractUsernames = (text) => {
-    if (!text) return [];
-    // Match @username and username patterns
-    const pattern = /(?:^|\s)(?:@)?([a-zA-Z0-9_]+)(?=\s|$)/g;
-    const usernames = [];
-    let match;
-    while ((match = pattern.exec(text)) !== null) {
-        if (match[1].length > 3) { // Ignore short strings
-            usernames.push(match[1]);
-        }
-    }
-    return [...new Set(usernames)]; // Remove duplicates
-};
-
 const isBlockedDomain = (url) => {
     const blockedDomains = [
         'baidu.com',
@@ -157,11 +128,26 @@ const isBlockedDomain = (url) => {
     }
 };
 
+// URL safety check (simulated)
+const checkUrlSafety = async (url) => {
+    try {
+        // In a real implementation, this would call an API like Google Safe Browsing
+        return {
+            safe: true,
+            threats: []
+        };
+    } catch (e) {
+        return {
+            safe: false,
+            threats: ['Unknown']
+        };
+    }
+};
+
 module.exports = {
     getPlatformFromUrl,
     getUsernameFromUrl,
     extractSocialProfile,
-    normalizeImageUrl,
-    extractUsernames,
-    isBlockedDomain
+    isBlockedDomain,
+    checkUrlSafety
 };
