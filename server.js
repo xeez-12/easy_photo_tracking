@@ -163,7 +163,74 @@ const socialMediaScrapers = {
             }
         }
     },
-    // Other scrapers similar to above with improved error handling
+    facebook: {
+        url: (username) => `https://www.facebook.com/${username}`,
+        parser: ($, username) => {
+            try {
+                const name = $('meta[property="og:title"]').attr('content') || '';
+                const bio = $('meta[property="og:description"]').attr('content') || '';
+                let profileImage = $('meta[property="og:image"]').attr('content') || '';
+                
+                // Fallback to profile image
+                if (!profileImage) {
+                    profileImage = $('img[data-imgperflogname="profileCoverPhoto"]').attr('src') || '';
+                }
+                
+                // Extract about section
+                const about = {};
+                $('div[data-testid="profile_about_section"] div').each((i, el) => {
+                    const key = $(el).find('div:first-child').text().trim();
+                    const value = $(el).find('div:last-child').text().trim();
+                    if (key && value) {
+                        about[key] = value;
+                    }
+                });
+                
+                return {
+                    platform: 'Facebook',
+                    name,
+                    bio,
+                    profileImage,
+                    about
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+    },
+    linkedin: {
+        url: (username) => `https://www.linkedin.com/in/${username}`,
+        parser: ($, username) => {
+            try {
+                const name = $('h1.top-card-layout__title').text().trim() || '';
+                const headline = $('h2.top-card-layout__headline').text().trim() || '';
+                const location = $('span.top-card__subline-item:first-child').text().trim() || '';
+                let profileImage = $('img.top-card__profile-image').attr('src') || '';
+                
+                const about = $('section.summary div.core-section-container__content p').text().trim() || '';
+                
+                const experience = [];
+                $('section.experience-section li.experience-item').each((i, el) => {
+                    const title = $(el).find('h3.experience-item__title').text().trim();
+                    const company = $(el).find('h4.experience-item__company').text().trim();
+                    const duration = $(el).find('span.experience-item__duration').text().trim();
+                    experience.push({ title, company, duration });
+                });
+                
+                return {
+                    platform: 'LinkedIn',
+                    name,
+                    headline,
+                    location,
+                    profileImage,
+                    about,
+                    experience: experience.slice(0, 3)
+                };
+            } catch (e) {
+                return null;
+            }
+        }
+    }
 };
 
 // Prioritize social media domains
@@ -183,6 +250,10 @@ const searchEngines = {
                 try {
                     const title = $(el).find('h2').text().trim() || 'No title';
                     let url = $(el).find('a').attr('href') || '';
+                    
+                    // Skip if URL is not valid
+                    if (!url || !url.startsWith('http')) return;
+                    
                     const snippet = $(el).find('.b_caption p').text().trim() || '';
                     const dateElement = $(el).find('.news_dt');
                     const date = dateElement.length ? dateElement.text().trim() : '';
@@ -270,7 +341,7 @@ const searchEngines = {
                     let profile = null;
                     const profileElement = $(el).find('.result__url');
                     if (profileElement.length) {
-                        const profileUrl = $(el).find('.result__url').attr('href') || '';
+                        const profileUrl = $(el).find('.result__url a').attr('href') || '';
                         const profileText = profileElement.text().trim();
                         
                         if (profileText) {
@@ -493,7 +564,7 @@ const performSearch = async (reqId, query) => {
             }
         }
         
-                return finalResults;
+        return finalResults;
     } catch (error) {
         log(reqId, `Search error: ${error.message}`, 'error');
         return [];
@@ -576,4 +647,3 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     log('SERVER', `Unhandled Rejection: ${reason}`, 'error');
 });
-
