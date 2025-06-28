@@ -1,14 +1,4 @@
-// utils.js - Enhanced Utility Functions
-const SOCIAL_MEDIA_DOMAINS = [
-    'twitter.com', 'facebook.com', 'instagram.com', 
-    'linkedin.com', 'tiktok.com', 'youtube.com',
-    'reddit.com', 'pinterest.com', 'tumblr.com',
-    'flickr.com', 'vimeo.com', 'github.com',
-    'gitlab.com', 'medium.com', 'vk.com',
-    'weibo.com', 'telegram.org', 'discord.com',
-    'twitch.tv', 'patreon.com'
-];
-
+// Utility functions for enhanced scraping
 const getPlatformFromUrl = (url) => {
     if (!url) return null;
     
@@ -44,15 +34,10 @@ const getPlatformFromUrl = (url) => {
         'upwork.com': 'upwork'
     };
     
-    try {
-        const domain = new URL(url).hostname.replace('www.', '');
-        for (const [pattern, platform] of Object.entries(domainMappings)) {
-            if (domain.includes(pattern)) {
-                return platform;
-            }
+    for (const [domain, platform] of Object.entries(domainMappings)) {
+        if (url.includes(domain)) {
+            return platform;
         }
-    } catch (e) {
-        // Invalid URL
     }
     
     return null;
@@ -109,8 +94,7 @@ const extractSocialProfile = (url, title, snippet) => {
             handle: username ? `@${username}` : '',
             url,
             platform: platformData.name,
-            icon: platformData.icon,
-            extractedFrom: snippet || ''
+            icon: platformData.icon
         };
     } catch (e) {
         return {
@@ -118,8 +102,7 @@ const extractSocialProfile = (url, title, snippet) => {
             handle: '',
             url,
             platform: platformData.name,
-            icon: platformData.icon,
-            extractedFrom: snippet || ''
+            icon: platformData.icon
         };
     }
 };
@@ -142,7 +125,7 @@ const normalizeImageUrl = (url, baseDomain) => {
 const extractUsernames = (text) => {
     if (!text) return [];
     // Match @username and username patterns
-    const pattern = /(?:^|\s)(?:@)?([a-zA-Z0-9_.-]+)(?=\s|$)/g;
+    const pattern = /(?:^|\s)(?:@)?([a-zA-Z0-9_]+)(?=\s|$)/g;
     const usernames = [];
     let match;
     while ((match = pattern.exec(text)) !== null) {
@@ -163,10 +146,7 @@ const isBlockedDomain = (url) => {
         't.co',
         'bit.ly',
         'goo.gl',
-        'tinyurl.com',
-        'ow.ly',
-        'buff.ly',
-        'adf.ly'
+        'tinyurl.com'
     ];
     
     try {
@@ -177,22 +157,38 @@ const isBlockedDomain = (url) => {
     }
 };
 
-const isValidUrl = (url) => {
-    try {
-        new URL(url);
-        return true;
-    } catch (e) {
-        return false;
-    }
+const extractKeywords = (text, count = 10) => {
+    if (!text) return [];
+    const tokenizer = new (require('natural').WordTokenizer)();
+    const stopwords = require('natural').stopwords;
+    const stemmer = require('natural').PorterStemmer.stem;
+    
+    const tokens = tokenizer.tokenize(text.toLowerCase());
+    const filtered = tokens.filter(token => 
+        !stopwords.includes(token) && 
+        token.length > 3 && 
+        /^[a-z]+$/.test(token)
+    );
+    
+    const stemmed = filtered.map(stemmer);
+    const frequency = {};
+    
+    stemmed.forEach(word => {
+        frequency[word] = (frequency[word] || 0) + 1;
+    });
+    
+    return Object.entries(frequency)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, count)
+        .map(entry => entry[0]);
 };
 
 module.exports = {
-    SOCIAL_MEDIA_DOMAINS,
     getPlatformFromUrl,
     getUsernameFromUrl,
     extractSocialProfile,
     normalizeImageUrl,
     extractUsernames,
     isBlockedDomain,
-    isValidUrl
+    extractKeywords
 };
