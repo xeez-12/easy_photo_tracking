@@ -1,15 +1,26 @@
 // ai.js - Advanced OSINT AI analysis
 const natural = require('natural');
 const stringSimilarity = require('string-similarity');
+const Sentiment = require('sentiment');
+const utils = require('./utils');
 
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const metaphone = natural.Metaphone;
+const sentiment = new Sentiment();
 
 // Analyze OSINT results
 const analyzeResults = (results, query) => {
-    const insights = {};
+    const insights = {
+        summary: '',
+        keyFindings: '',
+        recommendations: '',
+        riskLevel: 'Low',
+        sentiment: 'Neutral',
+        entities: [],
+        keywords: []
+    };
     
     // Basic analysis
     insights.summary = `Found ${results.length} relevant results across multiple sources.`;
@@ -42,7 +53,7 @@ const analyzeResults = (results, query) => {
     }
     
     // Risk assessment
-    const riskKeywords = ['breach', 'leak', 'hack', 'scam', 'fraud', 'exposed'];
+    const riskKeywords = ['breach', 'leak', 'hack', 'scam', 'fraud', 'exposed', 'threat', 'vulnerability'];
     const hasRisk = results.some(result => 
         riskKeywords.some(keyword => 
             (result.title + result.snippet).toLowerCase().includes(keyword)
@@ -50,6 +61,23 @@ const analyzeResults = (results, query) => {
     );
     
     insights.riskLevel = hasRisk ? 'High (Sensitive content detected)' : 'Low';
+    
+    // Sentiment analysis
+    const sentiments = results.map(result => {
+        if (result.snippet) {
+            const analysis = sentiment.analyze(result.snippet);
+            return analysis.score;
+        }
+        return 0;
+    });
+    
+    const avgSentiment = sentiments.reduce((a, b) => a + b, 0) / sentiments.length;
+    insights.sentiment = avgSentiment > 0.5 ? 'Positive' : 
+                         avgSentiment < -0.5 ? 'Negative' : 'Neutral';
+    
+    // Extract keywords
+    const allText = results.map(r => r.title + ' ' + r.snippet).join(' ');
+    insights.keywords = utils.extractKeywords(allText, 10);
     
     // Recommendations
     insights.recommendations = 'Verify all sources and cross-reference information';
@@ -234,4 +262,3 @@ module.exports = {
     verifyProfile,
     findConnections
 };
-
