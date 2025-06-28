@@ -1,6 +1,6 @@
 {
   "name": "osint-tracker-pro",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Advanced OSINT investigation tool",
   "main": "server.js",
   "scripts": {
@@ -15,7 +15,8 @@
     "natural": "^6.3.0",
     "string-similarity": "^4.0.4",
     "user-agents": "^1.1.0",
-    "proxy-check": "^1.0.5"
+    "proxy-check": "^1.0.5",
+    "sentiment": "^5.0.2"
   },
   "engines": {
     "node": ">=18.0.0"
