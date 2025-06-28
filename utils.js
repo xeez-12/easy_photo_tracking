@@ -3,13 +3,12 @@ const getPlatformFromUrl = (url) => {
     if (!url) return null;
     
     const domainMappings = {
-        'twitter.com': 'twitter',
-        'facebook.com': 'facebook',
-        'instagram.com': 'instagram',
+        'twitter.com': 'twitter', 'x.com': 'twitter',
+        'facebook.com': 'facebook', 'fb.com': 'facebook',
+        'instagram.com': 'instagram', 'instagr.am': 'instagram',
         'linkedin.com': 'linkedin',
         'tiktok.com': 'tiktok',
-        'youtube.com': 'youtube',
-        'youtu.be': 'youtube',
+        'youtube.com': 'youtube', 'youtu.be': 'youtube',
         'reddit.com': 'reddit',
         'pinterest.com': 'pinterest',
         'tumblr.com': 'tumblr',
@@ -26,12 +25,25 @@ const getPlatformFromUrl = (url) => {
         't.me': 'telegram',
         'snapchat.com': 'snapchat',
         'whatsapp.com': 'whatsapp',
-        'discord.com': 'discord',
+        'discord.com': 'discord', 'discord.gg': 'discord',
         'twitch.tv': 'twitch',
         'patreon.com': 'patreon',
         'onlyfans.com': 'onlyfans',
         'fiverr.com': 'fiverr',
-        'upwork.com': 'upwork'
+        'upwork.com': 'upwork',
+        'quora.com': 'quora',
+        'stackoverflow.com': 'stackoverflow',
+        'producthunt.com': 'producthunt',
+        'behance.net': 'behance',
+        'dribbble.com': 'dribbble',
+        'soundcloud.com': 'soundcloud',
+        'spotify.com': 'spotify',
+        'imdb.com': 'imdb',
+        'wikipedia.org': 'wikipedia',
+        'researchgate.net': 'researchgate',
+        'slideshare.net': 'slideshare',
+        'ted.com': 'ted',
+        'kickstarter.com': 'kickstarter'
     };
     
     for (const [domain, platform] of Object.entries(domainMappings)) {
@@ -57,19 +69,54 @@ const getUsernameFromUrl = (url, platform) => {
             case 'github':
             case 'gitlab':
             case 'medium':
+            case 'pinterest':
+            case 'tumblr':
+            case 'flickr':
+            case 'vimeo':
+            case 'deviantart':
+            case 'vk':
+            case 'weibo':
+            case 'douyin':
+            case 'snapchat':
+            case 'whatsapp':
+            case 'twitch':
+            case 'patreon':
+            case 'onlyfans':
+            case 'fiverr':
+            case 'upwork':
+            case 'quora':
+            case 'behance':
+            case 'dribbble':
+            case 'soundcloud':
+            case 'spotify':
+            case 'imdb':
+            case 'wikipedia':
+            case 'researchgate':
+            case 'slideshare':
+            case 'ted':
+            case 'kickstarter':
                 return pathParts[0] || null;
             case 'youtube':
                 if (pathParts[0] === 'channel') return pathParts[1] || null;
                 if (pathParts[0] === 'c' || pathParts[0] === 'user') return pathParts[1] || null;
                 return pathParts[0] || null;
             case 'facebook':
-                return pathParts[1] || null;
+                return pathParts[1] || pathParts[0] || null;
             case 'linkedin':
                 if (pathParts[0] === 'in') return pathParts[1] || null;
                 return pathParts[0] || null;
             case 'reddit':
                 if (pathParts[0] === 'user') return pathParts[1] || null;
                 return pathParts[0] ? pathParts[0].replace('u/', '') : null;
+            case 'telegram':
+                if (pathParts[0] === 's') return pathParts[1] || null;
+                return pathParts[0] || null;
+            case 'discord':
+                return pathParts[0] ? pathParts[0].replace('invite/', '') : null;
+            case 'stackoverflow':
+                return pathParts[1] || pathParts[0] || null;
+            case 'producthunt':
+                return pathParts[0] ? pathParts[0].replace('@', '') : null;
             default:
                 return pathParts[0] || null;
         }
@@ -107,6 +154,35 @@ const extractSocialProfile = (url, title, snippet) => {
     }
 };
 
+const normalizeImageUrl = (url, baseDomain) => {
+    if (!url) return '';
+    
+    // Convert relative URLs to absolute
+    if (url.startsWith('//')) {
+        return 'https:' + url;
+    } else if (url.startsWith('/')) {
+        return `https://${baseDomain}${url}`;
+    } else if (!url.startsWith('http')) {
+        return `https://${baseDomain}/${url}`;
+    }
+    
+    return url;
+};
+
+const extractUsernames = (text) => {
+    if (!text) return [];
+    // Match @username and username patterns
+    const pattern = /(?:^|\s)(?:@)?([a-zA-Z0-9_]+)(?=\s|$)/g;
+    const usernames = [];
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        if (match[1].length > 3) { // Ignore short strings
+            usernames.push(match[1]);
+        }
+    }
+    return [...new Set(usernames)]; // Remove duplicates
+};
+
 const isBlockedDomain = (url) => {
     const blockedDomains = [
         'baidu.com',
@@ -128,26 +204,11 @@ const isBlockedDomain = (url) => {
     }
 };
 
-// URL safety check (simulated)
-const checkUrlSafety = async (url) => {
-    try {
-        // In a real implementation, this would call an API like Google Safe Browsing
-        return {
-            safe: true,
-            threats: []
-        };
-    } catch (e) {
-        return {
-            safe: false,
-            threats: ['Unknown']
-        };
-    }
-};
-
 module.exports = {
     getPlatformFromUrl,
     getUsernameFromUrl,
     extractSocialProfile,
-    isBlockedDomain,
-    checkUrlSafety
+    normalizeImageUrl,
+    extractUsernames,
+    isBlockedDomain
 };
