@@ -60,6 +60,16 @@
             position: relative;
         }
 
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 36px;
+            top: 0;
+            bottom: 130px;
+            width: 1.5px;
+            background: linear-gradient(to bottom, transparent, var(--accent-purple) 10%, var(--accent-purple) 90%, transparent);
+        }
+
         .activity-item {
             display: flex;
             align-items: flex-start;
@@ -235,41 +245,6 @@
             align-items: center;
             gap: 3px;
             color: var(--text-secondary);
-        }
-
-        .collapsible {
-            cursor: pointer;
-            margin-top: 6px;
-            padding: 5px 8px;
-            background: var(--bg-input);
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-        }
-
-        .collapsible:hover {
-            background: var(--bg-code);
-        }
-
-        .collapsible-content {
-            display: none;
-            margin-top: 6px;
-            padding: 8px;
-            background: var(--bg-card);
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-            font-size: 10px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            max-height: 180px;
-            overflow: auto;
-        }
-
-        .collapsible-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
         }
 
         .empty-state {
@@ -511,8 +486,8 @@
         }
 
         .profile-image {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: cover;
             border: 1px solid var(--border-color);
@@ -526,19 +501,16 @@
         .profile-name {
             font-weight: 600;
             color: var(--text-primary);
-            font-size: 12px;
         }
 
         .profile-handle {
             color: var(--text-secondary);
-            font-size: 11px;
         }
 
         .profile-bio {
             font-size: 10px;
             margin-top: 4px;
             color: var(--text-secondary);
-            line-height: 1.4;
         }
 
         .social-posts {
@@ -605,44 +577,76 @@
             object-fit: cover;
         }
 
-        .match-details {
-            flex: 1;
+        .social-card {
+            background: rgba(138, 74, 138, 0.1);
+            border-left: 2px solid var(--accent-purple);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
         }
 
-        .platform-icon {
-            width: 16px;
-            height: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 4px;
-        }
-
-        .profile-connections {
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px dashed var(--border-color);
-        }
-
-        .connection-item {
+        .social-card-header {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .social-card-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .social-card-platform {
+            background: rgba(138, 74, 138, 0.2);
+            color: var(--accent-purple);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .web-result-card {
+            background: rgba(93, 138, 168, 0.1);
+            border-left: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .web-result-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .web-result-url {
+            color: var(--accent-blue);
+            font-size: 11px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .web-result-snippet {
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .web-result-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            color: var(--text-muted);
             font-size: 10px;
         }
 
-        .verification-badge {
-            display: inline-flex;
+        .web-result-meta span {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            background: var(--accent-blue);
-            color: white;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            font-size: 8px;
-            margin-left: 4px;
+            gap: 4px;
         }
 
         @media (max-width: 480px) {
@@ -661,7 +665,6 @@
             .timeline::before { left: 32px; }
             .message-input { padding: 8px 12px; font-size: 12px; }
             .send-button { width: 36px; height: 36px; font-size: 14px; }
-            .profile-image { width: 36px; height: 36px; }
         }
 
         @media (max-width: 360px) {
@@ -836,33 +839,34 @@
                         let content = '<div class="result-section">';
                         content += `<h4><i class="bi bi-collection"></i> ${data.results.length} Results Found</h4>`;
                         
-                        data.results.forEach((result) => {
-                            content += `
-                                <div class="result-item">
-                                    <div class="result-header">
-                                        ${result.image ? `<img src="${result.image}" class="result-image" onerror="this.style.display='none'">` : ''}
-                                        <div class="result-content">
-                                            <h5>${this.escapeHtml(result.title)}</h5>
-                                            <span class="source-tag">${result.source}</span>
-                                            <div class="url-display">
-                                                <i class="bi bi-link-45deg url-icon"></i>
-                                                <a href="${result.url}" target="_blank">${this.extractDomain(result.url)}</a>
-                                            </div>
-                                            <p>${this.escapeHtml(result.snippet || 'No description available')}</p>
-                                            ${result.date ? `<div class="result-meta"><span><i class="bi bi-calendar"></i> ${result.date}</span></div>` : ''}
-                                        </div>
-                                    </div>
-                                    ${result.profile ? this.renderProfile(result.profile) : ''}
-                                    <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active');">
-                                        <span>View Raw Data</span>
-                                        <i class="bi bi-chevron-down"></i>
-                                    </div>
-                                    <div class="collapsible-content">
-                                        ${JSON.stringify(result, null, 2)}
-                                    </div>
-                                </div>
-                            `;
+                        // Separate social media and web results
+                        const socialResults = [];
+                        const webResults = [];
+                        
+                        data.results.forEach(result => {
+                            if (result.profile) {
+                                socialResults.push(result);
+                            } else {
+                                webResults.push(result);
+                            }
                         });
+                        
+                        // Add social media cards
+                        if (socialResults.length > 0) {
+                            content += `<div class="result-section"><h4><i class="bi bi-people"></i> Social Profiles</h4></div>`;
+                            socialResults.forEach(result => {
+                                content += this.renderSocialCard(result);
+                            });
+                        }
+                        
+                        // Add web results
+                        if (webResults.length > 0) {
+                            content += `<div class="result-section"><h4><i class="bi bi-globe"></i> Web Results</h4></div>`;
+                            webResults.forEach(result => {
+                                content += this.renderWebCard(result);
+                            });
+                        }
+                        
                         content += '</div>';
                         this.addActivityToTimeline('Search Engine', content, 'success', aiTime);
                     } else {
@@ -890,83 +894,82 @@
                 }
             }
 
-            renderProfile(profile) {
-                let profileHtml = `
-                    <div class="social-profile">
-                        ${profile.profileImage ? 
-                            `<img src="${profile.profileImage}" class="profile-image" onerror="this.style.display='none'">` : 
-                            `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`
-                        }
-                        <div class="profile-info">
-                            <div class="profile-name">
-                                ${profile.name || 'Unknown'}
-                                ${profile.verified ? `<span class="verification-badge" title="Verified"><i class="bi bi-check"></i></span>` : ''}
+            renderSocialCard(result) {
+                const profile = result.profile;
+                return `
+                    <div class="social-card">
+                        <div class="social-card-header">
+                            ${profile.profileImage ? `<img src="${profile.profileImage}" class="profile-image" onerror="this.style.display='none'">` : 
+                              `<div class="profile-image"><i class="bi bi-person-circle"></i></div>`}
+                            <div>
+                                <div class="social-card-title">${profile.name || 'Unknown'}</div>
+                                <div class="social-card-platform">${profile.platform}</div>
                             </div>
-                            <div class="profile-handle">${profile.handle || (profile.url ? this.extractDomain(profile.url) : '')}</div>
-                            ${profile.bio ? `<div class="profile-bio">${this.escapeHtml(profile.bio)}</div>` : ''}
-                            ${profile.stats ? `
-                                <div class="social-stats">
-                                    ${profile.stats.followers ? `<div class="stat-item"><i class="bi bi-people"></i> ${profile.stats.followers} followers</div>` : ''}
-                                    ${profile.stats.following ? `<div class="stat-item"><i class="bi bi-person-plus"></i> ${profile.stats.following} following</div>` : ''}
-                                    ${profile.stats.posts ? `<div class="stat-item"><i class="bi bi-images"></i> ${profile.stats.posts} posts</div>` : ''}
-                                    ${profile.stats.subscribers ? `<div class="stat-item"><i class="bi bi-people"></i> ${profile.stats.subscribers} subscribers</div>` : ''}
-                                </div>
-                            ` : ''}
+                        </div>
+                        
+                        ${profile.handle ? `<div class="profile-handle">${profile.handle}</div>` : ''}
+                        ${profile.bio ? `<div class="profile-bio">${this.escapeHtml(profile.bio)}</div>` : ''}
+                        
+                        ${profile.stats ? `
+                            <div class="social-stats">
+                                ${profile.stats.followers ? `<div class="stat-item"><i class="bi bi-people"></i> ${profile.stats.followers} followers</div>` : ''}
+                                ${profile.stats.following ? `<div class="stat-item"><i class="bi bi-person-plus"></i> ${profile.stats.following} following</div>` : ''}
+                                ${profile.stats.posts ? `<div class="stat-item"><i class="bi bi-images"></i> ${profile.stats.posts} posts</div>` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${profile.location ? `<div class="stat-item"><i class="bi bi-geo-alt"></i> ${profile.location}</div>` : ''}
+                        
+                        ${profile.posts && profile.posts.length > 0 ? `
+                            <div class="social-posts">
+                                ${profile.posts.slice(0, 9).map((post, index) => `
+                                    <div class="social-post">
+                                        <img src="${post.image}" alt="Post ${index + 1}">
+                                        ${index === 8 && profile.posts.length > 9 ? 
+                                            `<div class="post-count">+${profile.posts.length - 9}</div>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${profile.tweets && profile.tweets.length > 0 ? `
+                            <div class="result-section" style="margin-top:10px;">
+                                <h4><i class="bi bi-chat-left-text"></i> Recent Tweets</h4>
+                                ${profile.tweets.slice(0, 3).map(tweet => `
+                                    <div class="result-item" style="padding:8px;margin-bottom:6px;">
+                                        <p>${this.escapeHtml(tweet.text)}</p>
+                                        <div class="result-meta">
+                                            <span><i class="bi bi-heart"></i> ${tweet.likes}</span>
+                                            <span><i class="bi bi-repeat"></i> ${tweet.retweets}</span>
+                                            <span><i class="bi bi-chat"></i> ${tweet.replies}</span>
+                                            <span><i class="bi bi-calendar"></i> ${new Date(tweet.timestamp).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="url-display" style="margin-top:10px;">
+                            <i class="bi bi-link-45deg url-icon"></i>
+                            <a href="${result.url}" target="_blank">View profile on ${result.source}</a>
                         </div>
                     </div>
                 `;
-                
-                // Add posts if available
-                if (profile.posts && profile.posts.length > 0) {
-                    profileHtml += `<div class="social-posts">`;
-                    profile.posts.slice(0, 9).forEach((post, index) => {
-                        profileHtml += `
-                            <div class="social-post">
-                                <img src="${post.image}" alt="Post ${index + 1}">
-                                ${index === 8 && profile.posts.length > 9 ? 
-                                    `<div class="post-count">+${profile.posts.length - 9}</div>` : ''}
-                            </div>
-                        `;
-                    });
-                    profileHtml += `</div>`;
-                }
-                
-                // Add tweets if available
-                if (profile.tweets && profile.tweets.length > 0) {
-                    profileHtml += `<div class="result-section" style="margin-top:10px;">`;
-                    profileHtml += `<h4><i class="bi bi-chat-left-text"></i> Recent Tweets</h4>`;
-                    profile.tweets.slice(0, 3).forEach(tweet => {
-                        profileHtml += `
-                            <div class="result-item" style="padding:8px;margin-bottom:6px;">
-                                <p>${this.escapeHtml(tweet.text)}</p>
-                                <div class="result-meta">
-                                    <span><i class="bi bi-heart"></i> ${tweet.likes}</span>
-                                    <span><i class="bi bi-repeat"></i> ${tweet.retweets}</span>
-                                    <span><i class="bi bi-chat"></i> ${tweet.replies}</span>
-                                    <span><i class="bi bi-calendar"></i> ${new Date(tweet.timestamp).toLocaleDateString()}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    profileHtml += `</div>`;
-                }
-                
-                // Add connections if available
-                if (profile.connections && profile.connections.length > 0) {
-                    profileHtml += `<div class="profile-connections">`;
-                    profileHtml += `<h6><i class="bi bi-people"></i> Connections</h6>`;
-                    profile.connections.slice(0, 3).forEach(conn => {
-                        profileHtml += `
-                            <div class="connection-item">
-                                <i class="bi bi-link-45deg"></i>
-                                <span>${conn.name} on ${conn.platform}</span>
-                            </div>
-                        `;
-                    });
-                    profileHtml += `</div>`;
-                }
-                
-                return profileHtml;
+            }
+
+            renderWebCard(result) {
+                return `
+                    <div class="web-result-card">
+                        <a href="${result.url}" target="_blank" class="web-result-title">${this.escapeHtml(result.title)}</a>
+                        <a href="${result.url}" target="_blank" class="web-result-url">${this.extractDomain(result.url)}</a>
+                        <p class="web-result-snippet">${this.escapeHtml(result.snippet || 'No description available')}</p>
+                        <div class="web-result-meta">
+                            <span class="source-tag">${result.source}</span>
+                            ${result.date ? `<span><i class="bi bi-calendar"></i> ${result.date}</span>` : ''}
+                            ${result.image ? `<span><i class="bi bi-image"></i> Image available</span>` : ''}
+                        </div>
+                    </div>
+                `;
             }
 
             generateAIAnalysis(insights) {
@@ -975,10 +978,12 @@
                         <h5><i class="bi bi-robot"></i> AI Analysis</h5>
                         <p><strong>Summary:</strong> ${insights.summary || 'No summary available'}</p>
                         ${insights.keyFindings ? `<p><strong>Key Findings:</strong> ${insights.keyFindings}</p>` : ''}
-                        ${insights.sentiment ? `<p><strong>Sentiment:</strong> ${insights.sentiment}</p>` : ''}
+                        <p><strong>Sentiment:</strong> ${insights.sentiment}</p>
+                        ${insights.keywords.length > 0 ? `
+                            <p><strong>Top Keywords:</strong> ${insights.keywords.join(', ')}</p>
+                        ` : ''}
                         ${insights.recommendations ? `<p><strong>Recommendations:</strong> ${insights.recommendations}</p>` : ''}
-                        <p><strong>Risk Level:</strong> ${insights.riskLevel}</p>
-                        ${insights.topTopics ? `<p><strong>Top Topics:</strong> ${insights.topTopics.join(', ')}</p>` : ''}
+                        ${insights.riskLevel ? `<p><strong>Risk Level:</strong> ${insights.riskLevel}</p>` : ''}
                     </div>
                 `;
             }
@@ -995,22 +1000,10 @@
                     `;
                     
                     group.forEach(profile => {
-                        const verification = profile.verified ? 
-                            `<span class="verification-badge" title="Verified"><i class="bi bi-check"></i></span>` : '';
-                            
                         content += `
                             <div class="match-item">
-                                ${profile.profileImage ? 
-                                    `<img src="${profile.profileImage}" alt="${profile.name}">` : 
-                                    `<i class="bi bi-person-circle"></i>`
-                                }
-                                <div class="match-details">
-                                    <strong>${profile.name}</strong>${verification}
-                                    <div>
-                                        <span class="platform-icon">${profile.icon ? profile.icon.substring(0,1).toUpperCase() : ''}</span>
-                                        ${profile.platform}
-                                    </div>
-                                </div>
+                                ${profile.profileImage ? `<img src="${profile.profileImage}" alt="${profile.name}">` : '<i class="bi bi-person-circle"></i>'}
+                                <span><strong>${profile.name}</strong> on ${profile.platform}</span>
                             </div>
                         `;
                     });
@@ -1062,7 +1055,7 @@
 
                 if (this.timeline) {
                     this.timeline.appendChild(activityItem);
-                    activityItem.scrollIntoView({ behavior: 'smooth' });
+                    activityItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             }
 
@@ -1106,3 +1099,4 @@
     </script>
 </body>
 </html>
+
