@@ -1,18 +1,21 @@
-// ai.js - Advanced OSINT AI analysis
+// ai.js - Enhanced OSINT AI analysis
 const natural = require('natural');
 const stringSimilarity = require('string-similarity');
+const SentimentAnalyzer = natural.SentimentAnalyzer;
+const stemmer = natural.PorterStemmer;
+const analyzer = new SentimentAnalyzer('English', stemmer, 'afinn');
 
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
-const stemmer = natural.PorterStemmer;
-const metaphone = natural.Metaphone;
 
 // Analyze OSINT results
 const analyzeResults = (results, query) => {
-    const insights = {};
-    
-    // Basic analysis
-    insights.summary = `Found ${results.length} relevant results across multiple sources.`;
+    const insights = {
+        summary: `Found ${results.length} relevant results across multiple sources.`,
+        keyFindings: '',
+        riskLevel: 'Low',
+        recommendations: 'Verify all sources and cross-reference information'
+    };
     
     // Extract profiles
     const profiles = results
@@ -22,19 +25,27 @@ const analyzeResults = (results, query) => {
             index === self.findIndex(p => p.url === value.url)
         );
     
+    // Profile analysis
     if (profiles.length > 0) {
         insights.keyFindings = `Identified ${profiles.length} profiles: ${profiles.slice(0, 3).map(p => p.name).join(', ')}${profiles.length > 3 ? '...' : ''}`;
+        
+        // Sentiment analysis
+        const sentiments = profiles
+            .filter(p => p.bio)
+            .map(p => analyzer.getSentiment(tokenizer.tokenize(p.bio)));
+        
+        if (sentiments.length > 0) {
+            const avgSentiment = sentiments.reduce((a, b) => a + b, 0) / sentiments.length;
+            insights.sentiment = avgSentiment > 0.2 ? 'Positive' : 
+                                avgSentiment < -0.2 ? 'Negative' : 'Neutral';
+        }
     } else {
         insights.keyFindings = 'No profile information extracted';
     }
     
     // Social media detection
-    const socialMediaKeywords = ['twitter', 'facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'];
     const socialMediaResults = results.filter(result => 
-        socialMediaKeywords.some(keyword => 
-            result.url.toLowerCase().includes(keyword) ||
-            (result.profile && result.profile.url.toLowerCase().includes(keyword))
-        )
+        result.isSocialMedia
     );
     
     if (socialMediaResults.length > 0) {
@@ -52,8 +63,6 @@ const analyzeResults = (results, query) => {
     insights.riskLevel = hasRisk ? 'High (Sensitive content detected)' : 'Low';
     
     // Recommendations
-    insights.recommendations = 'Verify all sources and cross-reference information';
-    
     if (profiles.length > 0) {
         insights.recommendations += '. Analyze extracted profiles for connections';
     }
@@ -153,20 +162,6 @@ const isSimilarProfile = (profile1, profile2) => {
         if (similarity > 0.6) return true;
     }
     
-    // Image similarity (if available)
-    if (profile1.profileImage && profile2.profileImage) {
-        // This would require image comparison AI which is heavy
-        // For now, we skip or use simple dimension comparison
-        if (profile1.profileImageDimensions && profile2.profileImageDimensions) {
-            const ratio1 = profile1.profileImageDimensions.width / profile1.profileImageDimensions.height;
-            const ratio2 = profile2.profileImageDimensions.width / profile2.profileImageDimensions.height;
-            if (Math.abs(ratio1 - ratio2) < 0.1) {
-                // Similar aspect ratio might indicate same image
-                return true;
-            }
-        }
-    }
-    
     return false;
 };
 
@@ -203,8 +198,8 @@ const findConnections = (profiles) => {
             if (profiles[i].bio && profiles[j].bio) {
                 const name1 = profiles[i].name.split(' ')[0];
                 const name2 = profiles[j].name.split(' ')[0];
-                const handle1 = profiles[i].handle.replace('@', '');
-                const handle2 = profiles[j].handle.replace('@', '');
+                const handle1 = profiles[i].handle?.replace('@', '') || '';
+                const handle2 = profiles[j].handle?.replace('@', '') || '';
                 
                 if (profiles[i].bio.includes(handle2) || profiles[i].bio.includes(name2)) {
                     connections.push({
