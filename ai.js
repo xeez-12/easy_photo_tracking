@@ -7,7 +7,6 @@ const utils = require('./utils');
 // Initialize NLP tools
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
-const metaphone = natural.Metaphone;
 const sentiment = new Sentiment();
 
 // Analyze OSINT results
@@ -19,7 +18,8 @@ const analyzeResults = (results, query) => {
         riskLevel: 'Low',
         sentiment: 'Neutral',
         entities: [],
-        keywords: []
+        keywords: [],
+        nextSteps: []
     };
     
     // Basic analysis
@@ -40,7 +40,7 @@ const analyzeResults = (results, query) => {
     }
     
     // Social media detection
-    const socialMediaKeywords = ['twitter', 'facebook', 'instagram', 'linkedin', 'tiktok', 'youtube'];
+    const socialMediaKeywords = ['twitter', 'facebook', 'instagram', 'linkedin', 'tiktok', 'youtube', 'reddit'];
     const socialMediaResults = results.filter(result => 
         socialMediaKeywords.some(keyword => 
             result.url.toLowerCase().includes(keyword) ||
@@ -92,6 +92,31 @@ const analyzeResults = (results, query) => {
     
     if (hasRisk) {
         insights.recommendations += '. Sensitive content found - proceed with caution';
+    }
+    
+    // Next steps
+    insights.nextSteps = [];
+    
+    if (profiles.length > 0) {
+        insights.nextSteps.push('Cross-reference identified profiles across platforms');
+        insights.nextSteps.push('Analyze profile connections and relationships');
+    }
+    
+    if (insights.keywords.length > 0) {
+        insights.nextSteps.push(`Investigate related topics: ${insights.keywords.slice(0, 3).join(', ')}`);
+    }
+    
+    if (socialMediaResults.length > 0) {
+        insights.nextSteps.push('Monitor social media activity for updates');
+    }
+    
+    if (insights.riskLevel.includes('High')) {
+        insights.nextSteps.push('Review sensitive content for potential threats');
+    }
+    
+    if (insights.nextSteps.length === 0) {
+        insights.nextSteps.push('Expand search with different keywords');
+        insights.nextSteps.push('Investigate associated organizations or locations');
     }
     
     return insights;
