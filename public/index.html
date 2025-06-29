@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Investigator Pro</title>
+    <title>OSINT Search</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         * {
@@ -16,18 +16,12 @@
             --bg-primary: #0a0a0a;
             --bg-secondary: #1a1a1a;
             --bg-card: #2a2a2a;
-            --bg-hover: #3a3a3a;
             --text-primary: #ffffff;
             --text-secondary: #b0b0b0;
             --text-muted: #666666;
-            --accent: #00d4ff;
-            --accent-hover: #00b8e6;
             --border: #333333;
             --border-hover: #555555;
-            --shadow: rgba(0, 0, 0, 0.5);
-            --success: #00d4ff;
-            --warning: #ffd700;
-            --danger: #ff6b6b;
+            --shadow: rgba(0, 0, 0, 0.3);
         }
 
         body {
@@ -47,163 +41,15 @@
             flex-direction: column;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-top: 20px;
-        }
-
-        .logo {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--accent), #ffffff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
-            display: inline-block;
-        }
-
-        .search-container {
-            position: relative;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            border-radius: 25px;
-            padding: 4px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .search-container:focus-within {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.1);
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 16px 60px 16px 24px;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.1rem;
-            outline: none;
-            border-radius: 20px;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-actions {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .action-btn:hover {
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-color: var(--accent);
-        }
-
-        .action-btn.active {
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-color: var(--accent);
-        }
-
-        .profile-gallery {
-            display: flex;
-            gap: 15px;
-            padding: 20px 0;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            margin-bottom: 20px;
-        }
-
-        .profile-gallery::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .profile-gallery::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 3px;
-        }
-
-        .profile-card {
-            scroll-snap-align: start;
-            flex: 0 0 auto;
-            width: 120px;
-            height: 160px;
-            border-radius: 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s;
-        }
-
-        .profile-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .profile-image {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            background: var(--bg-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .profile-image i {
-            font-size: 2.5rem;
-            color: var(--text-muted);
-        }
-
-        .profile-name {
-            padding: 8px;
-            text-align: center;
-            font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            background: var(--bg-secondary);
-        }
-
         .results-container {
             flex: 1;
             opacity: 0;
             transform: translateY(20px);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
-            padding-bottom: 100px;
+            padding-bottom: 80px;
         }
 
         .results-container.show {
@@ -214,25 +60,22 @@
         .result-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 16px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
+            transition: all 0.2s ease;
         }
 
         .result-card:hover {
-            background: rgba(42, 42, 42, 0.7);
             border-color: var(--border-hover);
-            box-shadow: 0 10px 20px var(--shadow);
+            box-shadow: 0 5px 15px var(--shadow);
         }
 
         .result-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 500;
             color: var(--text-primary);
             margin-bottom: 8px;
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
         .result-title a {
@@ -244,32 +87,67 @@
             text-decoration: underline;
         }
 
-        .result-platform {
-            display: inline-block;
-            background: rgba(0, 212, 255, 0.15);
-            color: var(--accent);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-bottom: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
         .result-description {
-            line-height: 1.5;
+            font-size: 0.9rem;
             color: var(--text-secondary);
-            margin-bottom: 16px;
-            flex: 1;
+            line-height: 1.5;
+            margin-bottom: 12px;
         }
 
         .result-meta {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             font-size: 0.8rem;
             color: var(--text-muted);
+        }
+
+        .search-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 600px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 12px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            padding: 8px 12px;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .loading {
@@ -280,251 +158,111 @@
         }
 
         .loading-spinner {
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             border: 3px solid var(--border);
-            border-top: 3px solid var(--accent);
+            border-top-color: var(--text-primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
         .error-message {
             text-align: center;
             padding: 40px;
-            color: var(--danger);
-            background: rgba(255, 107, 107, 0.1);
-            border: 1px solid rgba(255, 107, 107, 0.2);
-            border-radius: 12px;
+            color: var(--text-secondary);
             grid-column: 1 / -1;
         }
 
-        .footer-input {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 600px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            border-radius: 25px;
-            padding: 4px;
-            z-index: 100;
-        }
-
-        .footer-input-field {
-            width: 100%;
-            padding: 12px 60px 12px 20px;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1rem;
-            outline: none;
-            border-radius: 20px;
-        }
-
-        .footer-input-field::placeholder {
-            color: var(--text-muted);
-        }
-
-        .footer-actions {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            gap: 6px;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px var(--shadow);
-            z-index: 1000;
-            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-width: 300px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
+        .platform-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-right: 6px;
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            .logo {
-                font-size: 2rem;
-            }
-
-            .search-input {
-                padding: 14px 50px 14px 16px;
-                font-size: 1rem;
-            }
-
-            .profile-gallery {
-                gap: 10px;
-                padding: 15px 0;
-            }
-
-            .profile-card {
-                width: 100px;
-                height: 140px;
-            }
-
-            .profile-image {
-                height: 100px;
-            }
-
             .results-container {
                 grid-template-columns: 1fr;
-                padding-bottom: 80px;
+                padding-bottom: 70px;
             }
 
-            .footer-input {
+            .search-container {
                 width: calc(100% - 20px);
                 bottom: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .logo {
-                font-size: 1.8rem;
-            }
-
-            .action-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 1rem;
-            }
-
-            .profile-card {
-                width: 90px;
-                height: 130px;
-            }
-
-            .profile-image {
-                height: 90px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">OSINT Pro</div>
-            
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Cari orang, organisasi, atau informasi..." id="mainSearchInput">
-                <div class="search-actions">
-                    <button class="action-btn" id="searchBtn" title="Search">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="profile-gallery" id="profileGallery">
-            <!-- Profile cards will be populated here -->
-        </div>
-
         <div class="results-container" id="resultsContainer">
             <!-- Results will be populated here -->
         </div>
     </div>
 
-    <div class="footer-input">
-        <input type="text" class="footer-input-field" placeholder="Tanya lebih lanjut..." id="footerSearchInput">
-        <div class="footer-actions">
-            <button class="action-btn" id="footerSearchBtn" title="Search">
-                <i class="bi bi-search"></i>
-            </button>
-        </div>
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="Cari username atau informasi..." id="searchInput" autocomplete="off">
+        <button class="search-btn" id="searchBtn">
+            <i class="bi bi-search"></i>
+        </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        class OSINTInvestigator {
+        class OSINTSearch {
             constructor() {
-                this.initElements();
-                this.initEventListeners();
-                this.apiBaseUrl = window.location.origin;
-            }
-
-            initElements() {
-                this.mainSearchInput = document.getElementById('mainSearchInput');
-                this.footerSearchInput = document.getElementById('footerSearchInput');
-                this.resultsContainer = document.getElementById('resultsContainer');
-                this.profileGallery = document.getElementById('profileGallery');
+                this.searchInput = document.getElementById('searchInput');
                 this.searchBtn = document.getElementById('searchBtn');
-                this.footerSearchBtn = document.getElementById('footerSearchBtn');
+                this.resultsContainer = document.getElementById('resultsContainer');
+                this.apiBaseUrl = window.location.origin;
+                this.initEventListeners();
             }
 
             initEventListeners() {
-                this.searchBtn.addEventListener('click', () => this.performSearch(this.mainSearchInput.value.trim()));
-                this.footerSearchBtn.addEventListener('click', () => this.performSearch(this.footerSearchInput.value.trim()));
-                
-                this.mainSearchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.performSearch(this.mainSearchInput.value.trim());
-                });
-                
-                this.footerSearchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.performSearch(this.footerSearchInput.value.trim());
+                this.searchBtn.addEventListener('click', () => this.performSearch());
+                this.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.performSearch();
                 });
             }
 
-            async performSearch(query) {
+            async performSearch() {
+                const query = this.searchInput.value.trim();
                 if (!query) return;
-                
+
                 this.showLoading();
                 
                 try {
-                    const response = await axios.post(`${this.apiBaseUrl}/api/search`, { query });
-                    this.displayResults(response.data);
+                    const response = await fetch(`${this.apiBaseUrl}/api/search`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query })
+                    });
+                    
+                    const data = await response.json();
+                    this.displayResults(data);
                 } catch (error) {
                     console.error('Search error:', error);
-                    this.showError('Terjadi kesalahan saat mencari. Silakan coba lagi.');
+                    this.showError('Gagal melakukan pencarian');
                 }
             }
 
             displayResults(data) {
                 this.resultsContainer.innerHTML = '';
-                this.profileGallery.innerHTML = '';
                 
-                if (!data || !data.results || data.results.length === 0) {
-                    this.showError('Tidak ada hasil ditemukan.');
+                if (!data?.results?.length) {
+                    this.showError('Tidak ada hasil ditemukan');
                     return;
                 }
                 
-                // Display profile gallery (top horizontal scroll)
-                const socialMediaResults = data.results.filter(r => this.isSocialMedia(r.url));
-                socialMediaResults.slice(0, 10).forEach(result => {
-                    this.profileGallery.appendChild(this.createProfileCard(result));
-                });
-                
-                // Display all results
                 data.results.forEach(result => {
                     this.resultsContainer.appendChild(this.createResultCard(result));
                 });
@@ -532,34 +270,8 @@
                 this.resultsContainer.classList.add('show');
             }
 
-            createProfileCard(result) {
-                const platform = this.getPlatformFromUrl(result.url);
-                const platformIcon = this.getPlatformIcon(platform);
-                
-                const card = document.createElement('div');
-                card.className = 'profile-card';
-                
-                card.innerHTML = `
-                    <div class="profile-image">
-                        ${result.profileImage ? 
-                            `<img src="${result.profileImage}" alt="${result.title}" style="width:100%;height:100%;object-fit:cover;">` : 
-                            `<i class="bi bi-${platformIcon}"></i>`
-                        }
-                    </div>
-                    <div class="profile-name">${result.title || 'Unknown'}</div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    this.performSearch(result.title);
-                });
-                
-                return card;
-            }
-
             createResultCard(result) {
                 const platform = this.getPlatformFromUrl(result.url);
-                const platformIcon = this.getPlatformIcon(platform);
-                const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
                 
                 const card = document.createElement('div');
                 card.className = 'result-card';
@@ -568,84 +280,51 @@
                     <h3 class="result-title">
                         <a href="${result.url}" target="_blank">${result.title || 'No title'}</a>
                     </h3>
-                    <span class="result-platform">
-                        <i class="bi bi-${platformIcon}"></i> ${platformName}
-                    </span>
                     <p class="result-description">${result.snippet || 'No description available'}</p>
                     <div class="result-meta">
+                        <span class="platform-tag">${platform}</span>
                         <span>${this.formatDate(new Date())}</span>
-                        <span>${platformName}</span>
                     </div>
                 `;
                 
                 return card;
             }
 
-            isSocialMedia(url) {
-                const socialDomains = [
-                    'twitter.com', 'facebook.com', 'instagram.com',
-                    'linkedin.com', 'tiktok.com', 'youtube.com',
-                    'reddit.com', 'pinterest.com'
-                ];
-                return socialDomains.some(domain => url.includes(domain));
-            }
-
             getPlatformFromUrl(url) {
                 if (!url) return 'web';
-                const domains = {
-                    'twitter.com': 'twitter',
-                    'facebook.com': 'facebook',
-                    'instagram.com': 'instagram',
-                    'linkedin.com': 'linkedin',
-                    'tiktok.com': 'tiktok',
-                    'youtube.com': 'youtube',
-                    'reddit.com': 'reddit',
-                    'github.com': 'github',
-                    'medium.com': 'medium',
-                    'news.': 'news'
+                
+                const platforms = {
+                    'twitter.com': 'Twitter',
+                    'facebook.com': 'Facebook',
+                    'instagram.com': 'Instagram',
+                    'linkedin.com': 'LinkedIn',
+                    'tiktok.com': 'TikTok',
+                    'youtube.com': 'YouTube',
+                    'reddit.com': 'Reddit',
+                    'github.com': 'GitHub'
                 };
                 
-                for (const [domain, platform] of Object.entries(domains)) {
+                for (const [domain, platform] of Object.entries(platforms)) {
                     if (url.includes(domain)) return platform;
                 }
-                return 'web';
-            }
-
-            getPlatformIcon(platform) {
-                const icons = {
-                    'twitter': 'twitter',
-                    'facebook': 'facebook',
-                    'instagram': 'instagram',
-                    'linkedin': 'linkedin',
-                    'tiktok': 'tiktok',
-                    'youtube': 'youtube',
-                    'reddit': 'reddit',
-                    'github': 'github',
-                    'medium': 'medium',
-                    'news': 'newspaper',
-                    'web': 'globe'
-                };
-                return icons[platform] || 'globe';
+                
+                return 'Web';
             }
 
             showLoading() {
                 this.resultsContainer.innerHTML = `
                     <div class="loading">
                         <div class="loading-spinner"></div>
-                        <p>Mencari data OSINT...</p>
+                        <p>Mencari...</p>
                     </div>
                 `;
-                this.resultsContainer.classList.add('show');
+                this.resultsContainer.classList.remove('show');
             }
 
             showError(message) {
                 this.resultsContainer.innerHTML = `
                     <div class="error-message">
-                        <i class="bi bi-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
                         <p>${message}</p>
-                        <button class="action-btn" onclick="osintInvestigator.performSearch('${this.mainSearchInput.value}')" style="margin-top: 15px;">
-                            <i class="bi bi-arrow-clockwise"></i> Coba Lagi
-                        </button>
                     </div>
                 `;
                 this.resultsContainer.classList.add('show');
@@ -658,33 +337,10 @@
                     year: 'numeric'
                 }).format(date);
             }
-
-            showNotification(message, type = 'info') {
-                const notification = document.createElement('div');
-                notification.className = 'notification';
-                
-                const icons = {
-                    'success': 'bi-check-circle',
-                    'error': 'bi-exclamation-triangle',
-                    'info': 'bi-info-circle'
-                };
-                
-                notification.innerHTML = `
-                    <i class="bi ${icons[type] || 'bi-info-circle'}"></i>
-                    <span>${message}</span>
-                `;
-                
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.style.animation = 'slideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                    setTimeout(() => notification.remove(), 300);
-                }, 3000);
-            }
         }
 
-        // Initialize the OSINT Investigator
-        const osintInvestigator = new OSINTInvestigator();
+        // Initialize the search interface
+        new OSINTSearch();
     </script>
 </body>
 </html>
