@@ -41,14 +41,77 @@
             flex-direction: column;
         }
 
+        .profile-gallery {
+            display: flex;
+            gap: 15px;
+            padding: 10px 0 20px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 10px;
+        }
+
+        .profile-gallery::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .profile-gallery::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 2px;
+        }
+
+        .profile-card {
+            scroll-snap-align: start;
+            flex: 0 0 auto;
+            width: 120px;
+            height: 160px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 120px;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            padding: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: var(--bg-secondary);
+        }
+
         .results-container {
             flex: 1;
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(10px);
             transition: all 0.3s ease;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 15px;
             padding-bottom: 80px;
         }
 
@@ -61,7 +124,7 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 16px;
+            padding: 15px;
             transition: all 0.2s ease;
         }
 
@@ -101,6 +164,17 @@
             color: var(--text-muted);
         }
 
+        .platform-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
         .search-container {
             position: fixed;
             bottom: 20px;
@@ -111,10 +185,11 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 8px 12px;
+            padding: 8px 15px;
             z-index: 100;
             display: flex;
             align-items: center;
+            gap: 10px;
         }
 
         .search-input {
@@ -123,7 +198,7 @@
             border: none;
             color: var(--text-primary);
             font-size: 1rem;
-            padding: 8px 12px;
+            padding: 8px 0;
             outline: none;
         }
 
@@ -134,9 +209,9 @@
         .search-btn {
             background: transparent;
             border: none;
-            color: var(--text-secondary);
-            width: 36px;
-            height: 36px;
+            color: var(--text-primary);
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -146,8 +221,15 @@
         }
 
         .search-btn:hover {
-            color: var(--text-primary);
             background: rgba(255, 255, 255, 0.05);
+        }
+
+        .search-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .loading {
@@ -167,10 +249,6 @@
             margin: 0 auto 15px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         .error-message {
             text-align: center;
             padding: 40px;
@@ -178,17 +256,20 @@
             grid-column: 1 / -1;
         }
 
-        .platform-tag {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            margin-right: 6px;
-        }
-
         @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .profile-card {
+                width: 100px;
+                height: 140px;
+            }
+
+            .profile-image {
+                height: 100px;
+            }
+
             .results-container {
                 grid-template-columns: 1fr;
                 padding-bottom: 70px;
@@ -199,10 +280,25 @@
                 bottom: 10px;
             }
         }
+
+        @media (max-width: 480px) {
+            .profile-card {
+                width: 90px;
+                height: 130px;
+            }
+
+            .profile-image {
+                height: 90px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="profile-gallery" id="profileGallery">
+            <!-- Profile cards will be populated here -->
+        </div>
+
         <div class="results-container" id="resultsContainer">
             <!-- Results will be populated here -->
         </div>
@@ -211,7 +307,7 @@
     <div class="search-container">
         <input type="text" class="search-input" placeholder="Cari username atau informasi..." id="searchInput" autocomplete="off">
         <button class="search-btn" id="searchBtn">
-            <i class="bi bi-search"></i>
+            <i class="bi bi-search" id="searchIcon"></i>
         </button>
     </div>
 
@@ -220,7 +316,9 @@
             constructor() {
                 this.searchInput = document.getElementById('searchInput');
                 this.searchBtn = document.getElementById('searchBtn');
+                this.searchIcon = document.getElementById('searchIcon');
                 this.resultsContainer = document.getElementById('resultsContainer');
+                this.profileGallery = document.getElementById('profileGallery');
                 this.apiBaseUrl = window.location.origin;
                 this.initEventListeners();
             }
@@ -252,17 +350,27 @@
                 } catch (error) {
                     console.error('Search error:', error);
                     this.showError('Gagal melakukan pencarian');
+                } finally {
+                    this.hideLoading();
                 }
             }
 
             displayResults(data) {
                 this.resultsContainer.innerHTML = '';
+                this.profileGallery.innerHTML = '';
                 
                 if (!data?.results?.length) {
                     this.showError('Tidak ada hasil ditemukan');
                     return;
                 }
                 
+                // Display profile gallery (top horizontal scroll)
+                const socialMediaResults = data.results.filter(r => this.isSocialMedia(r.url));
+                socialMediaResults.slice(0, 12).forEach(result => {
+                    this.profileGallery.appendChild(this.createProfileCard(result));
+                });
+                
+                // Display all results
                 data.results.forEach(result => {
                     this.resultsContainer.appendChild(this.createResultCard(result));
                 });
@@ -270,8 +378,33 @@
                 this.resultsContainer.classList.add('show');
             }
 
+            createProfileCard(result) {
+                const platform = this.getPlatformFromUrl(result.url);
+                const platformIcon = this.getPlatformIcon(platform);
+                
+                const card = document.createElement('div');
+                card.className = 'profile-card';
+                
+                card.innerHTML = `
+                    <div class="profile-image">
+                        ${result.profileImage ? 
+                            `<img src="${result.profileImage}" alt="${result.title}" loading="lazy">` : 
+                            `<i class="bi bi-${platformIcon}" style="font-size: 2rem; color: var(--text-muted)"></i>`
+                        }
+                    </div>
+                    <div class="profile-name">${result.title || 'Unknown'}</div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    window.open(result.url, '_blank');
+                });
+                
+                return card;
+            }
+
             createResultCard(result) {
                 const platform = this.getPlatformFromUrl(result.url);
+                const platformIcon = this.getPlatformIcon(platform);
                 
                 const card = document.createElement('div');
                 card.className = 'result-card';
@@ -282,12 +415,24 @@
                     </h3>
                     <p class="result-description">${result.snippet || 'No description available'}</p>
                     <div class="result-meta">
-                        <span class="platform-tag">${platform}</span>
+                        <span class="platform-tag">
+                            <i class="bi bi-${platformIcon}"></i>
+                            ${platform}
+                        </span>
                         <span>${this.formatDate(new Date())}</span>
                     </div>
                 `;
                 
                 return card;
+            }
+
+            isSocialMedia(url) {
+                const socialDomains = [
+                    'twitter.com', 'facebook.com', 'instagram.com',
+                    'linkedin.com', 'tiktok.com', 'youtube.com',
+                    'reddit.com', 'pinterest.com'
+                ];
+                return socialDomains.some(domain => url.includes(domain));
             }
 
             getPlatformFromUrl(url) {
@@ -301,7 +446,8 @@
                     'tiktok.com': 'TikTok',
                     'youtube.com': 'YouTube',
                     'reddit.com': 'Reddit',
-                    'github.com': 'GitHub'
+                    'github.com': 'GitHub',
+                    'medium.com': 'Medium'
                 };
                 
                 for (const [domain, platform] of Object.entries(platforms)) {
@@ -311,7 +457,27 @@
                 return 'Web';
             }
 
+            getPlatformIcon(platform) {
+                const icons = {
+                    'Twitter': 'twitter',
+                    'Facebook': 'facebook',
+                    'Instagram': 'instagram',
+                    'LinkedIn': 'linkedin',
+                    'TikTok': 'tiktok',
+                    'YouTube': 'youtube',
+                    'Reddit': 'reddit',
+                    'GitHub': 'github',
+                    'Medium': 'medium',
+                    'Web': 'globe'
+                };
+                return icons[platform] || 'globe';
+            }
+
             showLoading() {
+                this.searchBtn.classList.add('loading');
+                this.searchIcon.classList.remove('bi-search');
+                this.searchIcon.classList.add('bi-arrow-repeat');
+                
                 this.resultsContainer.innerHTML = `
                     <div class="loading">
                         <div class="loading-spinner"></div>
@@ -319,6 +485,12 @@
                     </div>
                 `;
                 this.resultsContainer.classList.remove('show');
+            }
+
+            hideLoading() {
+                this.searchBtn.classList.remove('loading');
+                this.searchIcon.classList.add('bi-search');
+                this.searchIcon.classList.remove('bi-arrow-repeat');
             }
 
             showError(message) {
