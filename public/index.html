@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark iOS Style Code Editor</title>
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Ace Editor CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: #1c2526;
+            color: #ffffff;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            width: 60px;
+            background: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            border-right: 1px solid #34495e;
+        }
+
+        .sidebar i {
+            font-size: 24px;
+            color: #ecf0f1;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .sidebar i:hover {
+            color: #3498db;
+        }
+
+        /* Editor Container */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px;
+            background: #2c3e50;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .run-btn {
+            background: #3498db;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .run-btn:hover {
+            background: #2980b9;
+        }
+
+        /* Ace Editor */
+        #editor {
+            flex: 1;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #34495e;
+        }
+
+        /* iOS Dark Theme */
+        .ace_editor {
+            background: #1c2526 !important;
+            color: #ffffff !important;
+        }
+
+        .ace_gutter {
+            background: #2c3e50 !important;
+            color: #ecf0f1 !important;
+        }
+
+        .ace_cursor {
+            color: #3498db !important;
+        }
+
+        .ace_marker-layer .ace_selection {
+            background: #34495e !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar with Bootstrap Icons -->
+    <div class="sidebar">
+        <i class="bi bi-file-code"></i>
+        <i class="bi bi-folder"></i>
+        <i class="bi bi-gear"></i>
+        <i class="bi bi-terminal"></i>
+    </div>
+
+    <!-- Editor Section -->
+    <div class="editor-container">
+        <div class="editor-header">
+            <button class="run-btn"><i class="bi bi-play-fill"></i> Run</button>
+        </div>
+        <div id="editor"></div>
+    </div>
+
+    <script src="/code.js"></script>
+    <script>
+        // Initialize Ace Editor
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/javascript");
+        editor.setOptions({
+            fontSize: "14px",
+            showPrintMargin: false,
+            showGutter: true,
+            highlightActiveLine: true
+        });
+
+        // Load initial code from code.js (assumed to be served)
+        fetch('/code.js')
+            .then(response => response.text())
+            .then(code => editor.setValue(code));
+
+        // Run button functionality
+        document.querySelector('.run-btn').addEventListener('click', () => {
+            const code = editor.getValue();
+            fetch('/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            })
+            .then(response => response.text())
+            .then(result => {
+                // Display result in console or a popup
+                console.log(result);
+                alert('Code executed! Check console for output.');
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
