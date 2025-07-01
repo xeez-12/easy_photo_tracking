@@ -1,7 +1,7 @@
 {
     "name": "osint-username-search",
-    "version": "1.0.0",
-    "description": "OSINT Username Search with dark iOS-style UI",
+    "version": "1.1.0",
+    "description": "Enhanced OSINT Username Search with dark UI and multi-platform scraping",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
@@ -11,8 +11,7 @@
         "express": "^4.21.0",
         "axios": "^1.7.7",
         "cheerio": "^1.0.0",
-        "cors": "^2.8.5",
-        "dotenv": "^16.4.5"
+        "cors": "^2.8.5"
     },
     "devDependencies": {
         "nodemon": "^3.1.7"
