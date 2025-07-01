@@ -1,18 +1,25 @@
 {
-  "name": "osint-search",
-  "version": "1.0.0",
-  "description": "OSINT search application with dark-themed mobile UI",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "build": "echo 'Build step' || exit 0"
-  },
-  "dependencies": {
-    "axios": "^1.7.7",
-    "cheerio": "^1.0.0",
-    "@google/genai": "^0.4.0",
-    "express": "^4.21.0"
-  },
-  "author": "",
-  "license": "ISC"
+    "name": "osint-username-search",
+    "version": "1.0.0",
+    "description": "OSINT Username Search with dark iOS-style UI",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js"
+    },
+    "dependencies": {
+        "express": "^4.21.0",
+        "axios": "^1.7.7",
+        "cheerio": "^1.0.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.7"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "author": "",
+    "license": "ISC"
 }
