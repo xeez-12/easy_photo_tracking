@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark iOS Style Code Editor</title>
+    <title>Advanced Dark Code Editor</title>
     <!-- Bootstrap Icons CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <!-- Ace Editor CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <style>
@@ -17,112 +17,198 @@
         }
 
         body {
-            background: #1c2526;
-            color: #ffffff;
+            background: #0d1117;
+            color: #c9d1d9;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Sidebar Menu */
+        /* Sidebar */
         .sidebar {
-            width: 60px;
-            background: #2c3e50;
+            width: 70px;
+            background: #161b22;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px 0;
-            border-right: 1px solid #34495e;
+            border-right: 1px solid #21262d;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
         .sidebar i {
-            font-size: 24px;
-            color: #ecf0f1;
-            margin: 15px 0;
+            font-size: 26px;
+            color: #8b949e;
+            margin: 20px 0;
             cursor: pointer;
-            transition: color 0.3s;
+            transition: color 0.2s, transform 0.2s;
         }
 
         .sidebar i:hover {
-            color: #3498db;
+            color: #58a6ff;
+            transform: scale(1.1);
         }
 
-        /* Editor Container */
-        .editor-container {
+        /* Main Content */
+        .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            padding: 15px;
         }
 
-        .editor-header {
+        /* Toolbar */
+        .toolbar {
             display: flex;
-            justify-content: flex-end;
-            padding: 10px;
-            background: #2c3e50;
+            justify-content: space-between;
+            align-items: center;
+            background: #161b22;
+            padding: 10px 20px;
             border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #21262d;
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .run-btn {
-            background: #3498db;
-            color: #fff;
+            background: #238636;
+            color: #ffffff;
             border: none;
             padding: 8px 16px;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             font-size: 14px;
-            transition: background 0.3s;
+            font-weight: 500;
+            transition: background 0.2s;
         }
 
         .run-btn:hover {
-            background: #2980b9;
+            background: #2ea043;
         }
 
-        /* Ace Editor */
-        #editor {
+        .run-btn i {
+            font-size: 16px;
+        }
+
+        /* Editor and Preview Split */
+        .editor-preview {
             flex: 1;
-            border-radius: 0 0 8px 8px;
-            border: 1px solid #34495e;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
         }
 
-        /* iOS Dark Theme */
+        #editor {
+            height: 60%;
+            border-radius: 8px;
+            border: 1px solid #21262d;
+        }
+
+        .preview {
+            height: 40%;
+            background: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+        }
+
+        .preview.error {
+            color: #f97583;
+        }
+
+        /* Ace Editor Customizations */
         .ace_editor {
-            background: #1c2526 !important;
-            color: #ffffff !important;
+            background: #0d1117 !important;
+            color: #c9d1d9 !important;
         }
 
         .ace_gutter {
-            background: #2c3e50 !important;
-            color: #ecf0f1 !important;
+            background: #161b22 !important;
+            color: #8b949e !important;
+            border-right: 1px solid #21262d !important;
         }
 
         .ace_cursor {
-            color: #3498db !important;
+            color: #58a6ff !important;
         }
 
         .ace_marker-layer .ace_selection {
-            background: #34495e !important;
+            background: #21262d !important;
+        }
+
+        .ace_keyword {
+            color: #ff7b72 !important;
+        }
+
+        .ace_string {
+            color: #a5d6ff !important;
+        }
+
+        .ace_comment {
+            color: #8b949e !important;
+        }
+
+        .ace_function {
+            color: #d2a8ff !important;
+        }
+
+        /* Scrollbar Styling */
+        .preview::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview::-webkit-scrollbar-track {
+            background: #161b22;
+            border-radius: 4px;
+        }
+
+        .preview::-webkit-scrollbar-thumb {
+            background: #8b949e;
+            border-radius: 4px;
+        }
+
+        .preview::-webkit-scrollbar-thumb:hover {
+            background: #58a6ff;
         }
     </style>
 </head>
 <body>
     <!-- Sidebar with Bootstrap Icons -->
     <div class="sidebar">
-        <i class="bi bi-file-code"></i>
-        <i class="bi bi-folder"></i>
-        <i class="bi bi-gear"></i>
-        <i class="bi bi-terminal"></i>
+        <i class="bi bi-file-code-fill" title="New File"></i>
+        <i class="bi bi-folder-fill" title="Open Folder"></i>
+        <i class="bi bi-search" title="Search"></i>
+        <i class="bi bi-terminal-fill" title="Terminal"></i>
+        <i class="bi bi-gear-fill" title="Settings"></i>
     </div>
 
-    <!-- Editor Section -->
-    <div class="editor-container">
-        <div class="editor-header">
-            <button class="run-btn"><i class="bi bi-play-fill"></i> Run</button>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <span style="font-size: 14px; color: #8b949e;">code.js</span>
+            </div>
+            <div class="toolbar-right">
+                <button class="run-btn"><i class="bi bi-play-fill"></i> Run</button>
+            </div>
         </div>
-        <div id="editor"></div>
+        <div class="editor-preview">
+            <div id="editor"></div>
+            <div class="preview" id="preview">Run your code to see the output here...</div>
+        </div>
     </div>
 
     <script src="/code.js"></script>
@@ -135,29 +221,46 @@
             fontSize: "14px",
             showPrintMargin: false,
             showGutter: true,
-            highlightActiveLine: true
+            highlightActiveLine: true,
+            tabSize: 2,
+            useSoftTabs: true
         });
 
-        // Load initial code from code.js (assumed to be served)
+        // Load initial code from code.js
         fetch('/code.js')
             .then(response => response.text())
-            .then(code => editor.setValue(code));
+            .then(code => editor.setValue(code, -1))
+            .catch(error => {
+                console.error('Error loading code:', error);
+                editor.setValue('// Error loading initial code\nconsole.log("Welcome to the editor!");');
+            });
 
         // Run button functionality
-        document.querySelector('.run-btn').addEventListener('click', () => {
+        const runBtn = document.querySelector('.run-btn');
+        const preview = document.querySelector('#preview');
+        runBtn.addEventListener('click', () => {
             const code = editor.getValue();
+            preview.textContent = 'Running...';
+            preview.classList.remove('error');
+
             fetch('/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code })
             })
-            .then(response => response.text())
-            .then(result => {
-                // Display result in console or a popup
-                console.log(result);
-                alert('Code executed! Check console for output.');
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    preview.classList.add('error');
+                    preview.textContent = data.error;
+                } else {
+                    preview.textContent = data.output || 'No output';
+                }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                preview.classList.add('error');
+                preview.textContent = `Error: ${error.message}`;
+            });
         });
     </script>
 </body>
