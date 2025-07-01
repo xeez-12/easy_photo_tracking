@@ -1,24 +1,15 @@
 {
-    "name": "osint-username-search",
-    "version": "1.1.0",
-    "description": "Enhanced OSINT Username Search with dark UI and multi-platform scraping",
-    "main": "server.js",
-    "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js"
-    },
-    "dependencies": {
-        "express": "^4.21.0",
-        "axios": "^1.7.7",
-        "cheerio": "^1.0.0",
-        "cors": "^2.8.5"
-    },
-    "devDependencies": {
-        "nodemon": "^3.1.7"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "author": "",
-    "license": "ISC"
+  "name": "code-editor",
+  "version": "1.0.0",
+  "description": "Dark iOS-style code editor with Bootstrap icons",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
 }
