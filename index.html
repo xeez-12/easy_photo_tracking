@@ -14,91 +14,105 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         body {
-            background: #1c2526;
-            color: #ffffff;
+            background: #121212;
+            color: #e0e0e0;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
             overflow-x: hidden;
         }
         .container {
+            flex: 1;
             padding: 20px;
             max-width: 600px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .header {
             text-align: center;
             padding: 20px 0;
         }
         .header h1 {
-            font-size: 24px;
-            font-weight: 600;
+            font-size: 22px;
+            font-weight: 500;
+            color: #ffffff;
         }
         .search-box {
+            position: sticky;
+            bottom: 20px;
             display: flex;
             align-items: center;
-            background: #2c3e50;
+            background: #1e1e1e;
             border-radius: 12px;
             padding: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
         .search-box input {
             flex: 1;
             background: transparent;
             border: none;
-            color: #fff;
+            color: #e0e0e0;
             font-size: 16px;
             padding: 10px;
             outline: none;
         }
         .search-box button {
-            background: #3498db;
+            background: #212121;
             border: none;
             border-radius: 8px;
-            padding: 10px 15px;
-            color: #fff;
+            padding: 10px;
+            color: #ffffff;
             cursor: pointer;
             transition: background 0.3s;
         }
         .search-box button:hover {
-            background: #2980b9;
+            background: #333333;
+        }
+        .search-box i {
+            font-size: 18px;
         }
         .results {
-            background: #2c3e50;
+            flex: 1;
+            background: #1e1e1e;
             border-radius: 12px;
             padding: 15px;
-            min-height: 100px;
+            margin-bottom: 20px;
             display: none;
         }
         .results.show {
             display: block;
         }
         .result-item {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #252525;
+            border-radius: 8px;
         }
         .result-item h3 {
             font-size: 16px;
-            margin-bottom: 5px;
-            color: #3498db;
+            color: #4fc3f7;
+            margin-bottom: 8px;
         }
         .result-item p {
             font-size: 14px;
-            color: #ecf0f1;
+            color: #b0b0b0;
+            margin: 4px 0;
         }
         .loading {
             text-align: center;
             font-size: 14px;
-            color: #7f8c8d;
+            color: #757575;
             display: none;
         }
         .loading.show {
             display: block;
         }
         .error {
-            color: #e74c3c;
             text-align: center;
             font-size: 14px;
+            color: #ef5350;
             display: none;
         }
         .error.show {
@@ -109,29 +123,31 @@
                 padding: 10px;
             }
             .header h1 {
-                font-size: 20px;
+                font-size: 18px;
             }
             .search-box input {
                 font-size: 14px;
             }
             .search-box button {
-                padding: 8px 12px;
+                padding: 8px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>OSINT Username Search</h1>
+        <div>
+            <div class="header">
+                <h1>OSINT Username Search</h1>
+            </div>
+            <div class="loading" id="loading">Loading...</div>
+            <div class="error" id="error"></div>
+            <div class="results" id="results"></div>
         </div>
         <div class="search-box">
             <input type="text" id="username" placeholder="Enter username (e.g., @elonmusk)" required>
-            <button onclick="searchUsername()"><i class="bi bi-search"></i></button>
+            <button onclick="searchUsername()"><i class="bi bi-send-fill"></i></button>
         </div>
-        <div class="loading" id="loading">Loading...</div>
-        <div class="error" id="error"></div>
-        <div class="results" id="results"></div>
     </div>
     <script>
         async function searchUsername() {
@@ -178,20 +194,22 @@
                     const item = document.createElement('div');
                     item.className = 'result-item';
                     item.innerHTML = `
-                        <h3>${result.title}</h3>
-                        <p>${result.snippet}</p>
-                        <a href="${result.link}" target="_blank" style="color: #3498db;">Visit</a>
+                        <h3>${result.platform}</h3>
+                        <p><strong>Username:</strong> ${result.username}</p>
+                        <p><strong>Bio:</strong> ${result.bio || 'N/A'}</p>
+                        <p><strong>Followers:</strong> ${result.followers || 'N/A'}</p>
+                        <p><strong>Posts:</strong> ${result.posts || 'N/A'}</p>
                     `;
                     resultsDiv.appendChild(item);
                 });
                 resultsDiv.classList.add('show');
 
-                // Display Gemini summary if available
+                // Display Gemini summary
                 if (data.summary) {
                     const summaryItem = document.createElement('div');
                     summaryItem.className = 'result-item';
                     summaryItem.innerHTML = `
-                        <h3>Gemini Summary</h3>
+                        <h3>Summary</h3>
                         <p>${data.summary}</p>
                     `;
                     resultsDiv.prepend(summaryItem);
