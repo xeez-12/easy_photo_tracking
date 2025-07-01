@@ -320,7 +320,7 @@ async function scrapeImages(query, deepSearch = true) {
       const src = imgElement.attr('src') || imgElement.attr('data-src');
       if (src && src.startsWith('http') && !src.includes('logo') && !src.includes('icon')) {
         images.push(src);
-      Uso
+      }
     });
 
     $('.iusc').each((_, element) => {
