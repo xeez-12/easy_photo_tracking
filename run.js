@@ -1,6 +1,9 @@
 const http = require('http');
 const fs = require('fs').promises;
 const path = require('path');
+const { exec } = require('child_process');
+const util = require('util');
+const { v4: uuidv4 } = require('uuid');
 
 const port = 3000;
 
@@ -22,18 +25,17 @@ const server = http.createServer(async (req, res) => {
         req.on('end', async () => {
             try {
                 const { code } = JSON.parse(body);
-                await fs.writeFile('temp.js', code);
-                const { exec } = require('child_process');
-                const util = require('util');
+                const tempFile = `temp-${uuidv4()}.js`;
+                await fs.writeFile(tempFile, code);
                 const execPromise = util.promisify(exec);
-                const { stdout, stderr } = await execPromise('node temp.js');
-                res.writeHead(200, { 'Content-Type': 'text/plain' });
-                res.end(stderr || stdout);
+                const { stdout, stderr } = await execPromise(`node ${tempFile}`, { timeout: 5000 });
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ output: stderr || stdout }));
             } catch (error) {
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end(error.message);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: error.message }));
             } finally {
-                try { await fs.unlink('temp.js'); } catch (e) {}
+                try { await fs.unlink(tempFile); } catch (e) {}
             }
         });
     } else {
@@ -45,3 +47,4 @@ const server = http.createServer(async (req, res) => {
 server.listen(port, () => {
     console.log(`Local server running at http://localhost:${port}`);
 });
+
