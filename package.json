@@ -1,25 +1,17 @@
 {
-  "name": "osint-tracker-pro",
-  "version": "2.1.0",
-  "description": "Advanced OSINT investigation tool with visual intelligence",
+  "name": "osint-search",
+  "version": "1.0.0",
+  "description": "OSINT search application with dark-themed mobile UI",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "axios": "^1.9.2",
-    "cheerio": "^1.0.0-rc.12",
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "image-size": "^1.0.2",
-    "natural": "^6.3.0",
-    "string-similarity": "^4.0.4",
-    "user-agents": "^1.1.0",
-    "proxy-check": "^1.0.5",
-    "sentiment": "^5.0.2",
-    "uuid": "^9.0.1"
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
+    "@google/genai": "^0.1.0",
+    "express": "^4.21.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "author": "",
+  "license": "ISC"
 }
