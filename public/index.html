@@ -9,7 +9,7 @@
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #1a1c1e;
+            background-color: #1c2526;
             color: #ffffff;
             display: flex;
             height: 100vh;
@@ -18,12 +18,12 @@
         }
         .sidebar {
             width: 60px;
-            background-color: #2a2e32;
+            background-color: #2c3e50;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px 0;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
             position: fixed;
             height: 100%;
             z-index: 1000;
@@ -43,14 +43,14 @@
             margin: 5px 0;
             width: 100%;
             text-align: center;
-            border-radius: 16px;
+            border-radius: 12px;
         }
         .sidebar button:hover {
-            background-color: #3a3e42;
+            background-color: #34495e;
             transform: scale(1.1);
         }
         .sidebar button.active {
-            background-color: #3a3e42;
+            background-color: #34495e;
         }
         .sidebar-toggle {
             background: none;
@@ -77,7 +77,7 @@
             transition: margin-left 0.3s ease;
         }
         .container {
-            max-width: 1920px;
+            max-width: 1200px;
             margin: 0 auto;
             flex-grow: 1;
         }
@@ -86,17 +86,16 @@
             margin-bottom: 25px;
             color: #ffffff;
             font-weight: 600;
-            border-bottom: 2px solid #3a3e42;
+            border-bottom: 2px solid #34495e;
             padding-bottom: 10px;
         }
         input, select, textarea {
-            width: 70%;
+            width: 100%;
             padding: 14px;
-            margin-left: 10%;
             margin-bottom: 20px;
-            background-color: #2a2e32;
-            border: 1px solid #3d4a52;
-            border-radius: 16px;
+            background-color: #2c3e50;
+            border: 1px solid #3d566e;
+            border-radius: 12px;
             color: #ffffff;
             font-size: 16px;
             box-sizing: border-box;
@@ -104,34 +103,32 @@
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #4a90e2;
-            box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
         }
         button.primary {
-            background-color: #4a90e2;
+            background-color: #3498db;
             color: #ffffff;
             padding: 14px 25px;
             border: none;
-            border-radius: 16px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 16px;
             font-weight: 500;
             transition: background-color 0.3s ease, transform 0.2s ease;
             width: auto;
-            margin-left: 10%;
         }
         button.primary:hover {
-            background-color: #357abd;
+            background-color: #2980b9;
             transform: translateY(-2px);
         }
         button.primary:disabled {
-            background-color: #3d4a52;
+            background-color: #3d566e;
             cursor: not-allowed;
         }
         .checkbox-group {
             display: flex;
             gap: 25px;
-            margin-left: 10%;
             margin-bottom: 20px;
             align-items: center;
         }
@@ -147,97 +144,73 @@
         }
         .error {
             color: #e74c3c;
-            margin-left: 10%;
             margin-top: 10px;
             font-size: 14px;
             font-weight: 500;
         }
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
         }
         .card {
-            background: #2a2e32;
-            border: 1px solid #3a3e42;
-            border-radius: 16px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 200px;
         }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
         .card img.profile-pic {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 12px;
+            margin-right: 15px;
             align-self: flex-start;
-            border: 2px solid #4a90e2;
+            border: 2px solid #3498db;
         }
         .card img.screenshot {
             max-width: 100%;
             border-radius: 8px;
-            margin-top: 12px;
+            margin-top: 15px;
         }
         .card .content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            overflow-wrap: break-word;
-            word-wrap: break-word;
-            max-height: 100%;
         }
         .card h3 {
-            margin: 0 0 8px;
-            font-size: 18px;
+            margin: 0 0 10px;
+            font-size: 20px;
             color: #ffffff;
             font-weight: 600;
         }
         .card p {
-            margin: 6px 0;
+            margin: 8px 0;
             color: #bdc3c7;
             flex-grow: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-height: 100px;
         }
         .card .domain {
-            color: #4a90e2;
-            font-size: 12px;
+            color: #3498db;
+            font-size: 14px;
             font-weight: 500;
-            margin-top: 8px;
+            margin-top: 10px;
         }
         .section-title {
-            font-size: 20px;
-            margin: 20px 0 12px;
+            font-size: 22px;
+            margin: 25px 0 15px;
             color: #ffffff;
             font-weight: 600;
-            border-bottom: 2px solid #3a3e42;
-            padding-bottom: 4px;
-        }
-        @media (max-width: 1600px) {
-            .card-grid {
-                grid-template-columns: repeat(3, minmax(250px, 1fr));
-            }
-        }
-        @media (max-width: 1280px) {
-            .card-grid {
-                grid-template-columns: repeat(2, minmax(250px, 1fr));
-            }
-        }
-        @media (max-width: 1024px) {
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 5px;
         }
         @media (max-width: 768px) {
             .sidebar {
@@ -245,23 +218,16 @@
             }
             .main-content {
                 margin-left: 50px;
-                padding: 15px;
+                padding: 20px;
             }
             .card-grid {
                 grid-template-columns: 1fr;
             }
             input, select, textarea {
-                width: 90%;
-                margin-left: 5%;
+                padding: 12px;
             }
             button.primary {
-                margin-left: 5%;
-            }
-            .checkbox-group {
-                margin-left: 5%;
-            }
-            .error {
-                margin-left: 5%;
+                padding: 12px 20px;
             }
         }
     </style>
@@ -364,7 +330,11 @@
         toggleButton.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('collapsed');
-            mainContent.style.marginLeft = sidebar.classList.contains('collapsed') ? '50px' : '60px';
+            if (sidebar.classList.contains('collapsed')) {
+                mainContent.style.marginLeft = '50px';
+            } else {
+                mainContent.style.marginLeft = '60px';
+            }
         });
 
         const tabs = document.querySelectorAll('.sidebar button');
@@ -375,8 +345,7 @@
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 tabContents.forEach(content => content.style.display = 'none');
-                const activeTab = document.getElementById(`${tab.dataset.tab}-tab`);
-                if (activeTab) activeTab.style.display = 'block';
+                document.getElementById(`${tab.dataset.tab}-tab`).style.display = 'block';
                 clearResults();
             });
         });
@@ -390,61 +359,57 @@
             const errorEl = document.getElementById(`${tab}-error`);
             const resultsEl = document.getElementById(`${tab}-results`);
             const button = document.querySelector(`#${tab}-tab button.primary`);
-            if (!button || !errorEl || !resultsEl) return;
-
             button.disabled = true;
             button.textContent = 'Processing...';
-            errorEl.textContent = '';
+            errorEl.innerHTML = '';
             resultsEl.innerHTML = '';
 
             try {
                 let response;
-                const config = { timeout: 10000 };
                 if (tab === 'deep') {
-                    const username = document.getElementById('deep-username')?.value || '';
+                    const username = document.getElementById('deep-username').value;
                     if (!username) throw new Error('Username is required');
-                    response = await axios.post('/api/investigate', { username }, config);
+                    response = await axios.post('/api/investigate', { username });
                     renderDeepResults(response.data.investigation, resultsEl);
                 } else if (tab === 'social') {
-                    const username = document.getElementById('social-username')?.value || '';
-                    const platform = document.getElementById('social-platform')?.value || '';
+                    const username = document.getElementById('social-username').value;
+                    const platform = document.getElementById('social-platform').value;
                     if (!username) throw new Error('Username is required');
-                    response = await axios.post(`/api/search/${platform}`, { username }, config);
+                    response = await axios.post(`/api/search/${platform}`, { username });
                     renderProfileResults(response.data.results, resultsEl);
                 } else if (tab === 'advanced') {
-                    const query = document.getElementById('advanced-query')?.value || '';
+                    const query = document.getElementById('advanced-query').value;
                     const sources = [];
-                    if (document.getElementById('bing-source')?.checked) sources.push('bing');
-                    if (document.getElementById('duckduckgo-source')?.checked) sources.push('duckduckgo');
+                    if (document.getElementById('bing-source').checked) sources.push('bing');
+                    if (document.getElementById('duckduckgo-source').checked) sources.push('duckduckgo');
                     if (!query) throw new Error('Query is required');
-                    response = await axios.post('/api/advanced-search', { query, sources }, config);
+                    response = await axios.post('/api/advanced-search', { query, sources });
                     renderProfileResults(response.data.results, resultsEl);
                 } else if (tab === 'capture') {
-                    const url = document.getElementById('capture-url')?.value || '';
+                    const url = document.getElementById('capture-url').value;
                     if (!url) throw new Error('URL is required');
-                    response = await axios.post('/api/capture', { url }, config);
+                    response = await axios.post('/api/capture', { url });
                     renderCaptureResults(response.data.capture, resultsEl);
                 } else if (tab === 'batch') {
-                    const usernames = (document.getElementById('batch-usernames')?.value || '').split('\n').filter(u => u.trim());
+                    const usernames = document.getElementById('batch-usernames').value.split('\n').filter(u => u.trim());
                     if (!usernames.length) throw new Error('Usernames array is required');
-                    response = await axios.post('/api/batch-investigate', { usernames }, config);
+                    response = await axios.post('/api/batch-investigate', { usernames });
                     renderBatchResults(response.data.investigations, resultsEl);
                 } else if (tab === 'phone') {
-                    const username = document.getElementById('phone-username')?.value || '';
-                    const platform = document.getElementById('phone-platform')?.value || '';
+                    const username = document.getElementById('phone-username').value;
+                    const platform = document.getElementById('phone-platform').value;
                     if (!username) throw new Error('Username is required');
-                    response = await axios.post(`/api/search-phone/${platform}`, { username }, config);
+                    response = await axios.post(`/api/search-phone/${platform}`, { username });
                     renderPhoneResults(response.data.results, resultsEl);
                 } else if (tab === 'health') {
-                    response = await axios.get('/health', config);
+                    response = await axios.get('/health');
                     renderHealthResults(response.data, resultsEl);
                 }
             } catch (err) {
-                errorEl.textContent = err.response?.data?.error || err.message || 'An error occurred';
-                if (err.code === 'ECONNABORTED') errorEl.textContent = 'Request timed out';
+                errorEl.innerHTML = err.response?.data?.error || err.message;
             } finally {
                 button.disabled = false;
-                const defaultTexts = {
+                button.textContent = button.textContent.replace('Processing...', {
                     deep: 'Start Investigation',
                     social: 'Search Social Media',
                     advanced: 'Execute Search',
@@ -452,25 +417,29 @@
                     batch: 'Start Batch Analysis',
                     phone: 'Search Phone Number',
                     health: 'Check System Health'
-                };
-                button.textContent = defaultTexts[tab] || 'Process';
+                }[tab]);
             }
         }
 
         function renderCard(content) {
-            return `<div class="card">${content ? `<div class="content">${content}</div>` : ''}</div>`;
+            return `
+                <div class="card">
+                    <div class="content">${content}</div>
+                </div>
+            `;
         }
 
         function getShortDomain(url) {
             try {
-                return new URL(url).hostname.replace('www.', '').split('.').slice(-2).join('.') || 'unknown';
+                const domain = new URL(url).hostname.replace('www.', '').split('.').slice(-2).join('.');
+                return domain;
             } catch {
                 return 'unknown';
             }
         }
 
         function renderProfileCard(profile) {
-            const domain = getShortDomain(profile.url || '');
+            const domain = getShortDomain(profile.url);
             return renderCard(`
                 <div style="display: flex; align-items: flex-start;">
                     ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : ''}
@@ -489,7 +458,7 @@
         }
 
         function renderCaptureCard(capture) {
-            const domain = getShortDomain(capture.url || '');
+            const domain = getShortDomain(capture.url);
             return renderCard(`
                 <h3>${capture.title || 'Website Capture'}</h3>
                 <div class="domain">${domain}</div>
@@ -500,7 +469,7 @@
         }
 
         function renderPhoneCard(profile) {
-            const domain = getShortDomain(profile.url || '');
+            const domain = getShortDomain(profile.url);
             return renderCard(`
                 <div style="display: flex; align-items: flex-start;">
                     ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : ''}
@@ -517,81 +486,75 @@
 
         function renderDeepResults(investigation, resultsEl) {
             let html = '';
-            if (investigation?.social_media) {
-                Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
-                    if (profiles?.length) {
-                        html += `<h2 class="section-title">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>`;
-                        html += '<div class="card-grid">';
-                        profiles.forEach(profile => {
-                            html += renderProfileCard(profile || {});
-                        });
-                        html += '</div>';
-                    }
-                });
-            }
-            if (investigation?.general_search?.length) {
+            Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
+                if (profiles.length) {
+                    html += `<h2 class="section-title">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>`;
+                    html += '<div class="card-grid">';
+                    profiles.forEach(profile => {
+                        html += renderProfileCard(profile);
+                    });
+                    html += '</div>';
+                }
+            });
+            if (investigation.general_search.length) {
                 html += '<h2 class="section-title">General Search</h2>';
                 html += '<div class="card-grid">';
                 investigation.general_search.forEach(result => {
-                    html += renderProfileCard(result || {});
+                    html += renderProfileCard(result);
                 });
                 html += '</div>';
             }
-            resultsEl.innerHTML = html || '<p>No results found</p>';
+            resultsEl.innerHTML = html;
         }
 
         function renderProfileResults(profiles, resultsEl) {
             let html = '<div class="card-grid">';
-            (profiles || []).forEach(profile => {
-                html += renderProfileCard(profile || {});
+            profiles.forEach(profile => {
+                html += renderProfileCard(profile);
             });
             html += '</div>';
-            resultsEl.innerHTML = html || '<p>No results found</p>';
+            resultsEl.innerHTML = html;
         }
 
         function renderCaptureResults(capture, resultsEl) {
-            resultsEl.innerHTML = renderCaptureCard(capture || {});
+            resultsEl.innerHTML = renderCaptureCard(capture);
         }
 
         function renderBatchResults(investigations, resultsEl) {
             let html = '';
-            (investigations || []).forEach(investigation => {
-                if (investigation?.username) {
-                    html += `<h2 class="section-title">Username: ${investigation.username}</h2>`;
-                    if (investigation?.social_media) {
-                        Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
-                            if (profiles?.length) {
-                                html += `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
-                                html += '<div class="card-grid">';
-                                profiles.forEach(profile => {
-                                    html += renderProfileCard(profile || {});
-                                });
-                                html += '</div>';
-                            }
+            investigations.forEach(investigation => {
+                html += `<h2 class="section-title">Username: ${investigation.username}</h2>`;
+                Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
+                    if (profiles.length) {
+                        html += `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
+                        html += '<div class="card-grid">';
+                        profiles.forEach(profile => {
+                            html += renderProfileCard(profile);
                         });
+                        html += '</div>';
                     }
-                }
+                });
             });
-            resultsEl.innerHTML = html || '<p>No results found</p>';
+            resultsEl.innerHTML = html;
         }
 
         function renderPhoneResults(profiles, resultsEl) {
             let html = '<div class="card-grid">';
-            (profiles || []).forEach(profile => {
-                html += renderPhoneCard(profile || {});
+            profiles.forEach(profile => {
+                html += renderPhoneCard(profile);
             });
             html += '</div>';
-            resultsEl.innerHTML = html || '<p>No results found</p>';
+            resultsEl.innerHTML = html;
         }
 
         function renderHealthResults(data, resultsEl) {
             resultsEl.innerHTML = renderCard(`
                 <h2 class="section-title">System Health</h2>
-                <p><strong>Status:</strong> ${data?.status || 'Unknown'}</p>
-                <p><strong>Version:</strong> ${data?.version || 'N/A'}</p>
-                <p><strong>Uptime:</strong> ${Math.round(data?.uptime) || 0} seconds</p>
-                <p><strong>Supported Platforms:</strong> ${(data?.supported_platforms || []).join(', ') || 'N/A'}</p>
-                <p><strong>Features:</strong> ${(data?.features || []).join(', ') || 'N/A'}</p>
+                <p><strong>Status:</strong> ${data.status}</p>
+                <p><strong>Version:</strong> ${data.version}</p>
+                <p><strong>Uptime:</strong> ${Math.round(data.uptime)} seconds</p>
+                <p><strong>Supported Platforms:</strong> ${data.supported_platforms.join(', ')}</p>
+                <p><strong>Features:</strong> ${data.features.join(', ')}</p>
             `);
         }
     </script>
