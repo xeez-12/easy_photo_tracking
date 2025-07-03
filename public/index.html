@@ -3,369 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Social Media Investigation Platform</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .card h2 {
-            margin-top: 0;
-            color: #1e3a8a;
-        }
-        .card input, .card textarea {
-            width: 100%;
-            padding: 0.5rem;
-            margin: 0.5rem 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .card button {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .card button:hover {
-            background-color: #1e40af;
-        }
-        .result-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 1rem;
-            margin: 0.5rem 0;
-            display: flex;
-            align-items: flex-start;
-        }
-        .result-card img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 1rem;
-        }
-        .result-card div {
-            flex: 1;
-        }
-        .result-card h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: #1e3a8a;
-        }
-        .result-card p {
-            margin: 0.5rem 0;
-            color: #555;
-        }
-        .social-icons {
-            display: flex;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-        .social-icons img {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-        }
-    </style>
+    <title>OSINT Investigation Platform</title>
+    <link href="/styles/output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <header>
-        <h1>OSINT Social Media Investigation Platform</h1>
-    </header>
+<body class="bg-gray-900 text-gray-100">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    <div class="container">
-        <div class="card">
-            <h2>Deep Investigation</h2>
-            <form id="investigate-form">
-                <label for="username">Target Username:</label>
-                <input type="text" id="username" name="username" required>
-                <div class="social-icons">
-                    <img src="/icons/tiktok.png" alt="TikTok" onclick="searchPlatform('tiktok')">
-                    <img src="/icons/facebook.png" alt="Facebook" onclick="searchPlatform('facebook')">
-                    <img src="/icons/instagram.png" alt="Instagram" onclick="searchPlatform('instagram')">
-                    <img src="/icons/youtube.png" alt="YouTube" onclick="searchPlatform('youtube')">
-                    <img src="/icons/twitter.png" alt="Twitter" onclick="searchPlatform('twitter')">
-                    <img src="/icons/linkedin.png" alt="LinkedIn" onclick="searchPlatform('linkedin')">
-                    <img src="/icons/github.png" alt="GitHub" onclick="searchPlatform('github')">
-                    <img src="/icons/reddit.png" alt="Reddit" onclick="searchPlatform('reddit')">
-                    <img src="/icons/snapchat.png" alt="Snapchat" onclick="searchPlatform('snapchat')">
-                    <img src="/icons/pinterest.png" alt="Pinterest" onclick="searchPlatform('pinterest')">
-                    <img src="/icons/twitch.png" alt="Twitch" onclick="searchPlatform('twitch')">
-                </div>
-                <button type="submit">Start Investigation</button>
-            </form>
-            <div id="investigate-results"></div>
-        </div>
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('deep');
+            const [username, setUsername] = useState('');
+            const [query, setQuery] = useState('');
+            const [url, setUrl] = useState('');
+            const [usernames, setUsernames] = useState('');
+            const [platform, setPlatform] = useState('tiktok');
+            const [sources, setSources] = useState({ bing: true, duckduckgo: true });
+            const [results, setResults] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
 
-        <div class="card">
-            <h2>Advanced Search</h2>
-            <form id="advanced-search-form">
-                <label for="query">Search Query:</label>
-                <input type="text" id="query" name="query" required>
-                <label>Search Engines:</label>
-                <div>
-                    <input type="checkbox" id="bing" name="sources" value="bing" checked>
-                    <label for="bing">Bing</label>
-                </div>
-                <div>
-                    <input type="checkbox" id="duckduckgo" name="sources" value="duckduckgo" checked>
-                    <label for="duckduckgo">DuckDuckGo</label>
-                </div>
-                <button type="submit">Execute Search</button>
-            </form>
-            <div id="search-results"></div>
-        </div>
+            const menuItems = [
+                { id: 'deep', icon: '🔍', label: 'Deep Investigation' },
+                { id: 'social', icon: '🌐', label: 'Social Media Search' },
+                { id: 'advanced', icon: '🔎', label: 'Advanced Search' },
+                { id: 'capture', icon: '📸', label: 'Website Capture' },
+                { id: 'batch', icon: '📜', label: 'Batch Investigation' },
+                { id: 'health', icon: '⚙️', label: 'System Health' }
+            ];
 
-        <div class="card">
-            <h2>Website Capture</h2>
-            <form id="capture-form">
-                <label for="capture-url">Target URL:</label>
-                <input type="text" id="capture-url" name="url" required>
-                <button type="submit">Capture & Analyze</button>
-            </form>
-            <div id="capture-results"></div>
-        </div>
+            const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
 
-        <div class="card">
-            <h2>Batch Investigation</h2>
-            <form id="batch-investigate-form">
-                <label for="usernames">Target Usernames (one per line):</label>
-                <textarea id="usernames" name="usernames" rows="5" required></textarea>
-                <button type="submit">Start Batch Analysis</button>
-            </form>
-            <div id="batch-results"></div>
-        </div>
-    </div>
-
-    <script>
-        document.getElementById('investigate-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const resultsDiv = document.getElementById('investigate-results');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
-
-            try {
-                const response = await fetch('/api/investigate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    resultsDiv.innerHTML = '';
-                    Object.keys(data.investigation.social_media).forEach(platform => {
-                        const platformResults = data.investigation.social_media[platform];
-                        if (platformResults.length > 0) {
-                            resultsDiv.innerHTML += `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
-                            platformResults.forEach(result => {
-                                resultsDiv.innerHTML += `
-                                    <div class="result-card">
-                                        ${result.profile_picture ? `<img src="${result.profile_picture}" alt="Profile Picture">` : ''}
-                                        <div>
-                                            <h3>${result.title || result.url}</h3>
-                                            <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
-                                            ${result.bio ? `<p><strong>Bio:</strong> ${result.bio}</p>` : ''}
-                                            ${result.followers ? `<p><strong>Followers:</strong> ${result.followers}</p>` : ''}
-                                            ${result.posts ? `<p><strong>Posts:</strong> ${result.posts}</p>` : ''}
-                                            ${result.snippet ? `<p>${result.snippet}</p>` : ''}
-                                        </div>
-                                    </div>`;
-                            });
-                        }
-                    });
-                } else {
-                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+            const handleSearch = async (endpoint, payload) => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const response = await axios.post(endpoint, payload);
+                    setResults(response.data);
+                } catch (err) {
+                    setError(err.response?.data?.error || 'An error occurred');
+                } finally {
+                    setLoading(false);
                 }
-            } catch (error) {
-                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
-            }
-        });
+            };
 
-        async function searchPlatform(platform) {
-            const username = document.getElementById('username').value;
-            if (!username) {
-                alert('Please enter a username');
-                return;
-            }
-            const resultsDiv = document.getElementById('investigate-results');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            const handleHealthCheck = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const response = await axios.get('/health');
+                    setResults(response.data);
+                } catch (err) {
+                    setError(err.response?.data?.error || 'An error occurred');
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-            try {
-                const response = await fetch(`/api/search/${platform}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    resultsDiv.innerHTML = `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
-                    data.results.forEach(result => {
-                        resultsDiv.innerHTML += `
-                            <div class="result-card">
-                                ${result.profile_picture ? `<img src="${result.profile_picture}" alt="Profile Picture">` : ''}
-                                <div>
-                                    <h3>${result.title || result.url}</h3>
-                                    <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
-                                    ${result.bio ? `<p><strong>Bio:</strong> ${result.bio}</p>` : ''}
-                                    ${result.followers ? `<p><strong>Followers:</strong> ${result.followers}</p>` : ''}
-                                    ${result.posts ? `<p><strong>Posts:</strong> ${result.posts}</p>` : ''}
-                                    ${result.snippet ? `<p>${result.snippet}</p>` : ''}
+            const ProfileCard = ({ profile }) => (
+                <div className="bg-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center space-x-4">
+                        {profile.profilePic && (
+                            <img src={profile.profilePic} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
+                        )}
+                        <div>
+                            <h3 className="text-lg font-semibold text-white">{profile.title || 'Unknown'}</h3>
+                            <p className="text-sm text-gray-400">{profile.platform}</p>
+                            <a href={profile.url} target="_blank" className="text-blue-400 hover:underline">{profile.url}</a>
+                        </div>
+                    </div>
+                    {profile.bio && <p過程className="mt-2 text-gray-300">{profile.bio}</p>}
+                    {profile.followers && <p className="text-gray-400">Followers: {profile.followers}</p>}
+                    {profile.postCount && <p className="text-gray-400">Posts: {profile.postCount}</p>}
+                    {profile.snippet && <p className="mt-2 text-gray-300">{profile.snippet}</p>}
+                    {profile.screenshot && (
+                        <img src={profile.screenshot} alt="Screenshot" className="mt-2 rounded-lg max-w-full" />
+                    )}
+                </div>
+            );
+
+            const CaptureCard = ({ capture }) => (
+                <div className="bg-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 className="text-lg font-semibold text-white">{capture.title || 'Website Capture'}</h3>
+                    <a href={capture.url} target="_blank" className="text-blue-400 hover:underline">{capture.url}</a>
+                    {capture.description && <p className="mt-2 text-gray-300">{capture.description}</p>}
+                    {capture.screenshot && (
+                        <img src={capture.screenshot} alt="Screenshot" className="mt-2 rounded-lg max-w-full" />
+                    )}
+                    {capture.error && <p className="text-red-400">Error: {capture.error}</p>}
+                </div>
+            );
+
+            const renderResults = () => {
+                if (!results) return null;
+                if (activeTab === 'deep') {
+                    return (
+                        <div>
+                            {Object.entries(results.investigation.social_media).map(([platform, profiles]) => (
+                                <div key={platform}>
+                                    <h2 className="text-xl font-bold text-white mb-4">{platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {profiles.map((profile, index) => (
+                                            <ProfileCard key={index} profile={profile} />
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>`;
-                    });
-                } else {
-                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
-                }
-            } catch (error) {
-                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
-            }
-        }
-
-        document.getElementById('advanced-search-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const query = document.getElementById('query').value;
-            const sources = Array.from(document.querySelectorAll('input[name="sources"]:checked')).map(input => input.value);
-            const resultsDiv = document.getElementById('search-results');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
-
-            try {
-                const response = await fetch('/api/advanced-search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, sources })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    resultsDiv.innerHTML = '';
-                    data.results.forEach(result => {
-                        resultsDiv.innerHTML += `
-                            <div class="result-card">
-                                <div>
-                                    <h3>${result.title || result.url}</h3>
-                                    <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
-                                    ${result.snippet ? `<p>${result.snippet}</p>` : ''}
-                                    <p><strong>Source:</strong> ${result.source}</p>
-                                </div>
-                            </div>`;
-                    });
-                } else {
-                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
-                }
-            } catch (error) {
-                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
-            }
-        });
-
-        document.getElementById('capture-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const url = document.getElementById('capture-url').value;
-            const resultsDiv = document.getElementById('capture-results');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
-
-            try {
-                const response = await fetch('/api/capture', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    resultsDiv.innerHTML = `
-                        <div class="result-card">
-                            ${data.capture.screenshot ? `<img src="${data.capture.screenshot}" alt="Screenshot">` : ''}
-                            <div>
-                                <h3>${data.capture.title || data.capture.url}</h3>
-                                <p><strong>URL:</strong> <a href="${data.capture.url}" target="_blank">${data.capture.url}</a></p>
-                                ${data.capture.description ? `<p><strong>Description:</strong> ${data.capture.description}</p>` : ''}
-                                ${data.capture.pageText ? `<p><strong>Page Text:</strong> ${data.capture.pageText.substring(0, 200)}</p>` : ''}
+                            ))}
+                            <h2 className="text-xl font-bold text-white mb-4">General Search</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {results.investigation.general_search.map((result, index) => (
+                                    <ProfileCard key={index} profile={result} />
+                                ))}
                             </div>
-                        </div>`;
-                } else {
-                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
-                }
-            } catch (error) {
-                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
-            }
-        });
-
-        document.getElementById('batch-investigate-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const usernames = document.getElementById('usernames').value.split('\n').map(u => u.trim()).filter(u => u);
-            const resultsDiv = document.getElementById('batch-results');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
-
-            try {
-                const response = await fetch('/api/batch-investigate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usernames })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    resultsDiv.innerHTML = `<p>Total Investigated: ${data.total_investigated}</p>`;
-                    data.investigations.forEach(investigation => {
-                        resultsDiv.innerHTML += `<h3>Username: ${investigation.username}</h3>`;
-                        Object.keys(investigation.social_media).forEach(platform => {
-                            const platformResults = investigation.social_media[platform];
-                            if (platformResults.length > 0) {
-                                resultsDiv.innerHTML += `<h4>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h4>`;
-                                platformResults.forEach(result => {
-                                    resultsDiv.innerHTML += `
-                                        <div class="result-card">
-                                            ${result.profile_picture ? `<img src="${result.profile_picture}" alt="Profile Picture">` : ''}
-                                            <div>
-                                                <h3>${result.title || result.url}</h3>
-                                                <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
-                                                ${result.bio ? `<p><strong>Bio:</strong> ${result.bio}</p>` : ''}
-                                                ${result.followers ? `<p><strong>Followers:</strong> ${result.followers}</p>` : ''}
-                                                ${result.posts ? `<p><strong>Posts:</strong> ${result.posts}</p>` : ''}
-                                                ${result.snippet ? `<p>${result.snippet}</p>` : ''}
+                        </div>
+                    );
+                } else if (activeTab === 'social') {
+                    return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {results.results.map((profile, index) => (
+                                <ProfileCard key={index} profile={profile} />
+                            ))}
+                        </div>
+                    );
+                } else if (activeTab === 'advanced') {
+                    return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {results.results.map((result, index) => (
+                                <ProfileCard key={index} profile={result} />
+                            ))}
+                        </div>
+                    );
+                } else if (activeTab === 'capture') {
+                    return <CaptureCard capture={results.capture} />;
+                } else if (activeTab === 'batch') {
+                    return (
+                        <div>
+                            {results.investigations.map((investigation, index) => (
+                                <div key={index}>
+                                    <h2 className="text-xl font-bold text-white mb-4">Username: {investigation.username}</h2>
+                                    {Object.entries(investigation.social_media).map(([platform, profiles]) => (
+                                        <div key={platform}>
+                                            <h3 className="text-lg font-semibold text-white mb-2">{platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {profiles.map((profile, idx) => (
+                                                    <ProfileCard key={idx} profile={profile} />
+                                                ))}
                                             </div>
-                                        </div>`;
-                                });
-                            }
-                        });
-                    });
-                } else {
-                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    );
+                } else if (activeTab === 'health') {
+                    return (
+                        <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+                            <h2 className="text-xl font-bold text-white mb-4">System Health</h2>
+                            <p><strong>Status:</strong> {results.status}</p>
+                            <p><strong>Version:</strong> {results.version}</p>
+                            <p><strong>Uptime:</strong> {Math.round(results.uptime)} seconds</p>
+                            <p><strong>Supported Platforms:</strong> {results.supported_platforms.join(', ')}</p>
+                            <p><strong>Features:</strong> {results.features.join(', ')}</p>
+                        </div>
+                    );
                 }
-            } catch (error) {
-                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
-            }
-        });
+                return null;
+            };
+
+            return (
+                <div className="flex h-screen">
+                    <div className="w-16 bg-gray-800 flex flex-col items-center py-4 space-y-6">
+                        {menuItems.map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`text-2xl p-2 rounded-lg ${activeTab === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                title={item.label}
+                            >
+                                {item.icon}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex-1 p-6">
+                        <div className="max-w-4xl mx-auto">
+                            {activeTab === 'deep' && (
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white mb-4">Deep Investigation</h1>
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        placeholder="Enter username"
+                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
+                                    />
+                                    <button
+                                        onClick={() => handleSearch('/api/investigate', { username })}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Investigating...' : 'Start Investigation'}
+                                    </button>
+                                </div>
+                            )}
+                            {activeTab === 'social' && (
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white mb-4">Social Media Search</h1>
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        placeholder="Enter username"
+                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
+                                    />
+                                    <select
+                                        value={platform}
+                                        onChange={(e) => setPlatform(e.target.value)}
+                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
+                                    >
+                                        {platforms.map(p => (
+                                            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={() => handleSearch(`/api/search/${platform}`, { username })}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Searching...' : 'Search Social Media'}
+                                    </button>
+                                </div>
+                            )}
+                            {activeTab === 'advanced' && (
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white mb-4">Advanced Search</h1>
+                                    <input
+                                        type="text"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        placeholder="Enter search query"
+                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
+                                    />
+                                    <div className="flex space-x-4 mb-4">
+                                        <label className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={sources.bing}
+                                                onChange={() => setSources({ ...sources, bing: !sources.bing })}
+                                                className="mr-2"
+                                            />
+                                            Bing
+                                        </label>
+                                        <label className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={sources.duckduckgo}
+                                                onChange={() => setSources({ ...sources, duckduckgo: !sources.duckduckgo })}
+                                                className="mr-2"
+                                            />
+                                            DuckDuckGo
+                                        </label>
+                                    </div>
+                                    <button
+                                        onClick={() => handleSearch('/api/advanced-search', { query, sources: Object.keys(sources).filter(k => sources[k]) })}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Searching...' : 'Execute Search'}
+                                    </button>
+                                </div>
+                            )}
+                            {activeTab === 'capture' && (
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white mb-4">Website Capture</h1>
+                                    <input
+                                        type="text"
+                                        value={url}
+                                        onChange={(e) => setUrl(e.target.value)}
+                                        placeholder="Enter URL"
+                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
+                                    />
+                                    <button
+                                        onClick={() => handleSearch('/api/capture', { url })}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Capturing...' : 'Capture & Analyze'}
+                                    </button>
+                                </div>
+                            )}
+                            {activeTab === 'batch' && (
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white mb-4">Batch Investigation</h1>
+                                    <textarea
+                                        value={usernames}
+                                        onChange={(e) => setUsernames(e.target.value)}
+                                        placeholder="Enter usernames (one per line)"
+                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4 h-32"
+                                    />
+                                    <button
+                                        onClick={() => handleSearch('/api/batch-investigate', { usernames: usernames.split('\n').filter(u => u.trim()) })}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Investigating...' : 'Start Batch Analysis'}
+                                    </button>
+                                </div>
+                            )}
+                            {activeTab === 'health' && (
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white mb-4">System Health</h1>
+                                    <button
+                                        onClick={handleHealthCheck}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Checking...' : 'Check System Health'}
+                                    </button>
+                                </div>
+                            )}
+                            {error && <p className="text-red-400 mt-4">{error}</p>}
+                            {results && (
+                                <div className="mt-6">
+                                    <h2 className="text-xl font-bold text-white mb-4">Results</h2>
+                                    {renderResults()}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
