@@ -67,6 +67,23 @@ function generateRandomIP() {
 // Sleep function
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms + Math.floor(Math.random() * 1000)));
 
+// Advanced Contact Info Extraction
+function extractAdvancedContactInfo(text) {
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+    const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
+    const usernameRegex = /@([a-zA-Z0-9_]+)/g;
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube)\.com\/[\w.-]+/gi;
+
+    return {
+        emails: [...new Set(text.match(emailRegex) || [])],
+        phones: [...new Set(text.match(phoneRegex) || [])],
+        usernames: [...new Set(text.match(usernameRegex) || [])],
+        urls: [...new Set(text.match(urlRegex) || [])],
+        social_profiles: [...new Set(text.match(socialRegex) || [])]
+    };
+}
+
 // Advanced Social Media Scraping
 async function scrapeSocialMediaProfile(url, platform) {
     let browser;
@@ -177,11 +194,10 @@ async function scrapeSocialMediaProfile(url, platform) {
             platform
         };
     } catch (error) {
-        return { url, error: error.message, scraped_at: new Date().toISOString(), platform };
-    } finally {
         if (browser) {
             try { await browser.close(); } catch (e) {}
         }
+        return { url, error: error.message, scraped_at: new Date().toISOString(), platform };
     }
 }
 
@@ -199,7 +215,6 @@ async function searchBingAdvanced(query, maxPages = 5) {
                 headers: getAdvancedHeaders('https://www.bing.com/'),
                 timeout: 20000,
                 maxRedirects: 5,
-                jar: cookieJar,
                 withCredentials: true
             });
 
@@ -564,23 +579,6 @@ async function performComprehensiveSearch(username) {
     return results;
 }
 
-// Advanced Contact Info Extraction
-function extractAdvancedContactInfo(text) {
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-    const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
-    const usernameRegex = /@([a-zA-Z0-9_]+)/g;
-    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
-    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube)\.com\/[\w.-]+/gi;
-
-    return {
-        emails: [...new Set(text.match(emailRegex) || [])],
-        phones: [...new Set(text.match(phoneRegex) || [])],
-        usernames: [...new Set(text.match(usernameRegex) || [])],
-        urls: [...new Set(text.match(urlRegex) || [])],
-        social_profiles: [...new Set(text.match(socialRegex) || [])]
-    };
-}
-
 // Enhanced Website Capture
 async function captureAdvancedInfo(url) {
     let browser;
@@ -673,6 +671,9 @@ async function captureAdvancedInfo(url) {
             };
 
         } catch (puppeteerError) {
+            if (browser) {
+                try { await browser.close(); } catch (e) {}
+            }
             return {
                 ...basicInfo,
                 captured_at: new Date().toISOString(),
@@ -681,16 +682,15 @@ async function captureAdvancedInfo(url) {
         }
 
     } catch (error) {
+        if (browser) {
+            try { await browser.close(); } catch (e) {}
+        }
         return {
             url,
             error: error.message,
             captured_at: new Date().toISOString(),
             capture_method: 'failed'
         };
-    } finally {
-        if (browser) {
-            try { await browser.close(); } catch (e) {}
-        }
     }
 }
 
