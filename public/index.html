@@ -9,7 +9,7 @@
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #121212;
+            background: linear-gradient(135deg, #1a1c1e, #2a2e32);
             color: #ffffff;
             display: flex;
             height: 100vh;
@@ -18,15 +18,15 @@
         }
         .sidebar {
             width: 60px;
-            background-color: #1e1e1e;
+            background-color: #2a2e32;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px 0;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
             position: fixed;
             height: 100%;
-            z-index: 1001; /* Diperbarui untuk memastikan di atas konten */
+            z-index: 1000;
             transition: width 0.3s ease;
         }
         .sidebar.collapsed ~ .main-content .container .tab-content {
@@ -46,11 +46,11 @@
             border-radius: 16px;
         }
         .sidebar button:hover {
-            background-color: #2c2c2c;
+            background-color: #3a3e42;
             transform: scale(1.1);
         }
         .sidebar button.active {
-            background-color: #2c2c2c;
+            background-color: #3a3e42;
         }
         .sidebar-toggle {
             background: none;
@@ -62,7 +62,6 @@
             position: absolute;
             top: 10px;
             right: -40px;
-            z-index: 1002; /* Di atas sidebar */
             display: none;
         }
         .sidebar.collapsed .sidebar-toggle {
@@ -75,29 +74,28 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            z-index: 1000; /* Memastikan di atas elemen lain */
             transition: margin-left 0.3s ease;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
             flex-grow: 1;
-            padding-left: 20px;
         }
         h1 {
             font-size: 28px;
             margin-bottom: 25px;
             color: #ffffff;
             font-weight: 600;
-            border-bottom: 2px solid #2c2c2c;
+            border-bottom: 2px solid #3a3e42;
             padding-bottom: 10px;
         }
         input, select, textarea {
-            width: 100%;
+            width: 70%;
             padding: 14px;
+            margin-left: 10%;
             margin-bottom: 20px;
-            background-color: #1e1e1e;
-            border: 1px solid #2c2c2c;
+            background-color: #2a2e32;
+            border: 1px solid #3d4a52;
             border-radius: 16px;
             color: #ffffff;
             font-size: 16px;
@@ -106,11 +104,11 @@
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 8px rgba(0, 122, 255, 0.5);
+            border-color: #4a90e2;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
         }
         button.primary {
-            background-color: #007aff;
+            background-color: #4a90e2;
             color: #ffffff;
             padding: 14px 25px;
             border: none;
@@ -120,19 +118,20 @@
             font-weight: 500;
             transition: background-color 0.3s ease, transform 0.2s ease;
             width: auto;
-            z-index: 1000; /* Memastikan tombol dapat diklik */
+            margin-left: 10%;
         }
         button.primary:hover {
-            background-color: #005fe4;
+            background-color: #357abd;
             transform: translateY(-2px);
         }
         button.primary:disabled {
-            background-color: #2c2c2c;
+            background-color: #3d4a52;
             cursor: not-allowed;
         }
         .checkbox-group {
             display: flex;
             gap: 25px;
+            margin-left: 10%;
             margin-bottom: 20px;
             align-items: center;
         }
@@ -147,19 +146,20 @@
             margin-right: 10px;
         }
         .error {
-            color: #ff2d55;
+            color: #e74c3c;
+            margin-left: 10%;
             margin-top: 10px;
             font-size: 14px;
             font-weight: 500;
         }
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(23%, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(4, minmax(250px, 1fr));
+            gap: 25px;
             margin-top: 25px;
         }
         .card {
-            background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
+            background: linear-gradient(135deg, #2a2e32, #3a3e42);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -171,6 +171,15 @@
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        .card img.profile-pic {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            align-self: flex-start;
+            border: 2px solid #4a90e2;
         }
         .card img.screenshot {
             max-width: 100%;
@@ -184,18 +193,18 @@
         }
         .card h3 {
             margin: 0 0 10px;
-            font-size: 18px;
+            font-size: 20px;
             color: #ffffff;
             font-weight: 600;
         }
         .card p {
             margin: 8px 0;
-            color: #bbbbbb;
+            color: #bdc3c7;
             flex-grow: 1;
         }
         .card .domain {
-            color: #007aff;
-            font-size: 12px;
+            color: #4a90e2;
+            font-size: 14px;
             font-weight: 500;
             margin-top: 10px;
         }
@@ -204,12 +213,12 @@
             margin: 25px 0 15px;
             color: #ffffff;
             font-weight: 600;
-            border-bottom: 2px solid #2c2c2c;
+            border-bottom: 2px solid #3a3e42;
             padding-bottom: 5px;
         }
         @media (max-width: 1024px) {
             .card-grid {
-                grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));
+                grid-template-columns: repeat(3, minmax(250px, 1fr));
             }
         }
         @media (max-width: 768px) {
@@ -224,10 +233,17 @@
                 grid-template-columns: 1fr;
             }
             input, select, textarea {
-                padding: 12px;
+                width: 90%;
+                margin-left: 5%;
             }
             button.primary {
-                padding: 12px 20px;
+                margin-left: 5%;
+            }
+            .checkbox-group {
+                margin-left: 5%;
+            }
+            .error {
+                margin-left: 5%;
             }
         }
     </style>
@@ -356,14 +372,9 @@
         }
 
         async function handleSearch(tab) {
-            console.log(`Attempting to handle search for tab: ${tab}`); // Debug log
             const errorEl = document.getElementById(`${tab}-error`);
             const resultsEl = document.getElementById(`${tab}-results`);
             const button = document.querySelector(`#${tab}-tab button.primary`);
-            if (!button) {
-                console.error(`Button not found for tab: ${tab}`);
-                return;
-            }
             button.disabled = true;
             button.textContent = 'Processing...';
             errorEl.innerHTML = '';
@@ -411,37 +422,33 @@
                     renderHealthResults(response.data, resultsEl);
                 }
             } catch (err) {
-                console.error(`Error in handleSearch for ${tab}:`, err); // Debug error
                 errorEl.innerHTML = err.response?.data?.error || err.message;
             } finally {
-                if (button) {
-                    button.disabled = false;
-                    button.textContent = button.textContent.replace('Processing...', {
-                        deep: 'Start Investigation',
-                        social: 'Search Social Media',
-                        advanced: 'Execute Search',
-                        capture: 'Capture & Analyze',
-                        batch: 'Start Batch Analysis',
-                        phone: 'Search Phone Number',
-                        health: 'Check System Health'
-                    }[tab]);
-                }
+                button.disabled = false;
+                button.textContent = button.textContent.replace('Processing...', {
+                    deep: 'Start Investigation',
+                    social: 'Search Social Media',
+                    advanced: 'Execute Search',
+                    capture: 'Capture & Analyze',
+                    batch: 'Start Batch Analysis',
+                    phone: 'Search Phone Number',
+                    health: 'Check System Health'
+                }[tab]);
             }
         }
 
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
+        function getRandomGradient() {
+            const colors = ['#2a2e32', '#3a3e42', '#4a4e52', '#5a5e62'];
+            const start = colors[Math.floor(Math.random() * colors.length)];
+            let end = colors[Math.floor(Math.random() * colors.length)];
+            while (end === start) end = colors[Math.floor(Math.random() * colors.length)];
+            return `linear-gradient(135deg, ${start}, ${end})`;
         }
 
-        function renderCard(content, uniqueId) {
-            const backgroundColor = getRandomColor();
+        function renderCard(content) {
+            const gradient = getRandomGradient();
             return `
-                <div class="card" style="background: linear-gradient(135deg, ${backgroundColor}, #${backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 5).toString(16)).join('')});">
+                <div class="card" style="background: ${gradient};">
                     <div class="content">${content}</div>
                 </div>
             `;
@@ -459,16 +466,20 @@
         function renderProfileCard(profile) {
             const domain = getShortDomain(profile.url);
             return renderCard(`
-                <div>
-                    <h3>${profile.title || 'Unknown'}</h3>
-                    <p>Platform: ${profile.platform || 'N/A'}</p>
-                    <div class="domain">${domain}</div>
+                <div style="display: flex; align-items: flex-start;">
+                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : ''}
+                    <div>
+                        <h3>${profile.title || 'Unknown'}</h3>
+                        <p>Platform: ${profile.platform || 'N/A'}</p>
+                        <div class="domain">${domain}</div>
+                    </div>
                 </div>
                 ${profile.bio ? `<p>Bio: ${profile.bio}</p>` : ''}
                 ${profile.followers ? `<p>Followers: ${profile.followers}</p>` : ''}
                 ${profile.postCount ? `<p>Posts: ${profile.postCount}</p>` : ''}
                 ${profile.snippet ? `<p>${profile.snippet}</p>` : ''}
-            `, profile.url);
+                ${profile.screenshot ? `<img src="${profile.screenshot}" class="screenshot" alt="Screenshot">` : ''}
+            `);
         }
 
         function renderCaptureCard(capture) {
@@ -479,19 +490,23 @@
                 ${capture.description ? `<p>${capture.description}</p>` : ''}
                 ${capture.screenshot ? `<img src="${capture.screenshot}" class="screenshot" alt="Screenshot">` : ''}
                 ${capture.error ? `<p class="error">Error: ${capture.error}</p>` : ''}
-            `, capture.url);
+            `);
         }
 
         function renderPhoneCard(profile) {
             const domain = getShortDomain(profile.url);
             return renderCard(`
-                <div>
-                    <h3>${profile.title || 'Unknown'}</h3>
-                    <p>Platform: ${profile.platform || 'N/A'}</p>
-                    <div class="domain">${domain}</div>
+                <div style="display: flex; align-items: flex-start;">
+                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : ''}
+                    <div>
+                        <h3>${profile.title || 'Unknown'}</h3>
+                        <p>Platform: ${profile.platform || 'N/A'}</p>
+                        <div class="domain">${domain}</div>
+                    </div>
                 </div>
                 ${profile.phone ? `<p>Phone: ${profile.phone}</p>` : '<p>No phone number found</p>'}
-            `, profile.url);
+                ${profile.screenshot ? `<img src="${profile.screenshot}" class="screenshot" alt="Screenshot">` : ''}
+            `);
         }
 
         function renderDeepResults(investigation, resultsEl) {
@@ -565,7 +580,7 @@
                 <p><strong>Uptime:</strong> ${Math.round(data.uptime)} seconds</p>
                 <p><strong>Supported Platforms:</strong> ${data.supported_platforms.join(', ')}</p>
                 <p><strong>Features:</strong> ${data.features.join(', ')}</p>
-            `, 'health');
+            `);
         }
     </script>
 </body>
