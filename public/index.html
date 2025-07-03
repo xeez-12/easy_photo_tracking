@@ -152,7 +152,7 @@
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(23%, 1fr));
-            gap: 15px; /* Jarak kecil antar kartu */
+            gap: 15px;
             margin-top: 25px;
         }
         .card {
@@ -168,20 +168,6 @@
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
-        .card .default-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            align-self: flex-start;
-            border: 2px solid #007aff;
-            font-size: 20px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #2c2c2c, #3c3c3c);
         }
         .card img.screenshot {
             max-width: 100%;
@@ -342,9 +328,9 @@
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('collapsed');
             if (sidebar.classList.contains('collapsed')) {
-                mainContent.style.marginLeft = '50px';
+                mainContent.style.margin-left = '50px';
             } else {
-                mainContent.style.marginLeft = '60px';
+                mainContent.style.margin-left = '60px';
             }
         });
 
@@ -441,13 +427,10 @@
             return color;
         }
 
-        function getInitials(name) {
-            return name.charAt(0).toUpperCase() || 'U';
-        }
-
-        function renderCard(content) {
+        function renderCard(content, uniqueId) {
+            const backgroundColor = getRandomColor();
             return `
-                <div class="card">
+                <div class="card" style="background: linear-gradient(135deg, ${backgroundColor}, #${backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 5).toString(16)).join('')});">
                     <div class="content">${content}</div>
                 </div>
             `;
@@ -464,22 +447,17 @@
 
         function renderProfileCard(profile) {
             const domain = getShortDomain(profile.url);
-            const initial = getInitials(profile.title || 'User');
-            const color = getRandomColor();
             return renderCard(`
-                <div style="display: flex; align-items: flex-start;">
-                    <div class="default-avatar" style="background: ${color};">${initial}</div>
-                    <div>
-                        <h3>${profile.title || 'Unknown'}</h3>
-                        <p>Platform: ${profile.platform || 'N/A'}</p>
-                        <div class="domain">${domain}</div>
-                    </div>
+                <div>
+                    <h3>${profile.title || 'Unknown'}</h3>
+                    <p>Platform: ${profile.platform || 'N/A'}</p>
+                    <div class="domain">${domain}</div>
                 </div>
                 ${profile.bio ? `<p>Bio: ${profile.bio}</p>` : ''}
                 ${profile.followers ? `<p>Followers: ${profile.followers}</p>` : ''}
                 ${profile.postCount ? `<p>Posts: ${profile.postCount}</p>` : ''}
                 ${profile.snippet ? `<p>${profile.snippet}</p>` : ''}
-            `);
+            `, profile.url);
         }
 
         function renderCaptureCard(capture) {
@@ -490,24 +468,19 @@
                 ${capture.description ? `<p>${capture.description}</p>` : ''}
                 ${capture.screenshot ? `<img src="${capture.screenshot}" class="screenshot" alt="Screenshot">` : ''}
                 ${capture.error ? `<p class="error">Error: ${capture.error}</p>` : ''}
-            `);
+            `, capture.url);
         }
 
         function renderPhoneCard(profile) {
             const domain = getShortDomain(profile.url);
-            const initial = getInitials(profile.title || 'User');
-            const color = getRandomColor();
             return renderCard(`
-                <div style="display: flex; align-items: flex-start;">
-                    <div class="default-avatar" style="background: ${color};">${initial}</div>
-                    <div>
-                        <h3>${profile.title || 'Unknown'}</h3>
-                        <p>Platform: ${profile.platform || 'N/A'}</p>
-                        <div class="domain">${domain}</div>
-                    </div>
+                <div>
+                    <h3>${profile.title || 'Unknown'}</h3>
+                    <p>Platform: ${profile.platform || 'N/A'}</p>
+                    <div class="domain">${domain}</div>
                 </div>
                 ${profile.phone ? `<p>Phone: ${profile.phone}</p>` : '<p>No phone number found</p>'}
-            `);
+            `, profile.url);
         }
 
         function renderDeepResults(investigation, resultsEl) {
@@ -581,7 +554,7 @@
                 <p><strong>Uptime:</strong> ${Math.round(data.uptime)} seconds</p>
                 <p><strong>Supported Platforms:</strong> ${data.supported_platforms.join(', ')}</p>
                 <p><strong>Features:</strong> ${data.features.join(', ')}</p>
-            `);
+            `, 'health');
         }
     </script>
 </body>
