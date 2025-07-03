@@ -144,18 +144,11 @@ async function scrapeSocialMediaProfile(url, platform) {
             };
         }, platform);
 
-        const screenshot = await page.screenshot({ 
-            encoding: 'base64',
-            fullPage: false,
-            clip: { x: 0, y: 0, width: 1366, height: 768 }
-        });
-
         await browser.close();
 
         return {
             url,
             ...profileData,
-            screenshot: `data:image/png;base64,${screenshot}`,
             scraped_at: new Date().toISOString(),
             platform
         };
@@ -564,33 +557,36 @@ function extractAdvancedContactInfo(text) {
     };
 }
 
-// Enhanced Website Capture
+// Enhanced Website Capture with Improved Reliability for Railway
 async function captureAdvancedInfo(url) {
     let browser;
-    try {
-        const axiosResponse = await axios.get(url, {
-            headers: getAdvancedHeaders(),
-            timeout: 15000,
-            maxRedirects: 5
-        });
+    const maxRetries = 3;
+    let attempt = 0;
 
-        const $ = cheerio.load(axiosResponse.data);
-        const basicInfo = {
-            url,
-            title: $('title').text().trim(),
-            description: $('meta[name="description"]').attr('content') || '',
-            keywords: $('meta[name="keywords"]').attr('content') || '',
-            ogTitle: $('meta[property="og:title"]').attr('content') || '',
-            ogDescription: $('meta[property="og:description"]').attr('content') || '',
-            ogImage: $('meta[property="og:image"]').attr('content') || '',
-            twitterCard: $('meta[name="twitter:card"]').attr('content') || '',
-            canonical: $('link[rel="canonical"]').attr('href') || '',
-            robots: $('meta[name="robots"]').attr('content') || '',
-            headers: axiosResponse.headers,
-            status: axiosResponse.status
-        };
-
+    while (attempt < maxRetries) {
         try {
+            const axiosResponse = await axios.get(url, {
+                headers: getAdvancedHeaders(),
+                timeout: 15000,
+                maxRedirects: 5
+            });
+
+            const $ = cheerio.load(axiosResponse.data);
+            const basicInfo = {
+                url,
+                title: $('title').text().trim(),
+                description: $('meta[name="description"]').attr('content') || '',
+                keywords: $('meta[name="keywords"]').attr('content') || '',
+                ogTitle: $('meta[property="og:title"]').attr('content') || '',
+                ogDescription: $('meta[property="og:description"]').attr('content') || '',
+                ogImage: $('meta[property="og:image"]').attr('content') || '',
+                twitterCard: $('meta[name="twitter:card"]').attr('content') || '',
+                canonical: $('link[rel="canonical"]').attr('href') || '',
+                robots: $('meta[name="robots"]').attr('content') || '',
+                headers: axiosResponse.headers,
+                status: axiosResponse.status
+            };
+
             browser = await puppeteer.launch({
                 headless: 'new',
                 args: [
@@ -601,21 +597,22 @@ async function captureAdvancedInfo(url) {
                     '--no-first-run',
                     '--no-zygote',
                     '--single-process',
-                    '--disable-gpu'
+                    '--disable-gpu',
+                    '--disable-gpu-sandbox'
                 ],
-                executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
+                executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium-browser'
             });
 
             const page = await browser.newPage();
             await page.setUserAgent(userAgentPool[0]);
-            await page.setViewport({ width: 1366, height: 768 });
+            await page.setViewport({ width: 1280, height: 720 }); // Optimized for Railway
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
             const screenshot = await page.screenshot({ 
                 encoding: 'base64',
-                fullPage: false,
-                clip: { x: 0, y: 0, width: 1366, height: 768 }
+                fullPage: true,
+                type: 'png'
             });
 
             const advancedInfo = await page.evaluate(() => {
@@ -647,6 +644,7 @@ async function captureAdvancedInfo(url) {
 
             await browser.close();
 
+            console.log(`Successfully captured ${url} on attempt ${attempt + 1}`);
             return {
                 ...basicInfo,
                 ...advancedInfo,
@@ -655,24 +653,25 @@ async function captureAdvancedInfo(url) {
                 capture_method: 'advanced'
             };
 
-        } catch (puppeteerError) {
-            return {
-                ...basicInfo,
-                captured_at: new Date().toISOString(),
-                capture_method: 'basic'
-            };
-        }
-
-    } catch (error) {
-        return {
-            url,
-            error: error.message,
-            captured_at: new Date().toISOString(),
-            capture_method: 'failed'
-        };
-    } finally {
-        if (browser) {
-            try { await browser.close(); } catch (e) {}
+        } catch (error) {
+            attempt++;
+            console.error(`Capture attempt ${attempt} failed for ${url}: ${error.message}`);
+            if (browser) {
+                try { await browser.close(); } catch (e) {}
+            }
+            if (attempt === maxRetries) {
+                return {
+                    url,
+                    error: `Failed after ${maxRetries} attempts: ${error.message}`,
+                    captured_at: new Date().toISOString(),
+                    capture_method: 'failed'
+                };
+            }
+            await sleep(2000 * attempt); // Exponential backoff
+        } finally {
+            if (browser) {
+                try { await browser.close(); } catch (e) {}
+            }
         }
     }
 }
