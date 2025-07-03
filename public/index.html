@@ -169,20 +169,6 @@
             transform: translateY(-5px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
-        .card img.profile-pic {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 15px;
-            align-self: flex-start;
-            border: 4px solid #007aff;
-            transition: border-color 0.3s ease, transform 0.2s ease;
-        }
-        .card img.profile-pic:hover {
-            transform: scale(1.05);
-            border-color: #005fe4;
-        }
         .card img.screenshot {
             max-width: 100%;
             border-radius: 8px;
@@ -445,21 +431,15 @@
         }
 
         function renderProfileCard(profile) {
-            if (!profile.profilePic) return ''; // Hanya tampilkan jika ada foto profil
             const domain = getShortDomain(profile.url);
             return renderCard(`
-                <div style="display: flex; align-items: flex-start;">
-                    <img src="${profile.profilePic}" class="profile-pic" alt="Profile">
-                    <div>
-                        <h3>${profile.title || 'Unknown'}</h3>
-                        <p>Platform: ${profile.platform || 'N/A'}</p>
-                        <div class="domain">${domain}</div>
-                    </div>
-                </div>
-                ${profile.bio ? `<p>Bio: ${profile.bio}</p>` : ''}
-                ${profile.followers ? `<p>Followers: ${profile.followers}</p>` : ''}
-                ${profile.postCount ? `<p>Posts: ${profile.postCount}</p>` : ''}
-                ${profile.snippet ? `<p>${profile.snippet}</p>` : ''}
+                <h3>${profile.title || 'Unknown'}</h3>
+                <p><strong>Username:</strong> ${profile.username || 'N/A'}</p>
+                <p><strong>Bio:</strong> ${profile.bio || 'N/A'}</p>
+                <p><strong>Followers:</strong> ${profile.followers || 'N/A'}</p>
+                <p><strong>Posts:</strong> ${profile.postCount || 'N/A'}</p>
+                <div class="domain">${domain}</div>
+                ${profile.snippet ? `<p><strong>Snippet:</strong> ${profile.snippet}</p>` : ''}
                 ${profile.screenshot ? `<img src="${profile.screenshot}" class="screenshot" alt="Screenshot">` : ''}
             `);
         }
@@ -469,25 +449,22 @@
             return renderCard(`
                 <h3>${capture.title || 'Website Capture'}</h3>
                 <div class="domain">${domain}</div>
-                ${capture.description ? `<p>${capture.description}</p>` : ''}
+                ${capture.description ? `<p><strong>Description:</strong> ${capture.description}</p>` : ''}
                 ${capture.screenshot ? `<img src="${capture.screenshot}" class="screenshot" alt="Screenshot">` : ''}
                 ${capture.error ? `<p class="error">Error: ${capture.error}</p>` : ''}
             `);
         }
 
         function renderPhoneCard(profile) {
-            if (!profile.profilePic) return ''; // Hanya tampilkan jika ada foto profil
             const domain = getShortDomain(profile.url);
             return renderCard(`
-                <div style="display: flex; align-items: flex-start;">
-                    <img src="${profile.profilePic}" class="profile-pic" alt="Profile">
-                    <div>
-                        <h3>${profile.title || 'Unknown'}</h3>
-                        <p>Platform: ${profile.platform || 'N/A'}</p>
-                        <div class="domain">${domain}</div>
-                    </div>
-                </div>
-                ${profile.phone ? `<p>Phone: ${profile.phone}</p>` : '<p>No phone number found</p>'}
+                <h3>${profile.title || 'Unknown'}</h3>
+                <p><strong>Username:</strong> ${profile.username || 'N/A'}</p>
+                <p><strong>Bio:</strong> ${profile.bio || 'N/A'}</p>
+                <p><strong>Followers:</strong> ${profile.followers || 'N/A'}</p>
+                <p><strong>Posts:</strong> ${profile.postCount || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${profile.phone || 'N/A'}</p>
+                <div class="domain">${domain}</div>
                 ${profile.screenshot ? `<img src="${profile.screenshot}" class="screenshot" alt="Screenshot">` : ''}
             `);
         }
