@@ -4,67 +4,173 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🕵️ OSINT Investigation Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #64748b;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #1a1a1a;
-            color: #f0f0f0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            line-height: 1.6;
         }
 
+        /* Sidebar Styles */
         .sidebar {
             position: fixed;
             top: 0;
             left: 0;
-            width: 70px;
+            width: 80px;
             height: 100vh;
-            background: #121212;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, #1a202c 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 20px;
-            border-right: 1px solid #333;
+            padding: 24px 0;
+            border-right: 1px solid var(--border-color);
             z-index: 1000;
+            backdrop-filter: blur(20px);
         }
 
-        .sidebar a {
-            color: #f0f0f0;
-            font-size: 1.5rem;
-            padding: 15px;
-            margin: 10px 0;
-            transition: all 0.3s ease;
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
+            z-index: -1;
         }
 
-        .sidebar a:hover {
-            background: #333;
-            border-radius: 10px;
-            color: #0d6efd;
-        }
-
-        .sidebar a.active {
-            background: #0d6efd;
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            font-size: 24px;
             color: white;
-            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
         }
 
+        .logo::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        .nav-link {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            text-decoration: none;
+            cursor: pointer;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-link:hover {
+            color: white;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .nav-link:hover::before {
+            opacity: 1;
+        }
+
+        .nav-link.active {
+            color: white;
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active::before {
+            opacity: 0;
+        }
+
+        /* Main Content */
         .main-content {
-            margin-left: 70px;
-            padding: 20px;
+            margin-left: 80px;
+            padding: 32px;
             min-height: 100vh;
-            background: #1a1a1a;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
+            background: var(--bg-primary);
         }
 
         .container-fluid {
@@ -72,95 +178,197 @@
             margin: 0 auto;
         }
 
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Styles */
         .card {
-            background: #222;
-            border: none;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #1a202c 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-xl);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.5), transparent);
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-color: rgba(37, 99, 235, 0.3);
         }
 
         .card-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.2);
         }
 
         .card-icon {
-            font-size: 2rem;
-            margin-right: 15px;
-            padding: 10px;
-            background: #0d6efd;
-            border-radius: 10px;
-            width: 50px;
-            height: 50px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 28px;
+            color: white;
+            margin-right: 20px;
+            box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: cardShine 4s infinite;
+        }
+
+        @keyframes cardShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
 
         .card h3 {
-            font-size: 1.5rem;
+            font-size: 24px;
             font-weight: 700;
-            color: #0d6efd;
+            color: var(--text-primary);
+            letter-spacing: -0.025em;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
         }
 
         .form-label {
-            color: #f0f0f0;
+            display: block;
+            font-size: 14px;
             font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: 0.025em;
         }
 
-        .form-control, .form-check-input {
-            background: #333;
-            border: 1px solid #444;
-            color: #f0f0f0;
-            border-radius: 10px;
+        .form-control {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
 
         .form-control:focus {
-            background: #333;
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
-            color: #f0f0f0;
+            outline: none;
+            background: var(--bg-tertiary);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
         }
 
         .form-control::placeholder {
-            color: #888;
+            color: var(--text-muted);
         }
 
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Button Styles */
         .btn-primary {
-            background: #0d6efd;
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
             border: none;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 16px;
             font-weight: 600;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0.025em;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
 
         .btn-primary:hover {
-            background: #0b5ed7;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+            background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .btn-primary.loading::after {
             content: '';
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
-            border-top: 2px solid transparent;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-left: 10px;
+            display: inline-block;
+            margin-left: 12px;
+            vertical-align: middle;
         }
 
         @keyframes spin {
@@ -168,13 +376,61 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Checkbox Styles */
+        .checkbox-group {
+            display: flex;
+            gap: 24px;
+            margin-top: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-check-input:checked {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .form-check-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Results Styles */
         .results {
-            background: #222;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #1a202c 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            box-shadow: var(--shadow-xl);
             max-height: 80vh;
             overflow-y: auto;
+            position: relative;
+        }
+
+        .results::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.5), transparent);
         }
 
         .results::-webkit-scrollbar {
@@ -182,112 +438,240 @@
         }
 
         .results::-webkit-scrollbar-track {
-            background: #333;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
         }
 
         .results::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 10px;
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        .results::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        .results h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.2);
         }
 
         .result-item {
-            background: #333;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #0d6efd;
-            transition: all 0.3s ease;
+            background: var(--bg-tertiary);
+            padding: 20px;
+            margin-bottom: 16px;
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary-color), #3b82f6);
         }
 
         .result-item:hover {
-            background: #444;
-            transform: translateX(5px);
+            background: rgba(51, 65, 85, 0.8);
+            transform: translateX(8px);
+            box-shadow: var(--shadow-md);
         }
 
         .result-title {
-            font-weight: bold;
-            color: #0d6efd;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 16px;
+            margin-bottom: 8px;
         }
 
         .result-url {
-            color: #6ab0ff;
-            font-size: 0.9rem;
+            color: #60a5fa;
+            font-size: 14px;
             word-break: break-all;
+            margin-bottom: 8px;
         }
 
         .result-snippet {
-            color: #ccc;
-            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
         }
 
+        /* Platform Tags */
+        .platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .platform-tag {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .platform-tag:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Toast Notifications */
         .toast {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: #0d6efd;
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
             transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10000;
+            max-width: 400px;
+            backdrop-filter: blur(20px);
         }
 
         .toast.show {
             transform: translateX(0);
         }
 
-        .platforms {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+        .toast.success {
+            border-left: 4px solid var(--success-color);
         }
 
-        .platform-tag {
-            background: #333;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: #ccc;
+        .toast.error {
+            border-left: 4px solid var(--error-color);
         }
 
+        .toast i {
+            margin-right: 8px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-primary);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            overflow: auto;
+            max-height: 400px;
+            color: var(--text-secondary);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            border: 1px solid var(--border-color);
+            margin-top: 16px;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
-                height: auto;
+                height: 80px;
                 flex-direction: row;
                 justify-content: center;
-                padding: 10px;
+                padding: 16px;
                 position: fixed;
                 bottom: 0;
                 top: auto;
                 border-right: none;
-                border-top: 1px solid #333;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .logo {
+                display: none;
+            }
+
+            .nav-items {
+                flex-direction: row;
+                padding: 0;
+                gap: 12px;
             }
 
             .main-content {
                 margin-left: 0;
-                margin-bottom: 70px;
-                padding: 15px;
+                margin-bottom: 80px;
+                padding: 20px 16px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .card-header {
+                margin-bottom: 24px;
+            }
+
+            .card-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+                margin-right: 16px;
+            }
+
+            .toast {
+                right: 16px;
+                left: 16px;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 16px 12px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .form-control {
+                padding: 12px 16px;
+            }
+
+            .btn-primary {
+                padding: 14px 20px;
             }
         }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <a href="#deep-investigation" class="nav-link active" onclick="showPage('deep-investigation')">
-            <i class="bi bi-search"></i>
-        </a>
-        <a href="#advanced-search" class="nav-link" onclick="showPage('advanced-search')">
-            <i class="bi bi-globe"></i>
-        </a>
-        <a href="#website-capture" class="nav-link" onclick="showPage('website-capture')">
-            <i class="bi bi-camera"></i>
-        </a>
-        <a href="#batch-investigation" class="nav-link" onclick="showPage('batch-investigation')">
-            <i class="bi bi-people"></i>
-        </a>
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="nav-items">
+            <div class="nav-link active" onclick="showPage('deep-investigation')" title="Deep Investigation">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="nav-link" onclick="showPage('advanced-search')" title="Advanced Search">
+                <i class="fas fa-globe"></i>
+            </div>
+            <div class="nav-link" onclick="showPage('website-capture')" title="Website Capture">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="nav-link" onclick="showPage('batch-investigation')" title="Batch Investigation">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
     </div>
 
     <div class="main-content">
@@ -298,32 +682,32 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-icon">
-                                    <i class="bi bi-search"></i>
+                                    <i class="fas fa-user-secret"></i>
                                 </div>
                                 <h3>Deep Investigation</h3>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Target Username:</label>
-                                <input type="text" id="username" class="form-control" placeholder="Enter username">
+                            <div class="form-group">
+                                <label class="form-label">Target Username</label>
+                                <input type="text" id="username" class="form-control" placeholder="Enter username to investigate">
                             </div>
-                            <button class="btn btn-primary w-100" onclick="startInvestigation()">
-                                Start Investigation
+                            <button class="btn-primary" onclick="startInvestigation()">
+                                <i class="fas fa-rocket"></i> Start Investigation
                             </button>
-                            <div class="platforms mt-3">
-                                <span class="platform-tag">TikTok</span>
-                                <span class="platform-tag">Facebook</span>
-                                <span class="platform-tag">Instagram</span>
-                                <span class="platform-tag">YouTube</span>
-                                <span class="platform-tag">Twitter</span>
-                                <span class="platform-tag">LinkedIn</span>
-                                <span class="platform-tag">GitHub</span>
-                                <span class="platform-tag">Reddit</span>
+                            <div class="platforms">
+                                <span class="platform-tag"><i class="fab fa-tiktok"></i> TikTok</span>
+                                <span class="platform-tag"><i class="fab fa-facebook"></i> Facebook</span>
+                                <span class="platform-tag"><i class="fab fa-instagram"></i> Instagram</span>
+                                <span class="platform-tag"><i class="fab fa-youtube"></i> YouTube</span>
+                                <span class="platform-tag"><i class="fab fa-twitter"></i> Twitter</span>
+                                <span class="platform-tag"><i class="fab fa-linkedin"></i> LinkedIn</span>
+                                <span class="platform-tag"><i class="fab fa-github"></i> GitHub</span>
+                                <span class="platform-tag"><i class="fab fa-reddit"></i> Reddit</span>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div id="results-deep" class="results" style="display: none;">
-                            <h3>Investigation Results</h3>
+                            <h3><i class="fas fa-analytics"></i> Investigation Results</h3>
                             <div id="resultContent-deep"></div>
                         </div>
                     </div>
@@ -336,35 +720,39 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-icon">
-                                    <i class="bi bi-globe"></i>
+                                    <i class="fas fa-search-plus"></i>
                                 </div>
                                 <h3>Advanced Search</h3>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Search Query:</label>
-                                <input type="text" id="advancedQuery" class="form-control" placeholder="Enter query">
+                            <div class="form-group">
+                                <label class="form-label">Search Query</label>
+                                <input type="text" id="advancedQuery" class="form-control" placeholder="Enter your search query">
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Search Engines:</label>
-                                <div class="d-flex gap-3">
-                                    <div class="form-check">
+                            <div class="form-group">
+                                <label class="form-label">Search Engines</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
                                         <input type="checkbox" id="bingCheck" class="form-check-input" checked>
-                                        <label class="form-check-label">Bing</label>
+                                        <label for="bingCheck" class="form-check-label">
+                                            <i class="fab fa-microsoft"></i> Bing
+                                        </label>
                                     </div>
-                                    <div class="form-check">
+                                    <div class="checkbox-item">
                                         <input type="checkbox" id="ddgCheck" class="form-check-input" checked>
-                                        <label class="form-check-label">DuckDuckGo</label>
+                                        <label for="ddgCheck" class="form-check-label">
+                                            <i class="fas fa-mask"></i> DuckDuckGo
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                            <button class="btn btn-primary w-100" onclick="advancedSearch()">
-                                Execute Search
+                            <button class="btn-primary" onclick="advancedSearch()">
+                                <i class="fas fa-bolt"></i> Execute Search
                             </button>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div id="results-advanced" class="results" style="display: none;">
-                            <h3>Search Results</h3>
+                            <h3><i class="fas fa-list-ul"></i> Search Results</h3>
                             <div id="resultContent-advanced"></div>
                         </div>
                     </div>
@@ -377,22 +765,22 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-icon">
-                                    <i class="bi bi-camera"></i>
+                                    <i class="fas fa-camera-retro"></i>
                                 </div>
                                 <h3>Website Capture</h3>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Target URL:</label>
+                            <div class="form-group">
+                                <label class="form-label">Target URL</label>
                                 <input type="text" id="captureUrl" class="form-control" placeholder="https://example.com">
                             </div>
-                            <button class="btn btn-primary w-100" onclick="captureWebsite()">
-                                Capture & Analyze
+                            <button class="btn-primary" onclick="captureWebsite()">
+                                <i class="fas fa-crosshairs"></i> Capture & Analyze
                             </button>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div id="results-capture" class="results" style="display: none;">
-                            <h3>Capture Results</h3>
+                            <h3><i class="fas fa-image"></i> Capture Results</h3>
                             <div id="resultContent-capture"></div>
                         </div>
                     </div>
@@ -405,22 +793,22 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-icon">
-                                    <i class="bi bi-people"></i>
+                                    <i class="fas fa-users-cog"></i>
                                 </div>
                                 <h3>Batch Investigation</h3>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Target Usernames (one per line):</label>
-                                <textarea id="batchUsernames" class="form-control" rows="5" placeholder="username1\nusername2\nusername3"></textarea>
+                            <div class="form-group">
+                                <label class="form-label">Target Usernames</label>
+                                <textarea id="batchUsernames" class="form-control" placeholder="Enter usernames (one per line)&#10;username1&#10;username2&#10;username3"></textarea>
                             </div>
-                            <button class="btn btn-primary w-100" onclick="batchInvestigation()">
-                                Start Batch Analysis
+                            <button class="btn-primary" onclick="batchInvestigation()">
+                                <i class="fas fa-tasks"></i> Start Batch Analysis
                             </button>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div id="results-batch" class="results" style="display: none;">
-                            <h3>Batch Results</h3>
+                            <h3><i class="fas fa-chart-bar"></i> Batch Results</h3>
                             <div id="resultContent-batch"></div>
                         </div>
                     </div>
@@ -430,26 +818,35 @@
     </div>
 
     <script>
+        // Page Navigation
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelector(`#${pageId}`).classList.add('active');
-            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
-            document.querySelector(`a[href="#${pageId}"]`).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            document.querySelector(`[onclick="showPage('${pageId}')"]`).classList.add('active');
             history.pushState(null, '', `#${pageId}`);
         }
 
+        // Toast Notifications
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}`;
+            
+            const icon = type === 'success' ? 'fas fa-check-circle' : 
+                        type === 'error' ? 'fas fa-exclamation-triangle' : 
+                        'fas fa-info-circle';
+            
+            toast.innerHTML = `<i class="${icon}"></i> ${message}`;
             document.body.appendChild(toast);
+            
             setTimeout(() => toast.classList.add('show'), 100);
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => document.body.removeChild(toast), 300);
-            }, 3000);
+            }, 4000);
         }
 
+        // Results Display
         function showResults(data, containerId, title = 'Results') {
             const resultsDiv = document.getElementById(`results-${containerId}`);
             const contentDiv = document.getElementById(`resultContent-${containerId}`);
@@ -458,14 +855,14 @@
             if (data.investigation) {
                 let html = `
                     <div class="result-item">
-                        <div class="result-title">Investigation Summary</div>
+                        <div class="result-title"><i class="fas fa-info-circle"></i> Investigation Summary</div>
                         <div>Total Results: <strong>${data.investigation.total_results}</strong></div>
                         <div>Timestamp: <strong>${new Date(data.investigation.timestamp).toLocaleString()}</strong></div>
                     </div>
                 `;
 
                 if (data.investigation.social_media) {
-                    html += '<div class="result-item"><div class="result-title">Social Media Findings</div>';
+                    html += '<div class="result-item"><div class="result-title"><i class="fas fa-share-alt"></i> Social Media Findings</div>';
                     Object.entries(data.investigation.social_media).forEach(([platform, results]) => {
                         if (results.length > 0) {
                             html += `<div><strong>${platform.charAt(0).toUpperCase() + platform.slice(1)}:</strong> ${results.length} results</div>`;
@@ -478,7 +875,7 @@
                     const contacts = data.investigation.extracted_contacts;
                     html += `
                         <div class="result-item">
-                            <div class="result-title">Extracted Contacts</div>
+                            <div class="result-title"><i class="fas fa-address-book"></i> Extracted Contacts</div>
                             <div>Emails: ${contacts.emails ? contacts.emails.length : 0}</div>
                             <div>Phones: ${contacts.phones ? contacts.phones.length : 0}</div>
                             <div>Social Profiles: ${contacts.social_profiles ? contacts.social_profiles.length : 0}</div>
@@ -486,14 +883,14 @@
                     `;
                 }
 
-                contentDiv.innerHTML = html + `<pre style="background: #333; padding: 15px; border-radius: 10px; overflow: auto; max-height: 300px; color: #ccc;">${JSON.stringify(data, null, 2)}</pre>`;
+                contentDiv.innerHTML = html + `<div class="code-block">${JSON.stringify(data, null, 2)}</div>`;
             } else {
                 let html = '';
                 if (data.results && Array.isArray(data.results)) {
                     data.results.forEach(result => {
                         html += `
                             <div class="result-item">
-                                <div class="result-title">${result.title || 'No Title'}</div>
+                                <div class="result-title"><i class="fas fa-link"></i> ${result.title || 'No Title'}</div>
                                 ${result.url ? `<div class="result-url">${result.url}</div>` : ''}
                                 ${result.snippet ? `<div class="result-snippet">${result.snippet}</div>` : ''}
                             </div>
@@ -501,17 +898,25 @@
                     });
                 }
 
-                contentDiv.innerHTML = html + `<pre style="background: #333; padding: 15px; border-radius: 10px; overflow: auto; max-height: 300px; color: #ccc;">${JSON.stringify(data, null, 2)}</pre>`;
+                contentDiv.innerHTML = html + `<div class="code-block">${JSON.stringify(data, null, 2)}</div>`;
             }
 
             resultsDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
+        // Button Loading State
         function setButtonLoading(button, loading) {
             button.disabled = loading;
             button.classList.toggle('loading', loading);
+            
+            if (loading) {
+                button.style.pointerEvents = 'none';
+            } else {
+                button.style.pointerEvents = 'auto';
+            }
         }
 
+        // Deep Investigation Function
         async function startInvestigation() {
             const username = document.getElementById('username').value.trim();
             if (!username) {
@@ -523,7 +928,7 @@
             setButtonLoading(button, true);
 
             try {
-                showToast('Starting investigation...', 'success');
+                showToast('Starting investigation...', 'info');
                 const response = await fetch('/api/investigate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -533,7 +938,7 @@
                 const data = await response.json();
                 if (data.success) {
                     showResults(data, 'deep', 'Investigation Results');
-                    showToast('Investigation completed!', 'success');
+                    showToast('Investigation completed successfully!', 'success');
                 } else {
                     showToast('Investigation failed: ' + data.error, 'error');
                 }
@@ -544,6 +949,7 @@
             }
         }
 
+        // Advanced Search Function
         async function advancedSearch() {
             const query = document.getElementById('advancedQuery').value.trim();
             if (!query) {
@@ -567,7 +973,7 @@
                 if (bingEnabled) sources.push('bing');
                 if (ddgEnabled) sources.push('duckduckgo');
 
-                showToast('Executing search...', 'success');
+                showToast('Executing search...', 'info');
                 const response = await fetch('/api/advanced-search', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -577,7 +983,7 @@
                 const data = await response.json();
                 if (data.success) {
                     showResults(data, 'advanced', 'Search Results');
-                    showToast(`Found ${data.total} results!`, 'success');
+                    showToast(`Found ${data.total || 0} results!`, 'success');
                 } else {
                     showToast('Search failed: ' + data.error, 'error');
                 }
@@ -588,6 +994,7 @@
             }
         }
 
+        // Website Capture Function
         async function captureWebsite() {
             const url = document.getElementById('captureUrl').value.trim();
             if (!url) {
@@ -595,11 +1002,16 @@
                 return;
             }
 
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showToast('Please enter a valid URL starting with http:// or https://', 'error');
+                return;
+            }
+
             const button = event.target;
             setButtonLoading(button, true);
 
             try {
-                showToast('Capturing website...', 'success');
+                showToast('Capturing website...', 'info');
                 const response = await fetch('/api/capture', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -609,7 +1021,7 @@
                 const data = await response.json();
                 if (data.success) {
                     showResults(data, 'capture', 'Website Capture');
-                    showToast('Capture completed!', 'success');
+                    showToast('Website captured successfully!', 'success');
                 } else {
                     showToast('Capture failed: ' + data.error, 'error');
                 }
@@ -620,6 +1032,7 @@
             }
         }
 
+        // Batch Investigation Function
         async function batchInvestigation() {
             const usernamesText = document.getElementById('batchUsernames').value.trim();
             if (!usernamesText) {
@@ -633,11 +1046,16 @@
                 return;
             }
 
+            if (usernames.length > 50) {
+                showToast('Maximum 50 usernames allowed per batch', 'error');
+                return;
+            }
+
             const button = event.target;
             setButtonLoading(button, true);
 
             try {
-                showToast(`Starting batch investigation for ${usernames.length} targets...`, 'success');
+                showToast(`Starting batch investigation for ${usernames.length} targets...`, 'info');
                 const response = await fetch('/api/batch-investigate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -647,7 +1065,7 @@
                 const data = await response.json();
                 if (data.success) {
                     showResults(data, 'batch', 'Batch Investigation Results');
-                    showToast(`Batch completed! Analyzed ${data.total_investigated} targets.`, 'success');
+                    showToast(`Batch completed! Analyzed ${data.total_investigated || usernames.length} targets.`, 'success');
                 } else {
                     showToast('Batch investigation failed: ' + data.error, 'error');
                 }
@@ -658,9 +1076,121 @@
             }
         }
 
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '1':
+                        e.preventDefault();
+                        showPage('deep-investigation');
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        showPage('advanced-search');
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        showPage('website-capture');
+                        break;
+                    case '4':
+                        e.preventDefault();
+                        showPage('batch-investigation');
+                        break;
+                }
+            }
+        });
+
+        // Initialize page based on URL hash
         document.addEventListener('DOMContentLoaded', () => {
             const hash = window.location.hash.slice(1) || 'deep-investigation';
             showPage(hash);
+            
+            // Add smooth scrolling behavior
+            document.documentElement.style.scrollBehavior = 'smooth';
+            
+            // Add tooltip functionality for nav items
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    const title = this.getAttribute('title');
+                    if (title && window.innerWidth > 768) {
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'nav-tooltip';
+                        tooltip.textContent = title;
+                        tooltip.style.cssText = `
+                            position: absolute;
+                            left: 90px;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            background: var(--bg-secondary);
+                            color: var(--text-primary);
+                            padding: 8px 12px;
+                            border-radius: 6px;
+                            font-size: 14px;
+                            white-space: nowrap;
+                            z-index: 1000;
+                            box-shadow: var(--shadow-lg);
+                            border: 1px solid var(--border-color);
+                            pointer-events: none;
+                            opacity: 0;
+                            transition: opacity 0.2s ease;
+                        `;
+                        this.appendChild(tooltip);
+                        setTimeout(() => tooltip.style.opacity = '1', 10);
+                    }
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    const tooltip = this.querySelector('.nav-tooltip');
+                    if (tooltip) {
+                        tooltip.style.opacity = '0';
+                        setTimeout(() => {
+                            if (tooltip.parentNode) {
+                                tooltip.parentNode.removeChild(tooltip);
+                            }
+                        }, 200);
+                    }
+                });
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const tooltips = document.querySelectorAll('.nav-tooltip');
+            tooltips.forEach(tooltip => {
+                if (tooltip.parentNode) {
+                    tooltip.parentNode.removeChild(tooltip);
+                }
+            });
+        });
+
+        // Add form validation
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            const inputs = form.querySelectorAll('input[required], textarea[required]');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.style.borderColor = 'var(--error-color)';
+                    isValid = false;
+                } else {
+                    input.style.borderColor = 'transparent';
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Add input event listeners for real-time validation
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.hasAttribute('required') && this.value.trim()) {
+                    this.style.borderColor = 'var(--success-color)';
+                } else if (this.hasAttribute('required')) {
+                    this.style.borderColor = 'transparent';
+                }
+            });
         });
     </script>
 </body>
