@@ -4,341 +4,407 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSINT Investigation Platform</title>
-    <link href="/styles/output.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 60px;
+            background-color: #2c2c2c;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+        }
+        .sidebar button {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            font-size: 24px;
+            padding: 15px;
+            cursor: pointer;
+            transition: color 0.3s, background-color 0.3s;
+            margin-bottom: 10px;
+        }
+        .sidebar button:hover {
+            color: #ffffff;
+            background-color: #3a3a3a;
+            border-radius: 8px;
+        }
+        .sidebar button.active {
+            color: #ffffff;
+            background-color: #007bff;
+            border-radius: 8px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #2c2c2c;
+            border: 1px solid #4a4a4a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        button.primary {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button.primary:hover {
+            background-color: #0056b3;
+        }
+        button.primary:disabled {
+            background-color: #4a4a4a;
+            cursor: not-allowed;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            color: #e0e0e0;
+        }
+        .checkbox-group input {
+            width: auto;
+            margin-right: 8px;
+        }
+        .error {
+            color: #ff4d4d;
+            margin-top: 10px;
+        }
+        .profile-card {
+            background-color: #2c2c2c;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+        }
+        .profile-card:hover {
+            transform: translateY(-2px);
+        }
+        .profile-card img.profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+        .profile-card img.screenshot {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .profile-card h3 {
+            margin: 0 0 5px;
+            font-size: 18px;
+            color: #ffffff;
+        }
+        .profile-card p {
+            margin: 5px 0;
+            color: #a0a0a0;
+        }
+        .profile-card a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .profile-card a:hover {
+            text-decoration: underline;
+        }
+        .results-section h2 {
+            font-size: 20px;
+            margin: 20px 0 10px;
+            color: #ffffff;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100">
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+<body>
+    <div class="sidebar">
+        <button data-tab="deep" title="Deep Investigation" class="active"><i class="bi bi-search"></i></button>
+        <button data-tab="social" title="Social Media Search"><i class="bi bi-globe"></i></button>
+        <button data-tab="advanced" title="Advanced Search"><i class="bi bi-zoom-in"></i></button>
+        <button data-tab="capture" title="Website Capture"><i class="bi bi-camera"></i></button>
+        <button data-tab="batch" title="Batch Investigation"><i class="bi bi-list-task"></i></button>
+        <button data-tab="health" title="System Health"><i class="bi bi-gear"></i></button>
+    </div>
+    <div class="main-content">
+        <div class="container">
+            <div id="deep-tab" class="tab-content">
+                <h1>Deep Investigation</h1>
+                <input type="text" id="deep-username" placeholder="Enter username">
+                <button class="primary" onclick="handleSearch('deep')">Start Investigation</button>
+                <div id="deep-error" class="error"></div>
+                <div id="deep-results" class="results-section"></div>
+            </div>
+            <div id="social-tab" class="tab-content" style="display: none;">
+                <h1>Social Media Search</h1>
+                <input type="text" id="social-username" placeholder="Enter username">
+                <select id="social-platform">
+                    <option value="tiktok">TikTok</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="github">GitHub</option>
+                    <option value="reddit">Reddit</option>
+                </select>
+                <button class="primary" onclick="handleSearch('social')">Search Social Media</button>
+                <div id="social-error" class="error"></div>
+                <div id="social-results" class="results-section"></div>
+            </div>
+            <div id="advanced-tab" class="tab-content" style="display: none;">
+                <h1>Advanced Search</h1>
+                <input type="text" id="advanced-query" placeholder="Enter search query">
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="bing-source" checked> Bing</label>
+                    <label><input type="checkbox" id="duckduckgo-source" checked> DuckDuckGo</label>
+                </div>
+                <button class="primary" onclick="handleSearch('advanced')">Execute Search</button>
+                <div id="advanced-error" class="error"></div>
+                <div id="advanced-results" class="results-section"></div>
+            </div>
+            <div id="capture-tab" class="tab-content" style="display: none;">
+                <h1>Website Capture</h1>
+                <input type="text" id="capture-url" placeholder="Enter URL">
+                <button class="primary" onclick="handleSearch('capture')">Capture & Analyze</button>
+                <div id="capture-error" class="error"></div>
+                <div id="capture-results" class="results-section"></div>
+            </div>
+            <div id="batch-tab" class="tab-content" style="display: none;">
+                <h1>Batch Investigation</h1>
+                <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" rows="5"></textarea>
+                <button class="primary" onclick="handleSearch('batch')">Start Batch Analysis</button>
+                <div id="batch-error" class="error"></div>
+                <div id="batch-results" class="results-section"></div>
+            </div>
+            <div id="health-tab" class="tab-content" style="display: none;">
+                <h1>System Health</h1>
+                <button class="primary" onclick="handleSearch('health')">Check System Health</button>
+                <div id="health-error" class="error"></div>
+                <div id="health-results" class="results-section"></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+    <script>
+        const tabs = document.querySelectorAll('.sidebar button');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-        const App = () => {
-            const [activeTab, setActiveTab] = useState('deep');
-            const [username, setUsername] = useState('');
-            const [query, setQuery] = useState('');
-            const [url, setUrl] = useState('');
-            const [usernames, setUsernames] = useState('');
-            const [platform, setPlatform] = useState('tiktok');
-            const [sources, setSources] = useState({ bing: true, duckduckgo: true });
-            const [results, setResults] = useState(null);
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState(null);
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                tabContents.forEach(content => content.style.display = 'none');
+                document.getElementById(`${tab.dataset.tab}-tab`).style.display = 'block';
+                clearResults();
+            });
+        });
 
-            const menuItems = [
-                { id: 'deep', icon: '🔍', label: 'Deep Investigation' },
-                { id: 'social', icon: '🌐', label: 'Social Media Search' },
-                { id: 'advanced', icon: '🔎', label: 'Advanced Search' },
-                { id: 'capture', icon: '📸', label: 'Website Capture' },
-                { id: 'batch', icon: '📜', label: 'Batch Investigation' },
-                { id: 'health', icon: '⚙️', label: 'System Health' }
-            ];
+        function clearResults() {
+            document.querySelectorAll('.results-section').forEach(el => el.innerHTML = '');
+            document.querySelectorAll('.error').forEach(el => el.innerHTML = '');
+        }
 
-            const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
+        async function handleSearch(tab) {
+            const errorEl = document.getElementById(`${tab}-error`);
+            const resultsEl = document.getElementById(`${tab}-results`);
+            const button = document.querySelector(`#${tab}-tab button.primary`);
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            errorEl.innerHTML = '';
+            resultsEl.innerHTML = '';
 
-            const handleSearch = async (endpoint, payload) => {
-                setLoading(true);
-                setError(null);
-                try {
-                    const response = await axios.post(endpoint, payload);
-                    setResults(response.data);
-                } catch (err) {
-                    setError(err.response?.data?.error || 'An error occurred');
-                } finally {
-                    setLoading(false);
+            try {
+                let response;
+                if (tab === 'deep') {
+                    const username = document.getElementById('deep-username').value;
+                    if (!username) throw new Error('Username is required');
+                    response = await axios.post('/api/investigate', { username });
+                    renderDeepResults(response.data.investigation, resultsEl);
+                } else if (tab === 'social') {
+                    const username = document.getElementById('social-username').value;
+                    const platform = document.getElementById('social-platform').value;
+                    if (!username) throw new Error('Username is required');
+                    response = await axios.post(`/api/search/${platform}`, { username });
+                    renderProfileResults(response.data.results, resultsEl);
+                } else if (tab === 'advanced') {
+                    const query = document.getElementById('advanced-query').value;
+                    const sources = [];
+                    if (document.getElementById('bing-source').checked) sources.push('bing');
+                    if (document.getElementById('duckduckgo-source').checked) sources.push('duckduckgo');
+                    if (!query) throw new Error('Query is required');
+                    response = await axios.post('/api/advanced-search', { query, sources });
+                    renderProfileResults(response.data.results, resultsEl);
+                } else if (tab === 'capture') {
+                    const url = document.getElementById('capture-url').value;
+                    if (!url) throw new Error('URL is required');
+                    response = await axios.post('/api/capture', { url });
+                    renderCaptureResults(response.data.capture, resultsEl);
+                } else if (tab === 'batch') {
+                    const usernames = document.getElementById('batch-usernames').value.split('\n').filter(u => u.trim());
+                    if (!usernames.length) throw new Error('Usernames array is required');
+                    response = await axios.post('/api/batch-investigate', { usernames });
+                    renderBatchResults(response.data.investigations, resultsEl);
+                } else if (tab === 'health') {
+                    response = await axios.get('/health');
+                    renderHealthResults(response.data, resultsEl);
                 }
-            };
+            } catch (err) {
+                errorEl.innerHTML = err.response?.data?.error || err.message;
+            } finally {
+                button.disabled = false;
+                button.textContent = button.textContent.replace('Processing...', {
+                    deep: 'Start Investigation',
+                    social: 'Search Social Media',
+                    advanced: 'Execute Search',
+                    capture: 'Capture & Analyze',
+                    batch: 'Start Batch Analysis',
+                    health: 'Check System Health'
+                }[tab]);
+            }
+        }
 
-            const handleHealthCheck = async () => {
-                setLoading(true);
-                setError(null);
-                try {
-                    const response = await axios.get('/health');
-                    setResults(response.data);
-                } catch (err) {
-                    setError(err.response?.data?.error || 'An error occurred');
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            const ProfileCard = ({ profile }) => (
-                <div className="bg-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
-                    <div className="flex items-center space-x-4">
-                        {profile.profilePic && (
-                            <img src={profile.profilePic} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
-                        )}
+        function renderProfileCard(profile) {
+            return `
+                <div class="profile-card">
+                    <div style="display: flex; align-items: center;">
+                        ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : ''}
                         <div>
-                            <h3 className="text-lg font-semibold text-white">{profile.title || 'Unknown'}</h3>
-                            <p className="text-sm text-gray-400">{profile.platform}</p>
-                            <a href={profile.url} target="_blank" className="text-blue-400 hover:underline">{profile.url}</a>
+                            <h3>${profile.title || 'Unknown'}</h3>
+                            <p>Platform: ${profile.platform || 'N/A'}</p>
+                            <a href="${profile.url}" target="_blank">${profile.url}</a>
                         </div>
                     </div>
-                    {profile.bio && <p過程className="mt-2 text-gray-300">{profile.bio}</p>}
-                    {profile.followers && <p className="text-gray-400">Followers: {profile.followers}</p>}
-                    {profile.postCount && <p className="text-gray-400">Posts: {profile.postCount}</p>}
-                    {profile.snippet && <p className="mt-2 text-gray-300">{profile.snippet}</p>}
-                    {profile.screenshot && (
-                        <img src={profile.screenshot} alt="Screenshot" className="mt-2 rounded-lg max-w-full" />
-                    )}
+                    ${profile.bio ? `<p>Bio: ${profile.bio}</p>` : ''}
+                    ${profile.followers ? `<p>Followers: ${profile.followers}</p>` : ''}
+                    ${profile.postCount ? `<p>Posts: ${profile.postCount}</p>` : ''}
+                    ${profile.snippet ? `<p>${profile.snippet}</p>` : ''}
+                    ${profile.screenshot ? `<img src="${profile.screenshot}" class="screenshot" alt="Screenshot">` : ''}
                 </div>
-            );
+            `;
+        }
 
-            const CaptureCard = ({ capture }) => (
-                <div className="bg-gray-800 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow">
-                    <h3 className="text-lg font-semibold text-white">{capture.title || 'Website Capture'}</h3>
-                    <a href={capture.url} target="_blank" className="text-blue-400 hover:underline">{capture.url}</a>
-                    {capture.description && <p className="mt-2 text-gray-300">{capture.description}</p>}
-                    {capture.screenshot && (
-                        <img src={capture.screenshot} alt="Screenshot" className="mt-2 rounded-lg max-w-full" />
-                    )}
-                    {capture.error && <p className="text-red-400">Error: {capture.error}</p>}
+        function renderCaptureCard(capture) {
+            return `
+                <div class="profile-card">
+                    <h3>${capture.title || 'Website Capture'}</h3>
+                    <a href="${capture.url}" target="_blank">${capture.url}</a>
+                    ${capture.description ? `<p>${capture.description}</p>` : ''}
+                    ${capture.screenshot ? `<img src="${capture.screenshot}" class="screenshot" alt="Screenshot">` : ''}
+                    ${capture.error ? `<p class="error">Error: ${capture.error}</p>` : ''}
                 </div>
-            );
+            `;
+        }
 
-            const renderResults = () => {
-                if (!results) return null;
-                if (activeTab === 'deep') {
-                    return (
-                        <div>
-                            {Object.entries(results.investigation.social_media).map(([platform, profiles]) => (
-                                <div key={platform}>
-                                    <h2 className="text-xl font-bold text-white mb-4">{platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {profiles.map((profile, index) => (
-                                            <ProfileCard key={index} profile={profile} />
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                            <h2 className="text-xl font-bold text-white mb-4">General Search</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {results.investigation.general_search.map((result, index) => (
-                                    <ProfileCard key={index} profile={result} />
-                                ))}
-                            </div>
-                        </div>
-                    );
-                } else if (activeTab === 'social') {
-                    return (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {results.results.map((profile, index) => (
-                                <ProfileCard key={index} profile={profile} />
-                            ))}
-                        </div>
-                    );
-                } else if (activeTab === 'advanced') {
-                    return (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {results.results.map((result, index) => (
-                                <ProfileCard key={index} profile={result} />
-                            ))}
-                        </div>
-                    );
-                } else if (activeTab === 'capture') {
-                    return <CaptureCard capture={results.capture} />;
-                } else if (activeTab === 'batch') {
-                    return (
-                        <div>
-                            {results.investigations.map((investigation, index) => (
-                                <div key={index}>
-                                    <h2 className="text-xl font-bold text-white mb-4">Username: {investigation.username}</h2>
-                                    {Object.entries(investigation.social_media).map(([platform, profiles]) => (
-                                        <div key={platform}>
-                                            <h3 className="text-lg font-semibold text-white mb-2">{platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                {profiles.map((profile, idx) => (
-                                                    <ProfileCard key={idx} profile={profile} />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
-                    );
-                } else if (activeTab === 'health') {
-                    return (
-                        <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
-                            <h2 className="text-xl font-bold text-white mb-4">System Health</h2>
-                            <p><strong>Status:</strong> {results.status}</p>
-                            <p><strong>Version:</strong> {results.version}</p>
-                            <p><strong>Uptime:</strong> {Math.round(results.uptime)} seconds</p>
-                            <p><strong>Supported Platforms:</strong> {results.supported_platforms.join(', ')}</p>
-                            <p><strong>Features:</strong> {results.features.join(', ')}</p>
-                        </div>
-                    );
+        function renderDeepResults(investigation, resultsEl) {
+            let html = '';
+            Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
+                if (profiles.length) {
+                    html += `<h2>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>`;
+                    html += '<div class="results-grid">';
+                    profiles.forEach(profile => {
+                        html += renderProfileCard(profile);
+                    });
+                    html += '</div>';
                 }
-                return null;
-            };
+            });
+            if (investigation.general_search.length) {
+                html += '<h2>General Search</h2>';
+                html += '<div class="results-grid">';
+                investigation.general_search.forEach(result => {
+                    html += renderProfileCard(result);
+                });
+                html += '</div>';
+            }
+            resultsEl.innerHTML = html;
+        }
 
-            return (
-                <div className="flex h-screen">
-                    <div className="w-16 bg-gray-800 flex flex-col items-center py-4 space-y-6">
-                        {menuItems.map(item => (
-                            <button
-                                key={item.id}
-                                onClick={() => setActiveTab(item.id)}
-                                className={`text-2xl p-2 rounded-lg ${activeTab === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
-                                title={item.label}
-                            >
-                                {item.icon}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="flex-1 p-6">
-                        <div className="max-w-4xl mx-auto">
-                            {activeTab === 'deep' && (
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white mb-4">Deep Investigation</h1>
-                                    <input
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="Enter username"
-                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
-                                    />
-                                    <button
-                                        onClick={() => handleSearch('/api/investigate', { username })}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Investigating...' : 'Start Investigation'}
-                                    </button>
-                                </div>
-                            )}
-                            {activeTab === 'social' && (
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white mb-4">Social Media Search</h1>
-                                    <input
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="Enter username"
-                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
-                                    />
-                                    <select
-                                        value={platform}
-                                        onChange={(e) => setPlatform(e.target.value)}
-                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
-                                    >
-                                        {platforms.map(p => (
-                                            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-                                        ))}
-                                    </select>
-                                    <button
-                                        onClick={() => handleSearch(`/api/search/${platform}`, { username })}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Searching...' : 'Search Social Media'}
-                                    </button>
-                                </div>
-                            )}
-                            {activeTab === 'advanced' && (
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white mb-4">Advanced Search</h1>
-                                    <input
-                                        type="text"
-                                        value={query}
-                                        onChange={(e) => setQuery(e.target.value)}
-                                        placeholder="Enter search query"
-                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
-                                    />
-                                    <div className="flex space-x-4 mb-4">
-                                        <label className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={sources.bing}
-                                                onChange={() => setSources({ ...sources, bing: !sources.bing })}
-                                                className="mr-2"
-                                            />
-                                            Bing
-                                        </label>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={sources.duckduckgo}
-                                                onChange={() => setSources({ ...sources, duckduckgo: !sources.duckduckgo })}
-                                                className="mr-2"
-                                            />
-                                            DuckDuckGo
-                                        </label>
-                                    </div>
-                                    <button
-                                        onClick={() => handleSearch('/api/advanced-search', { query, sources: Object.keys(sources).filter(k => sources[k]) })}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Searching...' : 'Execute Search'}
-                                    </button>
-                                </div>
-                            )}
-                            {activeTab === 'capture' && (
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white mb-4">Website Capture</h1>
-                                    <input
-                                        type="text"
-                                        value={url}
-                                        onChange={(e) => setUrl(e.target.value)}
-                                        placeholder="Enter URL"
-                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4"
-                                    />
-                                    <button
-                                        onClick={() => handleSearch('/api/capture', { url })}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Capturing...' : 'Capture & Analyze'}
-                                    </button>
-                                </div>
-                            )}
-                            {activeTab === 'batch' && (
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white mb-4">Batch Investigation</h1>
-                                    <textarea
-                                        value={usernames}
-                                        onChange={(e) => setUsernames(e.target.value)}
-                                        placeholder="Enter usernames (one per line)"
-                                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded-lg text-white mb-4 h-32"
-                                    />
-                                    <button
-                                        onClick={() => handleSearch('/api/batch-investigate', { usernames: usernames.split('\n').filter(u => u.trim()) })}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Investigating...' : 'Start Batch Analysis'}
-                                    </button>
-                                </div>
-                            )}
-                            {activeTab === 'health' && (
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white mb-4">System Health</h1>
-                                    <button
-                                        onClick={handleHealthCheck}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Checking...' : 'Check System Health'}
-                                    </button>
-                                </div>
-                            )}
-                            {error && <p className="text-red-400 mt-4">{error}</p>}
-                            {results && (
-                                <div className="mt-6">
-                                    <h2 className="text-xl font-bold text-white mb-4">Results</h2>
-                                    {renderResults()}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+        function renderProfileResults(profiles, resultsEl) {
+            let html = '<div class="results-grid">';
+            profiles.forEach(profile => {
+                html += renderProfileCard(profile);
+            });
+            html += '</div>';
+            resultsEl.innerHTML = html;
+        }
+
+        function renderCaptureResults(capture, resultsEl) {
+            resultsEl.innerHTML = renderCaptureCard(capture);
+        }
+
+        function renderBatchResults(investigations, resultsEl) {
+            let html = '';
+            investigations.forEach(investigation => {
+                html += `<h2>Username: ${investigation.username}</h2>`;
+                Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
+                    if (profiles.length) {
+                        html += `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
+                        html += '<div class="results-grid">';
+                        profiles.forEach(profile => {
+                            html += renderProfileCard(profile);
+                        });
+                        html += '</div>';
+                    }
+                });
+            });
+            resultsEl.innerHTML = html;
+        }
+
+        function renderHealthResults(data, resultsEl) {
+            resultsEl.innerHTML = `
+                <div class="profile-card">
+                    <h2>System Health</h2>
+                    <p><strong>Status:</strong> ${data.status}</p>
+                    <p><strong>Version:</strong> ${data.version}</p>
+                    <p><strong>Uptime:</strong> ${Math.round(data.uptime)} seconds</p>
+                    <p><strong>Supported Platforms:</strong> ${data.supported_platforms.join(', ')}</p>
+                    <p><strong>Features:</strong> ${data.features.join(', ')}</p>
                 </div>
-            );
-        };
-
-        ReactDOM.render(<App />, document.getElementById('root'));
+            `;
+        }
     </script>
 </body>
 </html>
+
