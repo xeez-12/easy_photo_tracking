@@ -3,726 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️ OSINT Investigation Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <meta name="robots" content="noindex, nofollow">
+    <title>OSINT Investigation Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/all.min.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #1a1a1a;
-            color: #f0f0f0;
-            min-height: 100vh;
-            overflow-x: hidden;
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 70px;
-            height: 100vh;
-            background: #121212;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 20px;
-            border-right: 1px solid #333;
-            z-index: 1000;
+        .header-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-
-        .sidebar a {
-            color: #f0f0f0;
-            font-size: 1.5rem;
-            padding: 15px;
-            margin: 10px 0;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar a:hover {
-            background: #333;
-            border-radius: 10px;
-            color: #0d6efd;
-        }
-
-        .sidebar a.active {
-            background: #0d6efd;
-            color: white;
-            border-radius: 10px;
-        }
-
-        .main-content {
-            margin-left: 70px;
-            padding: 20px;
-            min-height: 100vh;
-            background: #1a1a1a;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .container-fluid {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
         .card {
-            background: #222;
-            border: none;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
+            transition: transform 0.2s ease-in-out;
         }
-
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
         }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
+        .icon {
+            transition: color 0.2s ease-in-out;
         }
-
-        .card-icon {
-            font-size: 1.8rem;
-            margin-right: 15px;
-            padding: 10px;
-            background: #0d6efd;
-            border-radius: 10px;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .icon:hover {
+            color: #3b82f6;
         }
-
-        .card h3 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #0d6efd;
-        }
-
-        .form-label {
-            color: #f0f0f0;
-            font-weight: 600;
-        }
-
-        .form-control, .form-check-input {
-            background: #333;
-            border: 1px solid #444;
-            color: #f0f0f0;
-            border-radius: 10px;
-        }
-
-        .form-control:focus {
-            background: #333;
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
-            color: #f0f0f0;
-        }
-
-        .form-control::placeholder {
-            color: #888;
-        }
-
-        .btn-primary {
-            background: #0d6efd;
-            border: none;
-            border-radius: 10px;
-            padding: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: #0b5ed7;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
-        }
-
-        .btn-primary.loading::after {
-            content: '';
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results {
-            background: #222;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-height: 80vh;
+        .results-container {
+            max-height: 400px;
             overflow-y: auto;
         }
-
-        .results::-webkit-scrollbar {
-            width: 8px;
+        .btn-primary {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
         }
-
-        .results::-webkit-scrollbar-track {
-            background: #333;
-        }
-
-        .results::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 10px;
-        }
-
-        .result-card {
-            background: #333;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #0d6efd;
-            transition: all 0.3s ease;
-        }
-
-        .result-card:hover {
-            background: #444;
-            transform: translateY(-3px);
-        }
-
-        .result-title {
-            font-weight: bold;
-            color: #0d6efd;
-            font-size: 1.2rem;
-        }
-
-        .result-url {
-            color: #6ab0ff;
-            font-size: 0.9rem;
-            word-break: break-all;
-        }
-
-        .result-snippet {
-            color: #ccc;
-            font-size: 0.9rem;
-        }
-
-        .profile-photo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 10px;
-            border: 2px solid #0d6efd;
-        }
-
-        .profile-photo-placeholder {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: #444;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            font-size: 0.9rem;
-            text-align: center;
-            margin-bottom: 10px;
-            border: 2px solid #444;
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: #0d6efd;
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .platforms {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .platform-tag {
-            background: #333;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: #ccc;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                flex-direction: row;
-                justify-content: center;
-                padding: 10px;
-                position: fixed;
-                bottom: 0;
-                top: auto;
-                border-right: none;
-                border-top: 1px solid #333;
-            }
-
-            .main-content {
-                margin-left: 0;
-                margin-bottom: 70px;
-                padding: 15px;
-            }
-
-            .profile-photo, .profile-photo-placeholder {
-                width: 60px;
-                height: 60px;
-            }
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <a href="#deep-investigation" class="nav-link active" onclick="showPage('deep-investigation')">
-            <i class="bi bi-search"></i>
-        </a>
-        <a href="#advanced-search" class="nav-link" onclick="showPage('advanced-search')">
-            <i class="bi bi-globe"></i>
-        </a>
-        <a href="#website-capture" class="nav-link" onclick="showPage('website-capture')">
-            <i class="bi bi-camera"></i>
-        </a>
-        <a href="#batch-investigation" class="nav-link" onclick="showPage('batch-investigation')">
-            <i class="bi bi-people"></i>
-        </a>
-    </div>
-
-    <div class="main-content">
-        <div class="container-fluid">
-            <div id="deep-investigation" class="page active">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="bi bi-search"></i>
-                                </div>
-                                <h3>Deep Investigation</h3>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Target Username:</label>
-                                <input type="text" id="username" class="form-control" placeholder="Enter username">
-                            </div>
-                            <button class="btn btn-primary w-100" onclick="startInvestigation()">
-                                Start Investigation
-                            </button>
-                            <div class="platforms mt-3">
-                                <span class="platform-tag">TikTok</span>
-                                <span class="platform-tag">Facebook</span>
-                                <span class="platform-tag">Instagram</span>
-                                <span class="platform-tag">YouTube</span>
-                                <span class="platform-tag">Twitter</span>
-                                <span class="platform-tag">LinkedIn</span>
-                                <span class="platform-tag">GitHub</span>
-                                <span class="platform-tag">Reddit</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div id="results-deep" class="results" style="display: none;">
-                            <h3>Investigation Results</h3>
-                            <div id="resultContent-deep"></div>
-                        </div>
-                    </div>
-                </div>
+    <div id="app" class="min-h-screen">
+        <header class="bg-white header-shadow py-4 px-6">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">OSINT Investigation Platform</h1>
+                <nav>
+                    <ul class="flex space-x-6">
+                        <li><a href="#deep-investigation" class="text-gray-600 hover:text-blue-600 icon"><i class="fas fa-search mr-2"></i>Deep Investigation</a></li>
+                        <li><a href="#advanced-search" class="text-gray-600 hover:text-blue-600 icon"><i class="fas fa-magnifying-glass mr-2"></i>Advanced Search</a></li>
+                        <li><a href="#website-capture" class="text-gray-600 hover:text-blue-600 icon"><i class="fas fa-camera mr-2"></i>Website Capture</a></li>
+                        <li><a href="#batch-investigation" class="text-gray-600 hover:text-blue-600 icon"><i class="fas fa-users mr-2"></i>Batch Investigation</a></li>
+                    </ul>
+                </nav>
             </div>
+        </header>
 
-            <div id="advanced-search" class="page">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="bi bi-globe"></i>
-                                </div>
-                                <h3>Advanced Search</h3>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Search Query:</label>
-                                <input type="text" id="advancedQuery" class="form-control" placeholder="Enter query">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Search Engines:</label>
-                                <div class="d-flex gap-3">
-                                    <div class="form-check">
-                                        <input type="checkbox" id="bingCheck" class="form-check-input" checked>
-                                        <label class="form-check-label">Bing</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input type="checkbox" id="ddgCheck" class="form-check-input" checked>
-                                        <label class="form-check-label">DuckDuckGo</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn btn-primary w-100" onclick="advancedSearch()">
-                                Execute Search
-                            </button>
+        <main class="container mx-auto py-8 px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Deep Investigation -->
+                <section id="deep-investigation" class="bg-white p-6 rounded-lg shadow card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-search mr-2 text-blue-600"></i>Deep Investigation
+                    </h2>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Target Username:</label>
+                        <input v-model="investigationUsername" type="text" class="w-full p-2 border rounded" placeholder="Enter username">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Select Platforms:</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label><input type="checkbox" v-model="platforms" value="tiktok"> <i class="fab fa-tiktok mr-1"></i>TikTok</label>
+                            <label><input type="checkbox" v-model="platforms" value="facebook"> <i class="fab fa-facebook mr-1"></i>Facebook</label>
+                            <label><input type="checkbox" v-model="platforms" value="instagram"> <i class="fab fa-instagram mr-1"></i>Instagram</label>
+                            <label><input type="checkbox" v-model="platforms" value="youtube"> <i class="fab fa-youtube mr-1"></i>YouTube</label>
+                            <label><input type="checkbox" v-model="platforms" value="twitter"> <i class="fab fa-twitter mr-1"></i>Twitter</label>
+                            <label><input type="checkbox" v-model="platforms" value="linkedin"> <i class="fab fa-linkedin mr-1"></i>LinkedIn</label>
+                            <label><input type="checkbox" v-model="platforms" value="github"> <i class="fab fa-github mr-1"></i>GitHub</label>
+                            <label><input type="checkbox" v-model="platforms" value="reddit"> <i class="fab fa-reddit mr-1"></i>Reddit</label>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div id="results-advanced" class="results" style="display: none;">
-                            <h3>Search Results</h3>
-                            <div id="resultContent-advanced"></div>
+                    <button @click="startInvestigation" class="btn-primary text-white px-4 py-2 rounded w-full">Start Investigation</button>
+                    <div v-if="investigationResults" class="mt-4 results-container">
+                        <h3 class="text-lg font-semibold mb-2">Investigation Results</h3>
+                        <div v-for="platform in Object.keys(investigationResults.social_media)" :key="platform" class="mb-4">
+                            <h4 class="font-medium capitalize">{{ platform }}</h4>
+                            <ul class="list-disc pl-5">
+                                <li v-for="result in investigationResults.social_media[platform]" :key="result.url">
+                                    <a :href="result.url" target="_blank" class="text-blue-600 hover:underline">{{ result.title }}</a>
+                                    <p class="text-gray-600">{{ result.snippet }}</p>
+                                    <p v-if="result.username" class="text-sm text-gray-500">Username: {{ result.username }}</p>
+                                    <p v-if="result.bio" class="text-sm text-gray-500">Bio: {{ result.bio }}</p>
+                                    <p v-if="result.followers" class="text-sm text-gray-500">Followers: {{ result.followers }}</p>
+                                    <p v-if="result.posts" class="text-sm text-gray-500">Posts: {{ result.posts }}</p>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <div id="website-capture" class="page">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="bi bi-camera"></i>
-                                </div>
-                                <h3>Website Capture</h3>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Target URL:</label>
-                                <input type="text" id="captureUrl" class="form-control" placeholder="https://example.com">
-                            </div>
-                            <button class="btn btn-primary w-100" onclick="captureWebsite()">
-                                Capture & Analyze
-                            </button>
-                        </div>
+                <!-- Advanced Search -->
+                <section id="advanced-search" class="bg-white p-6 rounded-lg shadow card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-magnifying-glass mr-2 text-blue-600"></i>Advanced Search
+                    </h2>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Search Query:</label>
+                        <input v-model="searchQuery" type="text" class="w-full p-2 border rounded" placeholder="Enter search query">
                     </div>
-                    <div class="col-md-6">
-                        <div id="results-capture" class="results" style="display: none;">
-                            <h3>Capture Results</h3>
-                            <div id="resultContent-capture"></div>
-                        </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Search Engines:</label>
+                        <label><input type="checkbox" v-model="searchEngines" value="bing"> Bing</label>
+                        <label><input type="checkbox" v-model="searchEngines" value="duckduckgo"> DuckDuckGo</label>
                     </div>
-                </div>
-            </div>
+                    <button @click="executeSearch" class="btn-primary text-white px-4 py-2 rounded w-full">Execute Search</button>
+                    <div v-if="searchResults" class="mt-4 results-container">
+                        <h3 class="text-lg font-semibold mb-2">Search Results</h3>
+                        <ul class="list-disc pl-5">
+                            <li v-for="result in searchResults.results" :key="result.url">
+                                <a :href="result.url" target="_blank" class="text-blue-600 hover:underline">{{ result.title }}</a>
+                                <p class="text-gray-600">{{ result.snippet }}</p>
+                                <p v-if="result.username" class="text-sm text-gray-500">Username: {{ result.username }}</p>
+                                <p v-if="result.bio" class="text-sm text-gray-500">Bio: {{ result.bio }}</p>
+                                <p v-if="result.followers" class="text-sm text-gray-500">Followers: {{ result.followers }}</p>
+                                <p v-if="result.posts" class="text-sm text-gray-500">Posts: {{ result.posts }}</p>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
 
-            <div id="batch-investigation" class="page">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-icon">
-                                    <i class="bi bi-people"></i>
-                                </div>
-                                <h3>Batch Investigation</h3>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Target Usernames (one per line):</label>
-                                <textarea id="batchUsernames" class="form-control" rows="5" placeholder="username1\nusername2\nusername3"></textarea>
-                            </div>
-                            <button class="btn btn-primary w-100" onclick="batchInvestigation()">
-                                Start Batch Analysis
-                            </button>
+                <!-- Website Capture -->
+                <section id="website-capture" class="bg-white p-6 rounded-lg shadow card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-camera mr-2 text-blue-600"></i>Website Capture
+                    </h2>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Target URL:</label>
+                        <input v-model="captureUrl" type="text" class="w-full p-2 border rounded" placeholder="Enter URL">
+                    </div>
+                    <button @click="captureWebsite" class="btn-primary text-white px-4 py-2 rounded w-full">Capture & Analyze</button>
+                    <div v-if="captureResults" class="mt-4 results-container">
+                        <h3 class="text-lg font-semibold mb-2">Capture Results</h3>
+                        <p><strong>Title:</strong> {{ captureResults.title }}</p>
+                        <p><strong>Description:</strong> {{ captureResults.description }}</p>
+                        <p><strong>Keywords:</strong> {{ captureResults.keywords }}</p>
+                        <img v-if="captureResults.screenshot" :src="captureResults.screenshot" alt="Screenshot" class="mt-2 max-w-full">
+                    </div>
+                </section>
+
+                <!-- Batch Investigation -->
+                <section id="batch-investigation" class="bg-white p-6 rounded-lg shadow card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-users mr-2 text-blue-600"></i>Batch Investigation
+                    </h2>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Target Usernames (one per line):</label>
+                        <textarea v-model="batchUsernames" class="w-full p-2 border rounded" rows="5" placeholder="Enter usernames"></textarea>
+                    </div>
+                    <button @click="startBatchInvestigation" class="btn-primary text-white px-4 py-2 rounded w-full">Start Batch Analysis</button>
+                    <div v-if="batchResults" class="mt-4 results-container">
+                        <h3 class="text-lg font-semibold mb-2">Batch Results</h3>
+                        <div v-for="investigation in batchResults.investigations" :key="investigation.username">
+                            <h4 class="font-medium">{{ investigation.username }}</h4>
+                            <ul class="list-disc pl-5">
+                                <li v-for="platform in Object.keys(investigation.social_media)" :key="platform">
+                                    <span class="capitalize">{{ platform }}</span>
+                                    <ul class="pl-5">
+                                        <li v-for="result in investigation.social_media[platform]" :key="result.url">
+                                            <a :href="result.url" target="_blank" class="text-blue-600 hover:underline">{{ result.title }}</a>
+                                            <p class="text-gray-600">{{ result.snippet }}</p>
+                                            <p v-if="result.username" class="text-sm text-gray-500">Username: {{ result.username }}</p>
+                                            <p v-if="result.bio" class="text-sm text-gray-500">Bio: {{ result.bio }}</p>
+                                            <p v-if="result.followers" class="text-sm text-gray-500">Followers: {{ result.followers }}</p>
+                                            <p v-if="result.posts" class="text-sm text-gray-500">Posts: {{ result.posts }}</p>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div id="results-batch" class="results" style="display: none;">
-                            <h3>Batch Results</h3>
-                            <div id="resultContent-batch"></div>
-                        </div>
-                    </div>
-                </div>
+                </section>
             </div>
-        </div>
+        </main>
     </div>
 
     <script>
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.querySelector(`#${pageId}`).classList.add('active');
-            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
-            document.querySelector(`a[href="#${pageId}"]`).classList.add('active');
-            history.pushState(null, '', `#${pageId}`);
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}`;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => document.body.removeChild(toast), 300);
-            }, 3000);
-        }
-
-        function showResults(data, containerId, title = 'Results') {
-            const resultsDiv = document.getElementById(`results-${containerId}`);
-            const contentDiv = document.getElementById(`resultContent-${containerId}`);
-            resultsDiv.style.display = 'block';
-
-            if (containerId === 'deep' && data.investigation) {
-                let html = `
-                    <div class="result-card">
-                        <div class="result-title">Investigation Summary</div>
-                        <div>Total Results: <strong>${data.investigation.total_results}</strong></div>
-                        <div>Timestamp: <strong>${new Date(data.investigation.timestamp).toLocaleString()}</strong></div>
-                    </div>
-                `;
-
-                if (data.investigation.social_media) {
-                    Object.entries(data.investigation.social_media).forEach(([platform, results]) => {
-                        if (results.length > 0) {
-                            html += `
-                                <div class="result-card">
-                                    <div class="result-title">${platform.charAt(0).toUpperCase() + platform.slice(1)}</div>
-                                    <div>Found: <strong>${results.length} results</strong></div>
-                            `;
-                            results.forEach(result => {
-                                html += `
-                                    <div class="mt-2">
-                                        ${result.profilePhoto ? 
-                                            `<a href="${result.profilePhoto}" target="_blank"><img src="${result.profilePhoto}" class="profile-photo" alt="${platform} profile photo" onerror="this.outerHTML='<div class=\\'profile-photo-placeholder\\'>No Photo</div>'"></a>` : 
-                                            `<div class="profile-photo-placeholder">No Photo</div>`}
-                                        <div class="result-url"><a href="${result.url}" target="_blank">${result.url}</a></div>
-                                        ${result.snippet ? `<div class="result-snippet">${result.snippet}</div>` : ''}
-                                    </div>
-                                `;
-                            });
-                            html += `</div>`;
-                        }
-                    });
-                }
-
-                if (data.investigation.extracted_contacts) {
-                    const contacts = data.investigation.extracted_contacts;
-                    if (contacts.phones && contacts.phones.length > 0) {
-                        html += `
-                            <div class="result-card">
-                                <div class="result-title">Phone Numbers</div>
-                                <ul class="list-unstyled">
-                                    ${contacts.phones.map(phone => `<li>${phone}</li>`).join('')}
-                                </ul>
-                            </div>
-                        `;
+        new Vue({
+            el: '#app',
+            data: {
+                investigationUsername: '',
+                platforms: ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'],
+                investigationResults: null,
+                searchQuery: '',
+                searchEngines: ['bing', 'duckduckgo'],
+                searchResults: null,
+                captureUrl: '',
+                captureResults: null,
+                batchUsernames: '',
+                batchResults: null
+            },
+            methods: {
+                async startInvestigation() {
+                    try {
+                        const response = await axios.post('/api/investigate', {
+                            username: this.investigationUsername,
+                            platforms: this.platforms
+                        });
+                        this.investigationResults = response.data.investigation;
+                    } catch (error) {
+                        alert('Investigation failed: ' + error.response.data.error);
                     }
-                    if (contacts.emails && contacts.emails.length > 0) {
-                        html += `
-                            <div class="result-card">
-                                <div class="result-title">Gmail Addresses</div>
-                                <ul class="list-unstyled">
-                                    ${contacts.emails.map(email => `<li>${email}</li>`).join('')}
-                                </ul>
-                            </div>
-                        `;
+                },
+                async executeSearch() {
+                    try {
+                        const response = await axios.post('/api/advanced-search', {
+                            query: this.searchQuery,
+                            sources: this.searchEngines
+                        });
+                        this.searchResults = response.data;
+                    } catch (error) {
+                        alert('Search failed: ' + error.response.data.error);
+                    }
+                },
+                async captureWebsite() {
+                    try {
+                        const response = await axios.post('/api/capture', {
+                            url: this.captureUrl
+                        });
+                        this.captureResults = response.data.capture;
+                    } catch (error) {
+                        alert('Capture failed: ' + error.response.data.error);
+                    }
+                },
+                async startBatchInvestigation() {
+                    try {
+                        const usernames = this.batchUsernames.split('\n').map(u => u.trim()).filter(u => u);
+                        const response = await axios.post('/api/batch-investigate', {
+                            usernames
+                        });
+                        this.batchResults = response.data;
+                    } catch (error) {
+                        alert('Batch investigation failed: ' + error.response.data.error);
                     }
                 }
-
-                contentDiv.innerHTML = html;
-            } else {
-                let html = '';
-                if (data.results && Array.isArray(data.results)) {
-                    data.results.forEach(result => {
-                        html += `
-                            <div class="result-card">
-                                <div class="result-title">${result.title || 'No Title'}</div>
-                                ${result.url ? `<div class="result-url"><a href="${result.url}" target="_blank">${result.url}</a></div>` : ''}
-                                ${result.snippet ? `<div class="result-snippet">${result.snippet}</div>` : ''}
-                            </div>
-                        `;
-                    });
-                }
-
-                contentDiv.innerHTML = html + `<pre style="background: #333; padding: 15px; border-radius: 10px; overflow: auto; max-height: 300px; color: #ccc;">${JSON.stringify(data, null, 2)}</pre>`;
             }
-
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function setButtonLoading(button, loading) {
-            button.disabled = loading;
-            button.classList.toggle('loading', loading);
-        }
-
-        async function startInvestigation() {
-            const username = document.getElementById('username').value.trim();
-            if (!username) {
-                showToast('Please enter a username', 'error');
-                return;
-            }
-
-            const button = event.target;
-            setButtonLoading(button, true);
-
-            try {
-                showToast('Starting investigation...', 'success');
-                const response = await fetch('/api/investigate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showResults(data, 'deep', 'Investigation Results');
-                    showToast('Investigation completed!', 'success');
-                } else {
-                    showToast('Investigation failed: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showToast('Error: ' + error.message, 'error');
-            } finally {
-                setButtonLoading(button, false);
-            }
-        }
-
-        async function advancedSearch() {
-            const query = document.getElementById('advancedQuery').value.trim();
-            if (!query) {
-                showToast('Please enter a search query', 'error');
-                return;
-            }
-
-            const bingEnabled = document.getElementById('bingCheck').checked;
-            const ddgEnabled = document.getElementById('ddgCheck').checked;
-
-            if (!bingEnabled && !ddgEnabled) {
-                showToast('Select at least one search engine', 'error');
-                return;
-            }
-
-            const button = event.target;
-            setButtonLoading(button, true);
-
-            try {
-                const sources = [];
-                if (bingEnabled) sources.push('bing');
-                if (ddgEnabled) sources.push('duckduckgo');
-
-                showToast('Executing search...', 'success');
-                const response = await fetch('/api/advanced-search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, sources, maxResults: 50 })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showResults(data, 'advanced', 'Search Results');
-                    showToast(`Found ${data.total} results!`, 'success');
-                } else {
-                    showToast('Search failed: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showToast('Error: ' + error.message, 'error');
-            } finally {
-                setButtonLoading(button, false);
-            }
-        }
-
-        async function captureWebsite() {
-            const url = document.getElementById('captureUrl').value.trim();
-            if (!url) {
-                showToast('Please enter a URL', 'error');
-                return;
-            }
-
-            const button = event.target;
-            setButtonLoading(button, true);
-
-            try {
-                showToast('Capturing website...', 'success');
-                const response = await fetch('/api/capture', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showResults(data, 'capture', 'Website Capture');
-                    showToast('Capture completed!', 'success');
-                } else {
-                    showToast('Capture failed: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showToast('Error: ' + error.message, 'error');
-            } finally {
-                setButtonLoading(button, false);
-            }
-        }
-
-        async function batchInvestigation() {
-            const usernamesText = document.getElementById('batchUsernames').value.trim();
-            if (!usernamesText) {
-                showToast('Please enter usernames', 'error');
-                return;
-            }
-
-            const usernames = usernamesText.split('\n').map(u => u.trim()).filter(u => u);
-            if (usernames.length === 0) {
-                showToast('Please enter valid usernames', 'error');
-                return;
-            }
-
-            const button = event.target;
-            setButtonLoading(button, true);
-
-            try {
-                showToast(`Starting batch investigation for ${usernames.length} targets...`, 'success');
-                const response = await fetch('/api/batch-investigate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usernames })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showResults(data, 'batch', 'Batch Investigation Results');
-                    showToast(`Batch completed! Analyzed ${data.total_investigated} targets.`, 'success');
-                } else {
-                    showToast('Batch investigation failed: ' + data.error, 'error');
-                }
-            } catch (error) {
-                showToast('Error: ' + error.message, 'error');
-            } finally {
-                setButtonLoading(button, false);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const hash = window.location.hash.slice(1) || 'deep-investigation';
-            showPage(hash);
         });
     </script>
 </body>
