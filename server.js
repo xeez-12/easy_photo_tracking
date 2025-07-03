@@ -115,18 +115,6 @@ async function searchBingAdvanced(query, maxPages = 5) {
                 }
             });
 
-            $('.b_rs li a, .b_pag a').each((i, element) => {
-                const relatedQuery = $(element).text().trim();
-                if (relatedQuery && relatedQuery !== query) {
-                    pageResults.push({
-                        type: 'related_search',
-                        query: relatedQuery,
-                        source: 'bing',
-                        page: page + 1
-                    });
-                }
-            });
-
             allResults.push(...pageResults);
 
             if (pageResults.length === 0) break;
@@ -275,6 +263,62 @@ const socialMediaPatterns = {
     ]
 };
 
+// Profile Photo Extraction
+async function extractProfilePhoto(url) {
+    let browser;
+    try {
+        browser = await puppeteer.launch({
+            headless: 'new',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu'
+            ],
+            executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
+        });
+
+        const page = await browser.newPage();
+        await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+
+        const selectors = [
+            'meta[property="og:image"]',
+            'img.profile-picture, img.avatar, img.user-image',
+            'div.profile-header img',
+            'meta[name="twitter:image"]'
+        ];
+
+        let imageUrl = null;
+        for (const selector of selectors) {
+            imageUrl = await page.evaluate(sel => {
+                const element = document.querySelector(sel);
+                return element ? (element.content || element.src) : null;
+            }, selector);
+            if (imageUrl) break;
+        }
+
+        if (imageUrl && !imageUrl.startsWith('http')) {
+            const urlObj = new URL(url);
+            imageUrl = new URL(imageUrl, urlObj.origin).href;
+        }
+
+        await browser.close();
+        return imageUrl || null;
+
+    } catch (error) {
+        return null;
+    } finally {
+        if (browser) {
+            try { await browser.close(); } catch (e) {}
+        }
+    }
+}
+
 // Advanced Social Media Search
 async function searchSocialMediaAdvanced(username, platform) {
     const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
@@ -289,13 +333,22 @@ async function searchSocialMediaAdvanced(username, platform) {
                 searchDuckDuckGoAdvanced(query, 20)
             ]);
 
-            allResults.push(...bingResults.map(r => ({...r, platform, query})));
-            allResults.push(...ddgResults.map(r => ({...r, platform, query})));
+            const resultsWithPhotos = [];
+            for (const result of [...bingResults, ...ddgResults]) {
+                const photo = await extractProfilePhoto(result.url);
+                resultsWithPhotos.push({
+                    ...result,
+                    platform,
+                    query,
+                    profilePhoto: photo
+                });
+            }
 
+            allResults.push(...resultsWithPhotos);
             await sleep(1500);
 
         } catch (error) {
-            // Silent error handling to reduce console spam
+            // Silent error handling
         }
     }
 
@@ -306,17 +359,14 @@ async function searchSocialMediaAdvanced(username, platform) {
     return uniqueResults;
 }
 
-// Comprehensive Deep Search Function
+// Comprehensive Deep Search Function (Social Media, Phone, Gmail Only)
 async function performComprehensiveSearch(username) {
     const results = {
         timestamp: new Date().toISOString(),
         username,
         social_media: {},
-        general_search: [],
-        email_search: [],
-        phone_search: [],
-        leaked_data: [],
-        professional_info: [],
+        phone_numbers: [],
+        gmail_addresses: [],
         total_results: 0
     };
 
@@ -332,106 +382,58 @@ async function performComprehensiveSearch(username) {
         }
     }
 
-    const generalQueries = [
-        `"${username}" profile`,
-        `"${username}" account`,
-        `"${username}" user`,
-        `${username} contact information`,
-        `${username} email address`,
-        `${username} phone number`
+    const phoneQueries = [
+        `"${username}" phone number`,
+        `${username} contact number`,
+        `${username} mobile number`
     ];
 
-    for (const query of generalQueries) {
+    for (const query of phoneQueries) {
         try {
-            const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(query, 2),
-                searchDuckDuckGoAdvanced(query, 15)
-            ]);
-
-            results.general_search.push(...bingResults, ...ddgResults);
-            await sleep(1500);
-        } catch (error) {
-            // Silent error handling
-        }
-    }
-
-    const emailPatterns = [
-        `"${username}@gmail.com"`,
-        `"${username}@yahoo.com"`,
-        `"${username}@hotmail.com"`,
-        `"${username}@outlook.com"`,
-        `"${username}@protonmail.com"`
-    ];
-
-    for (const emailQuery of emailPatterns) {
-        try {
-            const emailResults = await searchBingAdvanced(emailQuery, 1);
-            results.email_search.push(...emailResults);
+            const phoneResults = await searchBingAdvanced(query, 1);
+            results.phone_numbers.push(...phoneResults);
+            results.total_results += phoneResults.length;
             await sleep(1000);
         } catch (error) {
             // Silent error handling
         }
     }
 
-    const breachQueries = [
-        `"${username}" site:haveibeenpwned.com`,
-        `"${username}" data breach`,
-        `"${username}" leaked database`,
-        `"${username}" site:dehashed.com`
+    const gmailQueries = [
+        `"${username}@gmail.com"`,
+        `"${username}" gmail`,
+        `"${username}" google account`
     ];
 
-    for (const breachQuery of breachQueries) {
+    for (const query of gmailQueries) {
         try {
-            const breachResults = await searchDuckDuckGoAdvanced(breachQuery, 10);
-            results.leaked_data.push(...breachResults);
-            await sleep(1500);
-        } catch (error) {
-            // Silent error handling
-        }
-    }
-
-    const professionalQueries = [
-        `"${username}" CV resume`,
-        `"${username}" work experience`,
-        `"${username}" company employee`,
-        `"${username}" job title position`
-    ];
-
-    for (const profQuery of professionalQueries) {
-        try {
-            const profResults = await searchBingAdvanced(profQuery, 1);
-            results.professional_info.push(...profResults);
-            await sleep(1500);
+            const gmailResults = await searchBingAdvanced(query, 1);
+            results.gmail_addresses.push(...gmailResults);
+            results.total_results += gmailResults.length;
+            await sleep(1000);
         } catch (error) {
             // Silent error handling
         }
     }
 
     let allText = '';
-    Object.values(results).forEach(section => {
-        if (Array.isArray(section)) {
-            section.forEach(item => {
-                if (item.title) allText += ` ${item.title}`;
-                if (item.snippet) allText += ` ${item.snippet}`;
-            });
-        } else if (typeof section === 'object' && section !== null) {
-            Object.values(section).forEach(items => {
-                if (Array.isArray(items)) {
-                    items.forEach(item => {
-                        if (item.title) allText += ` ${item.title}`;
-                        if (item.snippet) allText += ` ${item.snippet}`;
-                    });
-                }
-            });
-        }
+    Object.values(results.social_media).forEach(platformResults => {
+        platformResults.forEach(item => {
+            if (item.title) allText += ` ${item.title}`;
+            if (item.snippet) allText += ` ${item.snippet}`;
+        });
+    });
+    results.phone_numbers.forEach(item => {
+        if (item.title) allText += ` ${item.title}`;
+        if (item.snippet) allText += ` ${item.snippet}`;
+    });
+    results.gmail_addresses.forEach(item => {
+        if (item.title) allText += ` ${item.title}`;
+        if (item.snippet) allText += ` ${item.snippet}`;
     });
 
     results.extracted_contacts = extractAdvancedContactInfo(allText);
-    results.total_results = Object.values(results.social_media).reduce((sum, arr) => sum + arr.length, 0) +
-                           results.general_search.length +
-                           results.email_search.length +
-                           results.leaked_data.length +
-                           results.professional_info.length;
+    results.total_results += results.extracted_contacts.emails.length + results.extracted_contacts.phones.length;
 
     console.log(`Investigation complete for ${username}. Total results: ${results.total_results}`);
     return results;
@@ -439,18 +441,12 @@ async function performComprehensiveSearch(username) {
 
 // Advanced Contact Info Extraction
 function extractAdvancedContactInfo(text) {
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@gmail\.com\b/g;
     const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
-    const usernameRegex = /@([a-zA-Z0-9_]+)/g;
-    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
-    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube)\.com\/[\w.-]+/gi;
 
     return {
         emails: [...new Set(text.match(emailRegex) || [])],
-        phones: [...new Set(text.match(phoneRegex) || [])],
-        usernames: [...new Set(text.match(usernameRegex) || [])],
-        urls: [...new Set(text.match(urlRegex) || [])],
-        social_profiles: [...new Set(text.match(socialRegex) || [])]
+        phones: [...new Set(text.match(phoneRegex) || [])]
     };
 }
 
@@ -714,17 +710,16 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.2.0-railway',
+        version: '3.3.0-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
+            'Social Media Investigation',
+            'Phone Number Extraction',
+            'Gmail Address Extraction',
+            'Profile Photo Extraction',
             'Advanced Multi-Engine Search',
-            'Deep Social Media Investigation',
-            'Comprehensive OSINT Framework',
             'Enhanced Web Capture',
-            'Contact Extraction',
-            'Data Breach Investigation',
-            'Professional Information Mining',
             'Batch Processing',
             'Rate Limiting & Evasion',
             'Browser Fingerprinting'
