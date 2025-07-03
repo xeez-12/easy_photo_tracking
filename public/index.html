@@ -151,12 +151,12 @@
         }
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Dua kolom kiri-kanan */
+            grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
             gap: 25px;
             margin-top: 25px;
         }
         .card {
-            background-color: #1e1e1e;
+            background: linear-gradient(135deg, #1e1e1e, #2c2c2c);
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -170,18 +170,27 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
         .card img.profile-pic {
-            width: 90px;
-            height: 90px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             object-fit: cover;
             margin-right: 15px;
             align-self: flex-start;
-            border: 4px solid #007aff;
-            transition: border-color 0.3s ease, transform 0.2s ease;
+            border: 2px solid #007aff;
         }
-        .card img.profile-pic:hover {
-            transform: scale(1.05);
-            border-color: #005fe4;
+        .card .default-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            align-self: flex-start;
+            border: 2px solid #007aff;
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #2c2c2c, #3c3c3c);
         }
         .card img.screenshot {
             max-width: 100%;
@@ -227,7 +236,7 @@
                 padding: 20px;
             }
             .card-grid {
-                grid-template-columns: 1fr; /* Satu kolom di layar kecil */
+                grid-template-columns: 1fr;
             }
             input, select, textarea {
                 padding: 12px;
@@ -427,6 +436,19 @@
             }
         }
 
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function getInitials(name) {
+            return name.charAt(0).toUpperCase() || 'U';
+        }
+
         function renderCard(content) {
             return `
                 <div class="card">
@@ -445,11 +467,12 @@
         }
 
         function renderProfileCard(profile) {
-            if (!profile.profilePic) return ''; // Hanya tampilkan jika ada foto profil
             const domain = getShortDomain(profile.url);
+            const initial = getInitials(profile.title || 'User');
+            const color = getRandomColor();
             return renderCard(`
                 <div style="display: flex; align-items: flex-start;">
-                    <img src="${profile.profilePic}" class="profile-pic" alt="Profile">
+                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : `<div class="default-avatar" style="background: ${color};">${initial}</div>`}
                     <div>
                         <h3>${profile.title || 'Unknown'}</h3>
                         <p>Platform: ${profile.platform || 'N/A'}</p>
@@ -476,11 +499,12 @@
         }
 
         function renderPhoneCard(profile) {
-            if (!profile.profilePic) return ''; // Hanya tampilkan jika ada foto profil
             const domain = getShortDomain(profile.url);
+            const initial = getInitials(profile.title || 'User');
+            const color = getRandomColor();
             return renderCard(`
                 <div style="display: flex; align-items: flex-start;">
-                    <img src="${profile.profilePic}" class="profile-pic" alt="Profile">
+                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : `<div class="default-avatar" style="background: ${color};">${initial}</div>`}
                     <div>
                         <h3>${profile.title || 'Unknown'}</h3>
                         <p>Platform: ${profile.platform || 'N/A'}</p>
