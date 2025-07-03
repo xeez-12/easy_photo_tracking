@@ -3,196 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Investigation Platform</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>OSINT Social Media Investigation Platform</title>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
         }
-        .header {
-            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+        header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
             color: white;
-            padding: 1.5rem;
+            text-align: center;
+            padding: 2rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.2s;
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
-        .menu-item:hover {
-            background-color: #e5e7eb;
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
         }
-        .tab-content {
-            display: none;
-            padding: 1.5rem;
+        .card {
             background: white;
-            border-radius: 0.5rem;
+            border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
         }
-        .tab-content.active {
-            display: block;
+        .card h2 {
+            margin-top: 0;
+            color: #1e3a8a;
         }
-        .result-box {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
+        .card input, .card textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .card button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .card button:hover {
+            background-color: #1e40af;
+        }
+        .result-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             padding: 1rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        .result-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+        .result-card div {
+            flex: 1;
+        }
+        .result-card h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #1e3a8a;
+        }
+        .result-card p {
+            margin: 0.5rem 0;
+            color: #555;
+        }
+        .social-icons {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .social-icons img {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="min-h-screen">
-    <header class="header">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">OSINT Investigation Platform</h1>
-            <nav>
-                <ul class="flex space-x-4">
-                    <li><a href="#deep" class="menu-item"><i class="fas fa-search"></i> Deep Investigation</a></li>
-                    <li><a href="#social" class="menu-item"><i class="fas fa-users"></i> Social Media Search</a></li>
-                    <li><a href="#advanced" class="menu-item"><i class="fas fa-magnifying-glass"></i> Advanced Search</a></li>
-                    <li><a href="#capture" class="menu-item"><i class="fas fa-camera"></i> Website Capture</a></li>
-                    <li><a href="#batch" class="menu-item"><i class="fas fa-list"></i> Batch Investigation</a></li>
-                </ul>
-            </nav>
-        </div>
+<body>
+    <header>
+        <h1>OSINT Social Media Investigation Platform</h1>
     </header>
 
-    <main class="container mx-auto mt-8">
-        <div id="deep" class="tab-content active">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4"><i class="fas fa-search mr-2"></i>Deep Investigation</h2>
-                <form id="investigate-form">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Target Username:</label>
-                        <input type="text" id="username" class="w-full p-2 border rounded-md" placeholder="Enter username">
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Start Investigation</button>
-                </form>
-                <div id="investigate-results" class="result-box mt-4"></div>
-            </div>
+    <div class="container">
+        <div class="card">
+            <h2>Deep Investigation</h2>
+            <form id="investigate-form">
+                <label for="username">Target Username:</label>
+                <input type="text" id="username" name="username" required>
+                <div class="social-icons">
+                    <img src="/icons/tiktok.png" alt="TikTok" onclick="searchPlatform('tiktok')">
+                    <img src="/icons/facebook.png" alt="Facebook" onclick="searchPlatform('facebook')">
+                    <img src="/icons/instagram.png" alt="Instagram" onclick="searchPlatform('instagram')">
+                    <img src="/icons/youtube.png" alt="YouTube" onclick="searchPlatform('youtube')">
+                    <img src="/icons/twitter.png" alt="Twitter" onclick="searchPlatform('twitter')">
+                    <img src="/icons/linkedin.png" alt="LinkedIn" onclick="searchPlatform('linkedin')">
+                    <img src="/icons/github.png" alt="GitHub" onclick="searchPlatform('github')">
+                    <img src="/icons/reddit.png" alt="Reddit" onclick="searchPlatform('reddit')">
+                    <img src="/icons/snapchat.png" alt="Snapchat" onclick="searchPlatform('snapchat')">
+                    <img src="/icons/pinterest.png" alt="Pinterest" onclick="searchPlatform('pinterest')">
+                    <img src="/icons/twitch.png" alt="Twitch" onclick="searchPlatform('twitch')">
+                </div>
+                <button type="submit">Start Investigation</button>
+            </form>
+            <div id="investigate-results"></div>
         </div>
 
-        <div id="social" class="tab-content">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4"><i class="fas fa-users mr-2"></i>Social Media Deep Search</h2>
-                <form id="social-form">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Target Username:</label>
-                        <input type="text" id="social-username" class="w-full p-2 border rounded-md" placeholder="Enter username">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Platforms:</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <label><input type="checkbox" value="tiktok" checked> TikTok</label>
-                            <label><input type="checkbox" value="facebook" checked> Facebook</label>
-                            <label><input type="checkbox" value="instagram" checked> Instagram</label>
-                            <label><input type="checkbox" value="youtube" checked> YouTube</label>
-                            <label><input type="checkbox" value="twitter" checked> Twitter</label>
-                            <label><input type="checkbox" value="linkedin" checked> LinkedIn</label>
-                            <label><input type="checkbox" value="github" checked> GitHub</label>
-                            <label><input type="checkbox" value="reddit" checked> Reddit</label>
-                        </div>
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Search Social Media</button>
-                </form>
-                <div id="social-results" class="result-box mt-4"></div>
-            </div>
+        <div class="card">
+            <h2>Advanced Search</h2>
+            <form id="advanced-search-form">
+                <label for="query">Search Query:</label>
+                <input type="text" id="query" name="query" required>
+                <label>Search Engines:</label>
+                <div>
+                    <input type="checkbox" id="bing" name="sources" value="bing" checked>
+                    <label for="bing">Bing</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="duckduckgo" name="sources" value="duckduckgo" checked>
+                    <label for="duckduckgo">DuckDuckGo</label>
+                </div>
+                <button type="submit">Execute Search</button>
+            </form>
+            <div id="search-results"></div>
         </div>
 
-        <div id="advanced" class="tab-content">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4"><i class="fas fa-magnifying-glass mr-2"></i>Advanced Search</h2>
-                <form id="advanced-form">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Search Query:</label>
-                        <input type="text" id="query" class="w-full p-2 border rounded-md" placeholder="Enter search query">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Search Engines:</label>
-                        <label><input type="checkbox" value="bing" checked> Bing</label>
-                        <label><input type="checkbox" value="duckduckgo" checked> DuckDuckGo</label>
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Execute Search</button>
-                </form>
-                <div id="advanced-results" class="result-box mt-4"></div>
-            </div>
+        <div class="card">
+            <h2>Website Capture</h2>
+            <form id="capture-form">
+                <label for="capture-url">Target URL:</label>
+                <input type="text" id="capture-url" name="url" required>
+                <button type="submit">Capture & Analyze</button>
+            </form>
+            <div id="capture-results"></div>
         </div>
 
-        <div id="capture" class="tab-content">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4"><i class="fas fa-camera mr-2"></i>Website Capture</h2>
-                <form id="capture-form">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Target URL:</label>
-                        <input type="text" id="url" class="w-full p-2 border rounded-md" placeholder="Enter URL">
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Capture & Analyze</button>
-                </form>
-                <div id="capture-results" class="result-box mt-4"></div>
-            </div>
+        <div class="card">
+            <h2>Batch Investigation</h2>
+            <form id="batch-investigate-form">
+                <label for="usernames">Target Usernames (one per line):</label>
+                <textarea id="usernames" name="usernames" rows="5" required></textarea>
+                <button type="submit">Start Batch Analysis</button>
+            </form>
+            <div id="batch-results"></div>
         </div>
-
-        <div id="batch" class="tab-content">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4"><i class="fas fa-list mr-2"></i>Batch Investigation</h2>
-                <form id="batch-form">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">Target Usernames (one per line):</label>
-                        <textarea id="usernames" class="w-full p-2 border rounded-md" rows="5" placeholder="Enter usernames"></textarea>
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Start Batch Analysis</button>
-                </form>
-                <div id="batch-results" class="result-box mt-4"></div>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script>
-        // Tab switching
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-                document.querySelector(item.getAttribute('href')).classList.add('active');
-                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('bg-gray-200'));
-                item.classList.add('bg-gray-200');
-            });
-        });
-
-        // Form submissions (simplified for brevity, add your existing JS logic here)
         document.getElementById('investigate-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
-            const response = await fetch('/api/investigate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            const data = await response.json();
-            document.getElementById('investigate-results').innerHTML = JSON.stringify(data, null, 2);
+            const resultsDiv = document.getElementById('investigate-results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/api/investigate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    resultsDiv.innerHTML = '';
+                    Object.keys(data.investigation.social_media).forEach(platform => {
+                        const platformResults = data.investigation.social_media[platform];
+                        if (platformResults.length > 0) {
+                            resultsDiv.innerHTML += `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
+                            platformResults.forEach(result => {
+                                resultsDiv.innerHTML += `
+                                    <div class="result-card">
+                                        ${result.profile_picture ? `<img src="${result.profile_picture}" alt="Profile Picture">` : ''}
+                                        <div>
+                                            <h3>${result.title || result.url}</h3>
+                                            <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
+                                            ${result.bio ? `<p><strong>Bio:</strong> ${result.bio}</p>` : ''}
+                                            ${result.followers ? `<p><strong>Followers:</strong> ${result.followers}</p>` : ''}
+                                            ${result.posts ? `<p><strong>Posts:</strong> ${result.posts}</p>` : ''}
+                                            ${result.snippet ? `<p>${result.snippet}</p>` : ''}
+                                        </div>
+                                    </div>`;
+                            });
+                        }
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
         });
 
-        document.getElementById('social-form').addEventListener('submit', async (e) => {
+        async function searchPlatform(platform) {
+            const username = document.getElementById('username').value;
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            const resultsDiv = document.getElementById('investigate-results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch(`/api/search/${platform}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    resultsDiv.innerHTML = `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
+                    data.results.forEach(result => {
+                        resultsDiv.innerHTML += `
+                            <div class="result-card">
+                                ${result.profile_picture ? `<img src="${result.profile_picture}" alt="Profile Picture">` : ''}
+                                <div>
+                                    <h3>${result.title || result.url}</h3>
+                                    <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
+                                    ${result.bio ? `<p><strong>Bio:</strong> ${result.bio}</p>` : ''}
+                                    ${result.followers ? `<p><strong>Followers:</strong> ${result.followers}</p>` : ''}
+                                    ${result.posts ? `<p><strong>Posts:</strong> ${result.posts}</p>` : ''}
+                                    ${result.snippet ? `<p>${result.snippet}</p>` : ''}
+                                </div>
+                            </div>`;
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        document.getElementById('advanced-search-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('social-username').value;
-            const platforms = Array.from(document.querySelectorAll('#social-form input[type="checkbox"]:checked')).map(cb => cb.value);
-            const response = await fetch('/api/social-deep-search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, platforms })
-            });
-            const data = await response.json();
-            document.getElementById('social-results').innerHTML = JSON.stringify(data, null, 2);
+            const query = document.getElementById('query').value;
+            const sources = Array.from(document.querySelectorAll('input[name="sources"]:checked')).map(input => input.value);
+            const resultsDiv = document.getElementById('search-results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/api/advanced-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, sources })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    resultsDiv.innerHTML = '';
+                    data.results.forEach(result => {
+                        resultsDiv.innerHTML += `
+                            <div class="result-card">
+                                <div>
+                                    <h3>${result.title || result.url}</h3>
+                                    <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
+                                    ${result.snippet ? `<p>${result.snippet}</p>` : ''}
+                                    <p><strong>Source:</strong> ${result.source}</p>
+                                </div>
+                            </div>`;
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
         });
 
-        // Add similar logic for other forms (advanced, capture, batch)
+        document.getElementById('capture-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('capture-url').value;
+            const resultsDiv = document.getElementById('capture-results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/api/capture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    resultsDiv.innerHTML = `
+                        <div class="result-card">
+                            ${data.capture.screenshot ? `<img src="${data.capture.screenshot}" alt="Screenshot">` : ''}
+                            <div>
+                                <h3>${data.capture.title || data.capture.url}</h3>
+                                <p><strong>URL:</strong> <a href="${data.capture.url}" target="_blank">${data.capture.url}</a></p>
+                                ${data.capture.description ? `<p><strong>Description:</strong> ${data.capture.description}</p>` : ''}
+                                ${data.capture.pageText ? `<p><strong>Page Text:</strong> ${data.capture.pageText.substring(0, 200)}</p>` : ''}
+                            </div>
+                        </div>`;
+                } else {
+                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+        document.getElementById('batch-investigate-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usernames = document.getElementById('usernames').value.split('\n').map(u => u.trim()).filter(u => u);
+            const resultsDiv = document.getElementById('batch-results');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/api/batch-investigate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernames })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    resultsDiv.innerHTML = `<p>Total Investigated: ${data.total_investigated}</p>`;
+                    data.investigations.forEach(investigation => {
+                        resultsDiv.innerHTML += `<h3>Username: ${investigation.username}</h3>`;
+                        Object.keys(investigation.social_media).forEach(platform => {
+                            const platformResults = investigation.social_media[platform];
+                            if (platformResults.length > 0) {
+                                resultsDiv.innerHTML += `<h4>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h4>`;
+                                platformResults.forEach(result => {
+                                    resultsDiv.innerHTML += `
+                                        <div class="result-card">
+                                            ${result.profile_picture ? `<img src="${result.profile_picture}" alt="Profile Picture">` : ''}
+                                            <div>
+                                                <h3>${result.title || result.url}</h3>
+                                                <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
+                                                ${result.bio ? `<p><strong>Bio:</strong> ${result.bio}</p>` : ''}
+                                                ${result.followers ? `<p><strong>Followers:</strong> ${result.followers}</p>` : ''}
+                                                ${result.posts ? `<p><strong>Posts:</strong> ${result.posts}</p>` : ''}
+                                                ${result.snippet ? `<p>${result.snippet}</p>` : ''}
+                                            </div>
+                                        </div>`;
+                                });
+                            }
+                        });
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
     </script>
 </body>
 </html>
