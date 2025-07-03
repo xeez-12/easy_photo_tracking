@@ -197,11 +197,22 @@
             border-radius: 10px;
             border-left: 4px solid #0d6efd;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
         }
 
         .result-item:hover {
             background: #444;
             transform: translateX(5px);
+        }
+
+        .result-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #444;
         }
 
         .result-title {
@@ -271,6 +282,11 @@
                 margin-bottom: 70px;
                 padding: 15px;
             }
+
+            .result-item img {
+                width: 40px;
+                height: 40px;
+            }
         }
     </style>
 </head>
@@ -323,7 +339,7 @@
                     </div>
                     <div class="col-md-6">
                         <div id="results-deep" class="results" style="display: none;">
-                            <h3>Investigation Results</h3>
+                            <h3>Social Media Investigation</h3>
                             <div id="resultContent-deep"></div>
                         </div>
                     </div>
@@ -430,6 +446,23 @@
     </div>
 
     <script>
+        async function fetchProfilePicture(url) {
+            try {
+                const response = await fetch('/api/capture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+                if (data.success && data.capture.ogImage) {
+                    return data.capture.ogImage;
+                }
+                return null;
+            } catch {
+                return null;
+            }
+        }
+
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelector(`#${pageId}`).classList.add('active');
@@ -450,43 +483,61 @@
             }, 3000);
         }
 
-        function showResults(data, containerId, title = 'Results') {
+        async function showResults(data, containerId, title = 'Results') {
             const resultsDiv = document.getElementById(`results-${containerId}`);
             const contentDiv = document.getElementById(`resultContent-${containerId}`);
             resultsDiv.style.display = 'block';
 
-            if (data.investigation) {
-                let html = `
-                    <div class="result-item">
-                        <div class="result-title">Investigation Summary</div>
-                        <div>Total Results: <strong>${data.investigation.total_results}</strong></div>
-                        <div>Timestamp: <strong>${new Date(data.investigation.timestamp).toLocaleString()}</strong></div>
-                    </div>
-                `;
+            if (containerId === 'deep' && data.investigation) {
+                let html = '';
 
-                if (data.investigation.social_media) {
-                    html += '<div class="result-item"><div class="result-title">Social Media Findings</div>';
-                    Object.entries(data.investigation.social_media).forEach(([platform, results]) => {
-                        if (results.length > 0) {
-                            html += `<div><strong>${platform.charAt(0).toUpperCase() + platform.slice(1)}:</strong> ${results.length} results</div>`;
-                        }
-                    });
-                    html += '</div>';
-                }
-
+                // Summary Card for Contacts
                 if (data.investigation.extracted_contacts) {
                     const contacts = data.investigation.extracted_contacts;
-                    html += `
-                        <div class="result-item">
-                            <div class="result-title">Extracted Contacts</div>
-                            <div>Emails: ${contacts.emails ? contacts.emails.length : 0}</div>
-                            <div>Phones: ${contacts.phones ? contacts.phones.length : 0}</div>
-                            <div>Social Profiles: ${contacts.social_profiles ? contacts.social_profiles.length : 0}</div>
-                        </div>
-                    `;
+                    const gmails = contacts.emails ? contacts.emails.filter(email => email.includes('gmail.com')) : [];
+                    const phones = contacts.phones || [];
+                    if (gmails.length > 0 || phones.length > 0) {
+                        html += `
+                            <div class="result-item">
+                                <div class="result-title">Contact Information</div>
+                                ${gmails.length > 0 ? `<div>Gmail: ${gmails.join(', ')}</div>` : ''}
+                                ${phones.length > 0 ? `<div>Phones: ${phones.join(', ')}</div>` : ''}
+                            </div>
+                        `;
+                    }
                 }
 
-                contentDiv.innerHTML = html + `<pre style="background: #333; padding: 15px; border-radius: 10px; overflow: auto; max-height: 300px; color: #ccc;">${JSON.stringify(data, null, 2)}</pre>`;
+                // Social Media Cards
+                if (data.investigation.social_media) {
+                    for (const [platform, results] of Object.entries(data.investigation.social_media)) {
+                        if (results.length > 0) {
+                            let platformHtml = `
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h3>${platform.charAt(0).toUpperCase() + platform.slice(1)} Results (${results.length})</h3>
+                                    </div>
+                                    <div class="card-body">
+                            `;
+                            for (const result of results) {
+                                const profilePic = await fetchProfilePicture(result.url);
+                                platformHtml += `
+                                    <div class="result-item">
+                                        ${profilePic ? `<img src="${profilePic}" alt="${platform} profile picture">` : ''}
+                                        <div>
+                                            <div class="result-title">${result.title || 'No Title'}</div>
+                                            ${result.url ? `<div class="result-url"><a href="${result.url}" target="_blank">${result.url}</a></div>` : ''}
+                                            ${result.snippet ? `<div class="result-snippet">${result.snippet}</div>` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            platformHtml += '</div></div>';
+                            html += platformHtml;
+                        }
+                    }
+                }
+
+                contentDiv.innerHTML = html;
             } else {
                 let html = '';
                 if (data.results && Array.isArray(data.results)) {
@@ -500,7 +551,6 @@
                         `;
                     });
                 }
-
                 contentDiv.innerHTML = html + `<pre style="background: #333; padding: 15px; border-radius: 10px; overflow: auto; max-height: 300px; color: #ccc;">${JSON.stringify(data, null, 2)}</pre>`;
             }
 
@@ -532,7 +582,7 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    showResults(data, 'deep', 'Investigation Results');
+                    showResults(data, 'deep', 'Social Media Investigation');
                     showToast('Investigation completed!', 'success');
                 } else {
                     showToast('Investigation failed: ' + data.error, 'error');
@@ -665,4 +715,3 @@
     </script>
 </body>
 </html>
-
