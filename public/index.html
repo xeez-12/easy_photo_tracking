@@ -652,7 +652,7 @@
                     showToast('Batch investigation failed: ' + data.error, 'error');
                 }
             } catch (error) {
-                showToast('Error: ') + error.message, 'error');
+                showToast('Error: ' + error.message, 'error');
             } finally {
                 setButtonLoading(button, false);
             }
