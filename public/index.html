@@ -3,264 +3,664 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Dark Code Editor</title>
-    <!-- Bootstrap Icons CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <!-- Ace Editor CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <title>🕵️ OSINT Investigation Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #0d1117;
-            color: #c9d1d9;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #1a1a1a;
+            color: #f0f0f0;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Sidebar */
         .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 70px;
-            background: #161b22;
+            height: 100vh;
+            background: #121212;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 0;
-            border-right: 1px solid #21262d;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            padding-top: 20px;
+            border-right: 1px solid #333;
+            z-index: 1000;
         }
 
-        .sidebar i {
-            font-size: 26px;
-            color: #8b949e;
-            margin: 20px 0;
-            cursor: pointer;
-            transition: color 0.2s, transform 0.2s;
+        .sidebar a {
+            color: #f0f0f0;
+            font-size: 1.5rem;
+            padding: 15px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
         }
 
-        .sidebar i:hover {
-            color: #58a6ff;
-            transform: scale(1.1);
+        .sidebar a:hover {
+            background: #333;
+            border-radius: 10px;
+            color: #0d6efd;
         }
 
-        /* Main Content */
+        .sidebar a.active {
+            background: #0d6efd;
+            color: white;
+            border-radius: 10px;
+        }
+
         .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
+            margin-left: 70px;
+            padding: 20px;
+            min-height: 100vh;
+            background: #1a1a1a;
         }
 
-        /* Toolbar */
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #161b22;
-            padding: 10px 20px;
-            border-radius: 8px 8px 0 0;
-            border-bottom: 1px solid #21262d;
+        .page {
+            display: none;
         }
 
-        .toolbar-left, .toolbar-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .page.active {
+            display: block;
         }
 
-        .run-btn {
-            background: #238636;
-            color: #ffffff;
+        .container-fluid {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #222;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+        }
+
+        .card-header {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background 0.2s;
+            margin-bottom: 20px;
         }
 
-        .run-btn:hover {
-            background: #2ea043;
-        }
-
-        .run-btn i {
-            font-size: 16px;
-        }
-
-        /* Editor and Preview Split */
-        .editor-preview {
-            flex: 1;
+        .card-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            padding: 10px;
+            background: #0d6efd;
+            border-radius: 10px;
+            width: 50px;
+            height: 50px;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
+            align-items: center;
+            justify-content: center;
         }
 
-        #editor {
-            height: 60%;
-            border-radius: 8px;
-            border: 1px solid #21262d;
+        .card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0d6efd;
         }
 
-        .preview {
-            height: 40%;
-            background: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            padding: 15px;
+        .form-label {
+            color: #f0f0f0;
+            font-weight: 600;
+        }
+
+        .form-control, .form-check-input {
+            background: #333;
+            border: 1px solid #444;
+            color: #f0f0f0;
+            border-radius: 10px;
+        }
+
+        .form-control:focus {
+            background: #333;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+            color: #f0f0f0;
+        }
+
+        .form-control::placeholder {
+            color: #888;
+        }
+
+        .btn-primary {
+            background: #0d6efd;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+        }
+
+        .btn-primary.loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            background: #222;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 80vh;
             overflow-y: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            color: #c9d1d9;
-            white-space: pre-wrap;
         }
 
-        .preview.error {
-            color: #f97583;
-        }
-
-        /* Ace Editor Customizations */
-        .ace_editor {
-            background: #0d1117 !important;
-            color: #c9d1d9 !important;
-        }
-
-        .ace_gutter {
-            background: #161b22 !important;
-            color: #8b949e !important;
-            border-right: 1px solid #21262d !important;
-        }
-
-        .ace_cursor {
-            color: #58a6ff !important;
-        }
-
-        .ace_marker-layer .ace_selection {
-            background: #21262d !important;
-        }
-
-        .ace_keyword {
-            color: #ff7b72 !important;
-        }
-
-        .ace_string {
-            color: #a5d6ff !important;
-        }
-
-        .ace_comment {
-            color: #8b949e !important;
-        }
-
-        .ace_function {
-            color: #d2a8ff !important;
-        }
-
-        /* Scrollbar Styling */
-        .preview::-webkit-scrollbar {
+        .results::-webkit-scrollbar {
             width: 8px;
         }
 
-        .preview::-webkit-scrollbar-track {
-            background: #161b22;
-            border-radius: 4px;
+        .results::-webkit-scrollbar-track {
+            background: #333;
         }
 
-        .preview::-webkit-scrollbar-thumb {
-            background: #8b949e;
-            border-radius: 4px;
+        .results::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
         }
 
-        .preview::-webkit-scrollbar-thumb:hover {
-            background: #58a6ff;
+        .result-item {
+            background: #333;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #0d6efd;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            background: #444;
+            transform: translateX(5px);
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .result-url {
+            color: #6ab0ff;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .result-snippet {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #0d6efd;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .platform-tag {
+            background: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: center;
+                padding: 10px;
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                border-right: none;
+                border-top: 1px solid #333;
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-bottom: 70px;
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar with Bootstrap Icons -->
     <div class="sidebar">
-        <i class="bi bi-file-code-fill" title="New File"></i>
-        <i class="bi bi-folder-fill" title="Open Folder"></i>
-        <i class="bi bi-search" title="Search"></i>
-        <i class="bi bi-terminal-fill" title="Terminal"></i>
-        <i class="bi bi-gear-fill" title="Settings"></i>
+        <a href="#deep-investigation" class="nav-link active" onclick="showPage('deep-investigation')">
+            <i class="bi bi-search"></i>
+        </a>
+        <a href="#advanced-search" class="nav-link" onclick="showPage('advanced-search')">
+            <i class="bi bi-globe"></i>
+        </a>
+        <a href="#website-capture" class="nav-link" onclick="showPage('website-capture')">
+            <i class="bi bi-camera"></i>
+        </a>
+        <a href="#batch-investigation" class="nav-link" onclick="showPage('batch-investigation')">
+            <i class="bi bi-people"></i>
+        </a>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <div class="toolbar">
-            <div class="toolbar-left">
-                <span style="font-size: 14px; color: #8b949e;">code.js</span>
+        <div class="container-fluid">
+            <div id="deep-investigation" class="page active">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="bi bi-search"></i>
+                                </div>
+                                <h3>Deep Investigation</h3>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Target Username:</label>
+                                <input type="text" id="username" class="form-control" placeholder="Enter username">
+                            </div>
+                            <button class="btn btn-primary w-100" onclick="startInvestigation()">
+                                Start Investigation
+                            </button>
+                            <div class="platforms mt-3">
+                                <span class="platform-tag">TikTok</span>
+                                <span class="platform-tag">Facebook</span>
+                                <span class="platform-tag">Instagram</span>
+                                <span class="platform-tag">YouTube</span>
+                                <span class="platform-tag">Twitter</span>
+                                <span class="platform-tag">LinkedIn</span>
+                                <span class="platform-tag">GitHub</span>
+                                <span class="platform-tag">Reddit</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="results-deep" class="results" style="display: none;">
+                            <h3>Investigation Results</h3>
+                            <div id="resultContent-deep"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="toolbar-right">
-                <button class="run-btn"><i class="bi bi-play-fill"></i> Run</button>
+
+            <div id="advanced-search" class="page">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="bi bi-globe"></i>
+                                </div>
+                                <h3>Advanced Search</h3>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Search Query:</label>
+                                <input type="text" id="advancedQuery" class="form-control" placeholder="Enter query">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Search Engines:</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="bingCheck" class="form-check-input" checked>
+                                        <label class="form-check-label">Bing</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="ddgCheck" class="form-check-input" checked>
+                                        <label class="form-check-label">DuckDuckGo</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary w-100" onclick="advancedSearch()">
+                                Execute Search
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="results-advanced" class="results" style="display: none;">
+                            <h3>Search Results</h3>
+                            <div id="resultContent-advanced"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="editor-preview">
-            <div id="editor"></div>
-            <div class="preview" id="preview">Run your code to see the output here...</div>
+
+            <div id="website-capture" class="page">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="bi bi-camera"></i>
+                                </div>
+                                <h3>Website Capture</h3>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Target URL:</label>
+                                <input type="text" id="captureUrl" class="form-control" placeholder="https://example.com">
+                            </div>
+                            <button class="btn btn-primary w-100" onclick="captureWebsite()">
+                                Capture & Analyze
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="results-capture" class="results" style="display: none;">
+                            <h3>Capture Results</h3>
+                            <div id="resultContent-capture"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="batch-investigation" class="page">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <h3>Batch Investigation</h3>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Target Usernames (one per line):</label>
+                                <textarea id="batchUsernames" class="form-control" rows="5" placeholder="username1\nusername2\nusername3"></textarea>
+                            </div>
+                            <button class="btn btn-primary w-100" onclick="batchInvestigation()">
+                                Start Batch Analysis
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="results-batch" class="results" style="display: none;">
+                            <h3>Batch Results</h3>
+                            <div id="resultContent-batch"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="/code.js"></script>
     <script>
-        // Initialize Ace Editor
-        const editor = ace.edit("editor");
-        editor.setTheme("ace/theme/monokai");
-        editor.session.setMode("ace/mode/javascript");
-        editor.setOptions({
-            fontSize: "14px",
-            showPrintMargin: false,
-            showGutter: true,
-            highlightActiveLine: true,
-            tabSize: 2,
-            useSoftTabs: true
-        });
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelector(`#${pageId}`).classList.add('active');
+            document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+            document.querySelector(`a[href="#${pageId}"]`).classList.add('active');
+            history.pushState(null, '', `#${pageId}`);
+        }
 
-        // Load initial code from code.js
-        fetch('/code.js')
-            .then(response => response.text())
-            .then(code => editor.setValue(code, -1))
-            .catch(error => {
-                console.error('Error loading code:', error);
-                editor.setValue('// Error loading initial code\nconsole.log("Welcome to the editor!");');
-            });
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
 
-        // Run button functionality
-        const runBtn = document.querySelector('.run-btn');
-        const preview = document.querySelector('#preview');
-        runBtn.addEventListener('click', () => {
-            const code = editor.getValue();
-            preview.textContent = 'Running...';
-            preview.classList.remove('error');
+        function showResults(data, containerId, title = 'Results') {
+            const resultsDiv = document.getElementById(`results-${containerId}`);
+            const contentDiv = document.getElementById(`resultContent-${containerId}`);
+            resultsDiv.style.display = 'block';
 
-            fetch('/run', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    preview.classList.add('error');
-                    preview.textContent = data.error;
-                } else {
-                    preview.textContent = data.output || 'No output';
+            if (data.investigation) {
+                let html = `
+                    <div class="result-item">
+                        <div class="result-title">Investigation Summary</div>
+                        <div>Total Results: <strong>${data.investigation.total_results}</strong></div>
+                        <div>Timestamp: <strong>${new Date(data.investigation.timestamp).toLocaleString()}</strong></div>
+                    </div>
+                `;
+
+                if (data.investigation.social_media) {
+                    html += '<div class="result-item"><div class="result-title">Social Media Findings</div>';
+                    Object.entries(data.investigation.social_media).forEach(([platform, results]) => {
+                        if (results.length > 0) {
+                            html += `<div><strong>${platform.charAt(0).toUpperCase() + platform.slice(1)}:</strong> ${results.length} results</div>`;
+                        }
+                    });
+                    html += '</div>';
                 }
-            })
-            .catch(error => {
-                preview.classList.add('error');
-                preview.textContent = `Error: ${error.message}`;
-            });
+
+                if (data.investigation.extracted_contacts) {
+                    const contacts = data.investigation.extracted_contacts;
+                    html += `
+                        <div class="result-item">
+                            <div class="result-title">Extracted Contacts</div>
+                            <div>Emails: ${contacts.emails ? contacts.emails.length : 0}</div>
+                            <div>Phones: ${contacts.phones ? contacts.phones.length : 0}</div>
+                            <div>Social Profiles: ${contacts.social_profiles ? contacts.social_profiles.length : 0}</div>
+                        </div>
+                    `;
+                }
+
+                contentDiv.innerHTML = html + `<pre style="background: #333; padding: 15px; border-radius: 10px; overflow: auto; max-height: 300px; color: #ccc;">${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                let html = '';
+                if (data.results && Array.isArray(data.results)) {
+                    data.results.forEach(result => {
+                        html += `
+                            <div class="result-item">
+                                <div class="result-title">${result.title || 'No Title'}</div>
+                                ${result.url ? `<div class="result-url">${result.url}</div>` : ''}
+                                ${result.snippet ? `<div class="result-snippet">${result.snippet}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                }
+
+                contentDiv.innerHTML = html + `<pre style="background: #333; padding: 15px; border-radius: 10px; overflow: auto; max-height: 300px; color: #ccc;">${JSON.stringify(data, null, 2)}</pre>`;
+            }
+
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setButtonLoading(button, loading) {
+            button.disabled = loading;
+            button.classList.toggle('loading', loading);
+        }
+
+        async function startInvestigation() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) {
+                showToast('Please enter a username', 'error');
+                return;
+            }
+
+            const button = event.target;
+            setButtonLoading(button, true);
+
+            try {
+                showToast('Starting investigation...', 'success');
+                const response = await fetch('/api/investigate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showResults(data, 'deep', 'Investigation Results');
+                    showToast('Investigation completed!', 'success');
+                } else {
+                    showToast('Investigation failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+
+        async function advancedSearch() {
+            const query = document.getElementById('advancedQuery').value.trim();
+            if (!query) {
+                showToast('Please enter a search query', 'error');
+                return;
+            }
+
+            const bingEnabled = document.getElementById('bingCheck').checked;
+            const ddgEnabled = document.getElementById('ddgCheck').checked;
+
+            if (!bingEnabled && !ddgEnabled) {
+                showToast('Select at least one search engine', 'error');
+                return;
+            }
+
+            const button = event.target;
+            setButtonLoading(button, true);
+
+            try {
+                const sources = [];
+                if (bingEnabled) sources.push('bing');
+                if (ddgEnabled) sources.push('duckduckgo');
+
+                showToast('Executing search...', 'success');
+                const response = await fetch('/api/advanced-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, sources, maxResults: 50 })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showResults(data, 'advanced', 'Search Results');
+                    showToast(`Found ${data.total} results!`, 'success');
+                } else {
+                    showToast('Search failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+
+        async function captureWebsite() {
+            const url = document.getElementById('captureUrl').value.trim();
+            if (!url) {
+                showToast('Please enter a URL', 'error');
+                return;
+            }
+
+            const button = event.target;
+            setButtonLoading(button, true);
+
+            try {
+                showToast('Capturing website...', 'success');
+                const response = await fetch('/api/capture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showResults(data, 'capture', 'Website Capture');
+                    showToast('Capture completed!', 'success');
+                } else {
+                    showToast('Capture failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+
+        async function batchInvestigation() {
+            const usernamesText = document.getElementById('batchUsernames').value.trim();
+            if (!usernamesText) {
+                showToast('Please enter usernames', 'error');
+                return;
+            }
+
+            const usernames = usernamesText.split('\n').map(u => u.trim()).filter(u => u);
+            if (usernames.length === 0) {
+                showToast('Please enter valid usernames', 'error');
+                return;
+            }
+
+            const button = event.target;
+            setButtonLoading(button, true);
+
+            try {
+                showToast(`Starting batch investigation for ${usernames.length} targets...`, 'success');
+                const response = await fetch('/api/batch-investigate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernames })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showResults(data, 'batch', 'Batch Investigation Results');
+                    showToast(`Batch completed! Analyzed ${data.total_investigated} targets.`, 'success');
+                } else {
+                    showToast('Batch investigation failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.slice(1) || 'deep-investigation';
+            showPage(hash);
         });
     </script>
 </body>
