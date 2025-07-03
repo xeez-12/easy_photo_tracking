@@ -673,7 +673,7 @@ function extractAdvancedContactInfo(text) {
         emails: [...new Set(text.match(emailRegex) || [])],
         phones: [...new Set(text.match(phoneRegex) || [])],
         usernames: [...new Set(text.match(usernameRegex) || [])],
-        urls: [...new Set(text.urlRegex) || [])],
+        urls: [...new Set(text.match(urlRegex) || [])],
         social_profiles: [...new Set(text.match(socialRegex) || [])]
     };
 }
