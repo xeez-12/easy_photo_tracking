@@ -26,7 +26,7 @@
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
             position: fixed;
             height: 100%;
-            z-index: 1000;
+            z-index: 1001; /* Diperbarui untuk memastikan di atas konten */
             transition: width 0.3s ease;
         }
         .sidebar.collapsed ~ .main-content .container .tab-content {
@@ -62,6 +62,7 @@
             position: absolute;
             top: 10px;
             right: -40px;
+            z-index: 1002; /* Di atas sidebar */
             display: none;
         }
         .sidebar.collapsed .sidebar-toggle {
@@ -74,6 +75,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+            z-index: 1000; /* Memastikan di atas elemen lain */
             transition: margin-left 0.3s ease;
         }
         .container {
@@ -118,6 +120,7 @@
             font-weight: 500;
             transition: background-color 0.3s ease, transform 0.2s ease;
             width: auto;
+            z-index: 1000; /* Memastikan tombol dapat diklik */
         }
         button.primary:hover {
             background-color: #005fe4;
@@ -328,9 +331,9 @@
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('collapsed');
             if (sidebar.classList.contains('collapsed')) {
-                mainContent.style.margin-left = '50px';
+                mainContent.style.marginLeft = '50px';
             } else {
-                mainContent.style.margin-left = '60px';
+                mainContent.style.marginLeft = '60px';
             }
         });
 
@@ -353,9 +356,14 @@
         }
 
         async function handleSearch(tab) {
+            console.log(`Attempting to handle search for tab: ${tab}`); // Debug log
             const errorEl = document.getElementById(`${tab}-error`);
             const resultsEl = document.getElementById(`${tab}-results`);
             const button = document.querySelector(`#${tab}-tab button.primary`);
+            if (!button) {
+                console.error(`Button not found for tab: ${tab}`);
+                return;
+            }
             button.disabled = true;
             button.textContent = 'Processing...';
             errorEl.innerHTML = '';
@@ -403,18 +411,21 @@
                     renderHealthResults(response.data, resultsEl);
                 }
             } catch (err) {
+                console.error(`Error in handleSearch for ${tab}:`, err); // Debug error
                 errorEl.innerHTML = err.response?.data?.error || err.message;
             } finally {
-                button.disabled = false;
-                button.textContent = button.textContent.replace('Processing...', {
-                    deep: 'Start Investigation',
-                    social: 'Search Social Media',
-                    advanced: 'Execute Search',
-                    capture: 'Capture & Analyze',
-                    batch: 'Start Batch Analysis',
-                    phone: 'Search Phone Number',
-                    health: 'Check System Health'
-                }[tab]);
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = button.textContent.replace('Processing...', {
+                        deep: 'Start Investigation',
+                        social: 'Search Social Media',
+                        advanced: 'Execute Search',
+                        capture: 'Capture & Analyze',
+                        batch: 'Start Batch Analysis',
+                        phone: 'Search Phone Number',
+                        health: 'Check System Health'
+                    }[tab]);
+                }
             }
         }
 
