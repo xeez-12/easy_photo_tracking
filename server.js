@@ -4,12 +4,7 @@ const cheerio = require('cheerio');
 const { v4: uuidv4 } = require('uuid');
 const tough = require('tough-cookie');
 const puppeteer = require('puppeteer');
-const userAgentPool = require('./useragents'); // Impor dari file terpisah
-const fallbackUserAgents = [
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
-];
+const userAgentPool = require('./useragents');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,7 +15,7 @@ app.use(express.static('public'));
 
 // Enhanced Headers Configuration
 const getAdvancedHeaders = (referer = null, isXHR = false) => {
-    const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)] || fallbackUserAgents[Math.floor(Math.random() * fallbackUserAgents.length)];
+    const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
     return {
         'User-Agent': userAgent,
         'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -56,66 +51,11 @@ function generateRandomIP() {
 }
 
 // Sleep function
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms + Math.floor(Math.random() * 1000)));
+const sleep = (ms) => new Promise(resolve => 
+    setTimeout(resolve, ms + Math.floor(Math.random() * 1000))
+);
 
-// Custom CAPTCHA Solver (Simple AI-based Pattern Recognition)
-class CustomCaptchaSolver {
-    constructor() {
-        this.patterns = {
-            text: /Enter the text|Type the characters|CAPTCHA/g,
-            image: /img\[alt="captcha"\]|canvas/g
-        };
-    }
-
-    async solveCaptcha(page) {
-        try {
-            const captchaElement = await page.$('input[name="captcha"]') || await page.$('input[type="text"][id*="captcha"]');
-            if (!captchaElement) return null;
-
-            const pageContent = await page.content();
-            if (this.patterns.text.test(pageContent)) {
-                // Simulasi pemecahan teks CAPTCHA sederhana (contoh)
-                const randomText = Math.random().toString(36).substring(7).toUpperCase();
-                await page.type(captchaElement, randomText, { delay: 100 });
-                await sleep(1000);
-                return randomText;
-            } else if (this.patterns.image.test(pageContent)) {
-                // Simulasi pemecahan gambar CAPTCHA (contoh)
-                const captchaImage = await page.$eval('img[alt="captcha"]', img => img.src);
-                if (captchaImage) {
-                    await page.evaluate(() => {
-                        const canvas = document.createElement('canvas');
-                        document.body.appendChild(canvas);
-                        const ctx = canvas.getContext('2d');
-                        const img = new Image();
-                        img.src = captchaImage;
-                        img.onload = () => {
-                            ctx.drawImage(img, 0, 0);
-                            // Logika sederhana untuk mendeteksi pola (contoh)
-                            const data = ctx.getImageData(0, 0, img.width, img.height).data;
-                            let text = '';
-                            for (let i = 0; i < data.length; i += 4) {
-                                if (data[i] > 200) text += '1';
-                                else text += '0';
-                            }
-                            document.querySelector('input[name="captcha"]').value = text.substring(0, 6);
-                        };
-                    });
-                    await sleep(2000);
-                    return await page.$eval('input[name="captcha"]', el => el.value);
-                }
-            }
-            return null;
-        } catch (error) {
-            console.error('Captcha solving failed:', error);
-            return null;
-        }
-    }
-}
-
-const captchaSolver = new CustomCaptchaSolver();
-
-// Advanced Social Media Scraping with Perfect Profile Picture Extraction
+// Advanced Social Media Scraping with Profile Picture
 async function scrapeSocialMediaProfile(url, platform) {
     let browser;
     try {
@@ -135,24 +75,14 @@ async function scrapeSocialMediaProfile(url, platform) {
         });
 
         const page = await browser.newPage();
-        await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)] || fallbackUserAgents[0]);
+        await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
         await page.setViewport({ width: 1366, height: 768 });
 
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
-        // Coba selesaikan CAPTCHA jika ada
-        const captchaSolution = await captchaSolver.solveCaptcha(page);
-        if (captchaSolution) {
-            await page.click('button[type="submit"]') || await page.keyboard.press('Enter');
-            await sleep(2000);
-        }
-
         const profileData = await page.evaluate((platform) => {
             const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
-            const getImage = (selector) => {
-                const img = document.querySelector(selector);
-                return img ? (img.src || img.getAttribute('data-src') || '') : '';
-            };
+            const getImage = (selector) => document.querySelector(selector)?.src || '';
 
             const platformSelectors = {
                 tiktok: {
@@ -180,7 +110,7 @@ async function scrapeSocialMediaProfile(url, platform) {
                     posts: 'div.x1n2onr6 div.x1yztbdb'
                 },
                 youtube: {
-                    profilePic: '#img, #avatar',
+                    profilePic: '#img',
                     bio: '#description.ytd-channel-about-metadata-renderer',
                     followers: '#subscriber-count',
                     posts: 'ytd-grid-video-renderer'
@@ -207,21 +137,12 @@ async function scrapeSocialMediaProfile(url, platform) {
 
             const selectors = platformSelectors[platform] || {};
             return {
-                profilePic: getImage(selectors.profilePic) || getImage('img.avatar, img.profile'),
+                profilePic: getImage(selectors.profilePic),
                 bio: getText(selectors.bio),
                 followers: getText(selectors.followers),
                 postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts)
             };
         }, platform);
-
-        // Pastikan foto profil valid
-        let profilePic = profileData.profilePic;
-        if (profilePic && !profilePic.startsWith('http')) {
-            profilePic = new URL(profilePic, url).href;
-        }
-        if (!profilePic || profilePic.includes('default') || profilePic.includes('placeholder')) {
-            profilePic = null;
-        }
 
         const screenshot = await page.screenshot({ 
             encoding: 'base64',
@@ -233,10 +154,7 @@ async function scrapeSocialMediaProfile(url, platform) {
 
         return {
             url,
-            profilePic,
-            bio: profileData.bio,
-            followers: profileData.followers,
-            postCount: profileData.postCount,
+            ...profileData,
             screenshot: `data:image/png;base64,${screenshot}`,
             scraped_at: new Date().toISOString(),
             platform
@@ -689,16 +607,10 @@ async function captureAdvancedInfo(url) {
             });
 
             const page = await browser.newPage();
-            await page.setUserAgent(userAgentPool[0] || fallbackUserAgents[0]);
+            await page.setUserAgent(userAgentPool[0]);
             await page.setViewport({ width: 1366, height: 768 });
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-
-            const captchaSolution = await captchaSolver.solveCaptcha(page);
-            if (captchaSolution) {
-                await page.click('button[type="submit"]') || await page.keyboard.press('Enter');
-                await sleep(2000);
-            }
 
             const screenshot = await page.screenshot({ 
                 encoding: 'base64',
@@ -952,8 +864,7 @@ app.get('/health', (req, res) => {
             'Rate Limiting & Evasion',
             'Browser Fingerprinting',
             'Social Media Metadata Extraction',
-            'Phone Number Search',
-            'Custom CAPTCHA Solver'
+            'Phone Number Search'
         ],
         supported_platforms: Object.keys(socialMediaPatterns)
     });
