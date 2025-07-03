@@ -2,7 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { v4: uuidv4 } = require('uuid');
-const UserAgent = require('user-agents');
 const tough = require('tough-cookie');
 const puppeteer = require('puppeteer');
 
@@ -13,31 +12,29 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-// Enhanced User Agent Pool
+// Expanded User Agent Pool (Can be moved to useragents.js if preferred)
 const userAgentPool = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/127.0.2651.74 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
+    'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/128.0.2651.74 Safari/537.36',
+    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0',
     'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Android 14; Mobile; rv:128.0) Gecko/128.0 Firefox/128.0',
-    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+    'Mozilla/5.0 (Android 14; Tablet; rv:129.0) Gecko/129.0 Firefox/129.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
 ];
 
-// Advanced Headers Configuration
+// Enhanced Headers Configuration
 const getAdvancedHeaders = (referer = null, isXHR = false) => {
     const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
-    const headers = {
+    return {
         'User-Agent': userAgent,
         'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'Accept-Language': 'en-US,en;q=0.9,en-GB;q=0.8,es;q=0.7',
@@ -50,17 +47,15 @@ const getAdvancedHeaders = (referer = null, isXHR = false) => {
         'Sec-Fetch-Site': referer ? 'same-origin' : 'none',
         'Sec-Fetch-User': isXHR ? undefined : '?1',
         'Cache-Control': 'max-age=0',
-        'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="127", "Google Chrome";v="127"',
+        'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="128", "Google Chrome";v="128"',
         'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
+        'sec-ch-ua-platform': '"iOS"',
         'X-Forwarded-For': generateRandomIP(),
         'X-Real-IP': generateRandomIP(),
         'Pragma': 'no-cache',
         'Referer': referer || 'https://www.google.com/',
         'Origin': referer ? new URL(referer).origin : 'https://www.google.com'
     };
-    if (isXHR) headers['X-Requested-With'] = 'XMLHttpRequest';
-    return headers;
 };
 
 // Generate Random IP
@@ -233,22 +228,10 @@ async function searchBingAdvanced(query, maxPages = 5) {
                 }
             });
 
-            $('.b_rs li a, .b_pag a').each((i, element) => {
-                const relatedQuery = $(element).text().trim();
-                if (relatedQuery && relatedQuery !== query) {
-                    pageResults.push({
-                        type: 'related_search',
-                        query: relatedQuery,
-                        source: 'bing',
-                        page: page + 1
-                    });
-                }
-            });
-
             allResults.push(...pageResults);
 
             if (pageResults.length === 0) break;
-            await sleep(2000 + Math.random() * 2000);
+            await sleep(2000);
 
         } catch (error) {
             if (error.response?.status === 429) {
@@ -339,61 +322,17 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
 
 // Social Media URL Builders
 const socialMediaPatterns = {
-    tiktok: [
-        'site:tiktok.com "@{username}"',
-        'site:tiktok.com/{username}',
-        'tiktok.com/@{username}',
-        '"{username}" tiktok',
-        'tiktok "{username}" profile'
-    ],
-    facebook: [
-        'site:facebook.com "{username}"',
-        'facebook.com/{username}',
-        'site:fb.com "{username}"',
-        '"{username}" facebook profile',
-        'facebook "{username}" page'
-    ],
-    instagram: [
-        'site:instagram.com "{username}"',
-        'instagram.com/{username}',
-        'site:instagr.am "{username}"',
-        '"{username}" instagram',
-        'instagram profile "{username}"'
-    ],
-    youtube: [
-        'site:youtube.com "{username}"',
-        'youtube.com/@{username}',
-        'youtube.com/c/{username}',
-        'youtube.com/user/{username}',
-        'youtube "{username}" channel'
-    ],
-    twitter: [
-        'site:twitter.com "{username}"',
-        'site:x.com "{username}"',
-        'twitter.com/{username}',
-        'x.com/{username}',
-        '"{username}" twitter profile'
-    ],
-    linkedin: [
-        'site:linkedin.com/in "{username}"',
-        'linkedin.com/in/{username}',
-        'site:linkedin.com "{username}"',
-        '"{username}" linkedin profile'
-    ],
-    github: [
-        'site:github.com "{username}"',
-        'github.com/{username}',
-        '"{username}" github profile'
-    ],
-    reddit: [
-        'site:reddit.com/u "{username}"',
-        'site:reddit.com/user/{username}',
-        'reddit.com/u/{username}',
-        '"{username}" reddit user'
-    ]
+    tiktok: ['site:tiktok.com "@{username}"', 'tiktok.com/@{username}', '"{username}" tiktok profile'],
+    facebook: ['site:facebook.com "{username}"', 'facebook.com/{username}', '"{username}" facebook profile'],
+    instagram: ['site:instagram.com "{username}"', 'instagram.com/{username}', '"{username}" instagram'],
+    youtube: ['site:youtube.com "{username}"', 'youtube.com/@{username}', '"{username}" youtube channel'],
+    twitter: ['site:twitter.com "{username}"', 'twitter.com/{username}', '"{username}" twitter profile'],
+    linkedin: ['site:linkedin.com/in "{username}"', 'linkedin.com/in/{username}', '"{username}" linkedin profile'],
+    github: ['site:github.com "{username}"', 'github.com/{username}', '"{username}" github profile'],
+    reddit: ['site:reddit.com/u "{username}"', 'reddit.com/u/{username}', '"{username}" reddit user']
 };
 
-// Advanced Social Media Search (Restricted to Social Media)
+// Advanced Social Media Search (Platform-Specific)
 async function searchSocialMediaAdvanced(username, platform) {
     const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
     const allResults = [];
@@ -410,8 +349,18 @@ async function searchSocialMediaAdvanced(username, platform) {
             const combinedResults = [...bingResults, ...ddgResults];
 
             for (const result of combinedResults) {
-                const socialMediaDomains = ['tiktok.com', 'facebook.com', 'instagram.com', 'youtube.com', 'twitter.com', 'x.com', 'linkedin.com', 'github.com', 'reddit.com'];
-                if (result.url && socialMediaDomains.some(domain => result.url.includes(domain)) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
+                const targetDomain = {
+                    tiktok: 'tiktok.com',
+                    facebook: 'facebook.com',
+                    instagram: 'instagram.com',
+                    youtube: 'youtube.com',
+                    twitter: 'twitter.com',
+                    linkedin: 'linkedin.com',
+                    github: 'github.com',
+                    reddit: 'reddit.com'
+                }[platform];
+
+                if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
                     allResults.push({ ...result, ...profileData, platform, query });
                 }
@@ -448,8 +397,18 @@ async function searchPhoneNumberAdvanced(username, platform) {
             const combinedResults = [...bingResults, ...ddgResults];
 
             for (const result of combinedResults) {
-                const socialMediaDomains = ['tiktok.com', 'facebook.com', 'instagram.com', 'youtube.com', 'twitter.com', 'x.com', 'linkedin.com', 'github.com', 'reddit.com'];
-                if (result.url && socialMediaDomains.some(domain => result.url.includes(domain)) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
+                const targetDomain = {
+                    tiktok: 'tiktok.com',
+                    facebook: 'facebook.com',
+                    instagram: 'instagram.com',
+                    youtube: 'youtube.com',
+                    twitter: 'twitter.com',
+                    linkedin: 'linkedin.com',
+                    github: 'github.com',
+                    reddit: 'reddit.com'
+                }[platform];
+
+                if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
                     const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
                     const textContent = profileData.bio || result.snippet || '';
