@@ -154,15 +154,15 @@
         }
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(5, minmax(250px, 1fr));
-            gap: 25px;
-            margin-top: 25px;
+            grid-template-columns: repeat(5, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
         }
         .card {
             background: #2a2e32;
             border: 1px solid #3a3e42;
             border-radius: 16px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
@@ -174,18 +174,18 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
         .card img.profile-pic {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 15px;
+            margin-right: 12px;
             align-self: flex-start;
             border: 2px solid #4a90e2;
         }
         .card img.screenshot {
             max-width: 100%;
             border-radius: 8px;
-            margin-top: 15px;
+            margin-top: 12px;
         }
         .card .content {
             flex-grow: 1;
@@ -193,43 +193,43 @@
             flex-direction: column;
         }
         .card h3 {
-            margin: 0 0 10px;
-            font-size: 20px;
+            margin: 0 0 8px;
+            font-size: 18px;
             color: #ffffff;
             font-weight: 600;
         }
         .card p {
-            margin: 8px 0;
+            margin: 6px 0;
             color: #bdc3c7;
             flex-grow: 1;
         }
         .card .domain {
             color: #4a90e2;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         .section-title {
-            font-size: 22px;
-            margin: 25px 0 15px;
+            font-size: 20px;
+            margin: 20px 0 12px;
             color: #ffffff;
             font-weight: 600;
             border-bottom: 2px solid #3a3e42;
-            padding-bottom: 5px;
+            padding-bottom: 4px;
         }
         @media (max-width: 1600px) {
             .card-grid {
-                grid-template-columns: repeat(4, minmax(250px, 1fr));
+                grid-template-columns: repeat(4, minmax(200px, 1fr));
             }
         }
         @media (max-width: 1280px) {
             .card-grid {
-                grid-template-columns: repeat(3, minmax(250px, 1fr));
+                grid-template-columns: repeat(3, minmax(200px, 1fr));
             }
         }
         @media (max-width: 1024px) {
             .card-grid {
-                grid-template-columns: repeat(2, minmax(250px, 1fr));
+                grid-template-columns: repeat(2, minmax(200px, 1fr));
             }
         }
         @media (max-width: 768px) {
@@ -238,7 +238,7 @@
             }
             .main-content {
                 margin-left: 50px;
-                padding: 20px;
+                padding: 15px;
             }
             .card-grid {
                 grid-template-columns: 1fr;
@@ -357,11 +357,7 @@
         toggleButton.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('collapsed');
-            if (sidebar.classList.contains('collapsed')) {
-                mainContent.style.margin-left = '50px';
-            } else {
-                mainContent.style.margin-left = '60px';
-            }
+            mainContent.style.marginLeft = sidebar.classList.contains('collapsed') ? '50px' : '60px';
         });
 
         const tabs = document.querySelectorAll('.sidebar button');
@@ -372,7 +368,8 @@
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 tabContents.forEach(content => content.style.display = 'none');
-                document.getElementById(`${tab.dataset.tab}-tab`).style.display = 'block';
+                const activeTab = document.getElementById(`${tab.dataset.tab}-tab`);
+                if (activeTab) activeTab.style.display = 'block';
                 clearResults();
             });
         });
@@ -386,57 +383,61 @@
             const errorEl = document.getElementById(`${tab}-error`);
             const resultsEl = document.getElementById(`${tab}-results`);
             const button = document.querySelector(`#${tab}-tab button.primary`);
+            if (!button || !errorEl || !resultsEl) return;
+
             button.disabled = true;
             button.textContent = 'Processing...';
-            errorEl.innerHTML = '';
+            errorEl.textContent = '';
             resultsEl.innerHTML = '';
 
             try {
                 let response;
+                const config = { timeout: 10000 }; // Tambahkan timeout 10 detik
                 if (tab === 'deep') {
-                    const username = document.getElementById('deep-username').value;
+                    const username = document.getElementById('deep-username')?.value || '';
                     if (!username) throw new Error('Username is required');
-                    response = await axios.post('/api/investigate', { username });
+                    response = await axios.post('/api/investigate', { username }, config);
                     renderDeepResults(response.data.investigation, resultsEl);
                 } else if (tab === 'social') {
-                    const username = document.getElementById('social-username').value;
-                    const platform = document.getElementById('social-platform').value;
+                    const username = document.getElementById('social-username')?.value || '';
+                    const platform = document.getElementById('social-platform')?.value || '';
                     if (!username) throw new Error('Username is required');
-                    response = await axios.post(`/api/search/${platform}`, { username });
+                    response = await axios.post(`/api/search/${platform}`, { username }, config);
                     renderProfileResults(response.data.results, resultsEl);
                 } else if (tab === 'advanced') {
-                    const query = document.getElementById('advanced-query').value;
+                    const query = document.getElementById('advanced-query')?.value || '';
                     const sources = [];
-                    if (document.getElementById('bing-source').checked) sources.push('bing');
-                    if (document.getElementById('duckduckgo-source').checked) sources.push('duckduckgo');
+                    if (document.getElementById('bing-source')?.checked) sources.push('bing');
+                    if (document.getElementById('duckduckgo-source')?.checked) sources.push('duckduckgo');
                     if (!query) throw new Error('Query is required');
-                    response = await axios.post('/api/advanced-search', { query, sources });
+                    response = await axios.post('/api/advanced-search', { query, sources }, config);
                     renderProfileResults(response.data.results, resultsEl);
                 } else if (tab === 'capture') {
-                    const url = document.getElementById('capture-url').value;
+                    const url = document.getElementById('capture-url')?.value || '';
                     if (!url) throw new Error('URL is required');
-                    response = await axios.post('/api/capture', { url });
+                    response = await axios.post('/api/capture', { url }, config);
                     renderCaptureResults(response.data.capture, resultsEl);
                 } else if (tab === 'batch') {
-                    const usernames = document.getElementById('batch-usernames').value.split('\n').filter(u => u.trim());
+                    const usernames = (document.getElementById('batch-usernames')?.value || '').split('\n').filter(u => u.trim());
                     if (!usernames.length) throw new Error('Usernames array is required');
-                    response = await axios.post('/api/batch-investigate', { usernames });
+                    response = await axios.post('/api/batch-investigate', { usernames }, config);
                     renderBatchResults(response.data.investigations, resultsEl);
                 } else if (tab === 'phone') {
-                    const username = document.getElementById('phone-username').value;
-                    const platform = document.getElementById('phone-platform').value;
+                    const username = document.getElementById('phone-username')?.value || '';
+                    const platform = document.getElementById('phone-platform')?.value || '';
                     if (!username) throw new Error('Username is required');
-                    response = await axios.post(`/api/search-phone/${platform}`, { username });
+                    response = await axios.post(`/api/search-phone/${platform}`, { username }, config);
                     renderPhoneResults(response.data.results, resultsEl);
                 } else if (tab === 'health') {
-                    response = await axios.get('/health');
+                    response = await axios.get('/health', config);
                     renderHealthResults(response.data, resultsEl);
                 }
             } catch (err) {
-                errorEl.innerHTML = err.response?.data?.error || err.message;
+                errorEl.textContent = err.response?.data?.error || err.message || 'An error occurred';
+                if (err.code === 'ECONNABORTED') errorEl.textContent = 'Request timed out';
             } finally {
                 button.disabled = false;
-                button.textContent = button.textContent.replace('Processing...', {
+                const defaultTexts = {
                     deep: 'Start Investigation',
                     social: 'Search Social Media',
                     advanced: 'Execute Search',
@@ -444,29 +445,25 @@
                     batch: 'Start Batch Analysis',
                     phone: 'Search Phone Number',
                     health: 'Check System Health'
-                }[tab]);
+                };
+                button.textContent = defaultTexts[tab] || 'Process';
             }
         }
 
         function renderCard(content) {
-            return `
-                <div class="card">
-                    <div class="content">${content}</div>
-                </div>
-            `;
+            return `<div class="card">${content ? `<div class="content">${content}</div>` : ''}</div>`;
         }
 
         function getShortDomain(url) {
             try {
-                const domain = new URL(url).hostname.replace('www.', '').split('.').slice(-2).join('.');
-                return domain;
+                return new URL(url).hostname.replace('www.', '').split('.').slice(-2).join('.') || 'unknown';
             } catch {
                 return 'unknown';
             }
         }
 
         function renderProfileCard(profile) {
-            const domain = getShortDomain(profile.url);
+            const domain = getShortDomain(profile.url || '');
             return renderCard(`
                 <div style="display: flex; align-items: flex-start;">
                     ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : ''}
@@ -485,7 +482,7 @@
         }
 
         function renderCaptureCard(capture) {
-            const domain = getShortDomain(capture.url);
+            const domain = getShortDomain(capture.url || '');
             return renderCard(`
                 <h3>${capture.title || 'Website Capture'}</h3>
                 <div class="domain">${domain}</div>
@@ -496,7 +493,7 @@
         }
 
         function renderPhoneCard(profile) {
-            const domain = getShortDomain(profile.url);
+            const domain = getShortDomain(profile.url || '');
             return renderCard(`
                 <div style="display: flex; align-items: flex-start;">
                     ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile">` : ''}
@@ -513,75 +510,81 @@
 
         function renderDeepResults(investigation, resultsEl) {
             let html = '';
-            Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
-                if (profiles.length) {
-                    html += `<h2 class="section-title">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>`;
-                    html += '<div class="card-grid">';
-                    profiles.forEach(profile => {
-                        html += renderProfileCard(profile);
-                    });
-                    html += '</div>';
-                }
-            });
-            if (investigation.general_search.length) {
-                html += '<h2 class="section-title">General Search</h2>';
-                html += '<div class="card-grid">';
-                investigation.general_search.forEach(result => {
-                    html += renderProfileCard(result);
-                });
-                html += '</div>';
-            }
-            resultsEl.innerHTML = html;
-        }
-
-        function renderProfileResults(profiles, resultsEl) {
-            let html = '<div class="card-grid">';
-            profiles.forEach(profile => {
-                html += renderProfileCard(profile);
-            });
-            html += '</div>';
-            resultsEl.innerHTML = html;
-        }
-
-        function renderCaptureResults(capture, resultsEl) {
-            resultsEl.innerHTML = renderCaptureCard(capture);
-        }
-
-        function renderBatchResults(investigations, resultsEl) {
-            let html = '';
-            investigations.forEach(investigation => {
-                html += `<h2 class="section-title">Username: ${investigation.username}</h2>`;
+            if (investigation?.social_media) {
                 Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
-                    if (profiles.length) {
-                        html += `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
+                    if (profiles?.length) {
+                        html += `<h2 class="section-title">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>`;
                         html += '<div class="card-grid">';
                         profiles.forEach(profile => {
-                            html += renderProfileCard(profile);
+                            html += renderProfileCard(profile || {});
                         });
                         html += '</div>';
                     }
                 });
+            }
+            if (investigation?.general_search?.length) {
+                html += '<h2 class="section-title">General Search</h2>';
+                html += '<div class="card-grid">';
+                investigation.general_search.forEach(result => {
+                    html += renderProfileCard(result || {});
+                });
+                html += '</div>';
+            }
+            resultsEl.innerHTML = html || '<p>No results found</p>';
+        }
+
+        function renderProfileResults(profiles, resultsEl) {
+            let html = '<div class="card-grid">';
+            (profiles || []).forEach(profile => {
+                html += renderProfileCard(profile || {});
             });
-            resultsEl.innerHTML = html;
+            html += '</div>';
+            resultsEl.innerHTML = html || '<p>No results found</p>';
+        }
+
+        function renderCaptureResults(capture, resultsEl) {
+            resultsEl.innerHTML = renderCaptureCard(capture || {});
+        }
+
+        function renderBatchResults(investigations, resultsEl) {
+            let html = '';
+            (investigations || []).forEach(investigation => {
+                if (investigation?.username) {
+                    html += `<h2 class="section-title">Username: ${investigation.username}</h2>`;
+                    if (investigation?.social_media) {
+                        Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
+                            if (profiles?.length) {
+                                html += `<h3>${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
+                                html += '<div class="card-grid">';
+                                profiles.forEach(profile => {
+                                    html += renderProfileCard(profile || {});
+                                });
+                                html += '</div>';
+                            }
+                        });
+                    }
+                }
+            });
+            resultsEl.innerHTML = html || '<p>No results found</p>';
         }
 
         function renderPhoneResults(profiles, resultsEl) {
             let html = '<div class="card-grid">';
-            profiles.forEach(profile => {
-                html += renderPhoneCard(profile);
+            (profiles || []).forEach(profile => {
+                html += renderPhoneCard(profile || {});
             });
             html += '</div>';
-            resultsEl.innerHTML = html;
+            resultsEl.innerHTML = html || '<p>No results found</p>';
         }
 
         function renderHealthResults(data, resultsEl) {
             resultsEl.innerHTML = renderCard(`
                 <h2 class="section-title">System Health</h2>
-                <p><strong>Status:</strong> ${data.status}</p>
-                <p><strong>Version:</strong> ${data.version}</p>
-                <p><strong>Uptime:</strong> ${Math.round(data.uptime)} seconds</p>
-                <p><strong>Supported Platforms:</strong> ${data.supported_platforms.join(', ')}</p>
-                <p><strong>Features:</strong> ${data.features.join(', ')}</p>
+                <p><strong>Status:</strong> ${data?.status || 'Unknown'}</p>
+                <p><strong>Version:</strong> ${data?.version || 'N/A'}</p>
+                <p><strong>Uptime:</strong> ${Math.round(data?.uptime) || 0} seconds</p>
+                <p><strong>Supported Platforms:</strong> ${(data?.supported_platforms || []).join(', ') || 'N/A'}</p>
+                <p><strong>Features:</strong> ${(data?.features || []).join(', ') || 'N/A'}</p>
             `);
         }
     </script>
