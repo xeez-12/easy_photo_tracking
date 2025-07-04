@@ -7,89 +7,87 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #ffffff; }
-        .sidebar { position: fixed; width: 250px; height: 100vh; background: #f8fafc; border-right: 1px solid #e5e7eb; }
-        .sidebar a { display: flex; align-items: center; padding: 12px 20px; color: #4b5563; }
-        .sidebar a:hover { background: #e5e7eb; color: #1f2937; }
-        .sidebar a.active { background: #dbeafe; color: #1e40af; }
-        .main-content { margin-left: 250px; padding: 20px; }
-        .card { background: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        body { font-family: 'Inter', sans-serif; background: #111827; color: #e5e7eb; }
+        .sidebar { position: fixed; width: 60px; height: 100vh; background: #1f2937; border-right: 1px solid #ffffff; }
+        .sidebar a { display: flex; justify-content: center; align-items: center; padding: 15px; color: #e5e7eb; font-size: 1.5rem; }
+        .sidebar a:hover { background: #374151; }
+        .sidebar a.active { background: #4b5563; }
+        .main-content { margin-left: 60px; padding: 20px; }
+        .card { background: #1f2937; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.3s ease; }
         .card:hover { transform: translateY(-2px); }
-        .result-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .btn-primary { background: #1e40af; color: white; }
-        .btn-primary:hover { background: #1e3a8a; }
+        .result-box { background: #374151; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .btn-primary { background: #4b5563; color: #e5e7eb; }
+        .btn-primary:hover { background: #6b7280; }
+        .section { display: none; }
+        .section.active { display: block; }
     </style>
 </head>
 <body>
     <div class="flex">
         <div class="sidebar">
-            <div class="p-4">
-                <h1 class="text-2xl font-bold text-gray-800">OSINT</h1>
-                <p class="text-sm text-gray-600">Investigation Platform</p>
-            </div>
             <nav>
-                <a href="#overview" class="active"><i class="fas fa-home mr-2"></i> Overview</a>
-                <a href="#deep"><i class="fas fa-search mr-2"></i> Deep Investigation</a>
-                <a href="#social"><i class="fas fa-users mr-2"></i> Social Media</a>
-                <a href="#accounts"><i class="fas fa-user-check mr-2"></i> Find Accounts</a>
-                <a href="#advanced"><i class="fas fa-magnifying-glass mr-2"></i> Advanced Search</a>
-                <a href="#capture"><i class="fas fa-camera mr-2"></i> Website Capture</a>
-                <a href="#batch"><i class="fas fa-list mr-2"></i> Batch Investigation</a>
-                <a href="#phone"><i class="fas fa-phone mr-2"></i> Phone Search</a>
-                <a href="#health"><i class="fas fa-heartbeat mr-2"></i> System Health</a>
+                <a href="#overview" class="active"><i class="fas fa-home"></i></a>
+                <a href="#deep"><i class="fas fa-search"></i></a>
+                <a href="#social"><i class="fas fa-users"></i></a>
+                <a href="#accounts"><i class="fas fa-user-check"></i></a>
+                <a href="#advanced"><i class="fas fa-magnifying-glass"></i></a>
+                <a href="#capture"><i class="fas fa-camera"></i></a>
+                <a href="#batch"><i class="fas fa-list"></i></a>
+                <a href="#phone"><i class="fas fa-phone"></i></a>
+                <a href="#health"><i class="fas fa-heartbeat"></i></a>
             </nav>
         </div>
         <div class="main-content">
             <main>
-                <section id="overview" class="mb-12">
+                <section id="overview" class="section active">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Dashboard</h2>
-                        <p class="text-gray-600 mb-6">Monitor your investigation activities and system performance</p>
+                        <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+                        <p class="text-gray-400 mb-6">Monitor your investigation activities and system performance</p>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div class="bg-blue-50 p-4 rounded-lg">
+                            <div class="bg-gray-800 p-4 rounded-lg">
                                 <div class="flex items-center mb-2">
-                                    <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
+                                    <i class="fas fa-project-diagram text-gray-300 mr-2"></i>
                                     <span class="text-sm font-semibold">Total Projects</span>
                                 </div>
                                 <p class="text-2xl font-bold">0</p>
                             </div>
-                            <div class="bg-green-50 p-4 rounded-lg">
+                            <div class="bg-gray-800 p-4 rounded-lg">
                                 <div class="flex items-center mb-2">
-                                    <i class="fas fa-chart-line text-green-600 mr-2"></i>
+                                    <i class="fas fa-chart-line text-gray-300 mr-2"></i>
                                     <span class="text-sm font-semibold">Active Analyses</span>
                                 </div>
                                 <p class="text-2xl font-bold">5</p>
-                                <span class="text-sm text-green-600">Live</span>
+                                <span class="text-sm text-green-400">Live</span>
                             </div>
-                            <div class="bg-yellow-50 p-4 rounded-lg">
+                            <div class="bg-gray-800 p-4 rounded-lg">
                                 <div class="flex items-center mb-2">
-                                    <i class="fas fa-database text-yellow-600 mr-2"></i>
+                                    <i class="fas fa-database text-gray-300 mr-2"></i>
                                     <span class="text-sm font-semibold">Data Processed</span>
                                 </div>
                                 <p class="text-2xl font-bold">0.0GB</p>
                             </div>
-                            <div class="bg-purple-50 p-4 rounded-lg">
+                            <div class="bg-gray-800 p-4 rounded-lg">
                                 <div class="flex items-center mb-2">
-                                    <i class="fas fa-check-circle text-purple-600 mr-2"></i>
+                                    <i class="fas fa-check-circle text-gray-300 mr-2"></i>
                                     <span class="text-sm font-semibold">Accuracy Rate</span>
                                 </div>
                                 <p class="text-2xl font-bold">88.7%</p>
-                                <span class="text-sm text-purple-600">High</span>
+                                <span class="text-sm text-purple-400">High</span>
                             </div>
                         </div>
                         <div class="mt-6">
-                            <h3 class="text-lg font-semibold mb-2 text-gray-800">Recent Activity</h3>
-                            <p class="text-gray-600">No recent activity</p>
+                            <h3 class="text-lg font-semibold mb-2">Recent Activity</h3>
+                            <p class="text-gray-400">No recent activity</p>
                         </div>
                     </div>
                 </section>
 
-                <section id="deep" class="mb-12">
+                <section id="deep" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Deep Investigation</h2>
-                        <p class="text-gray-600 mb-6">Comprehensive username investigation across multiple platforms</p>
+                        <h2 class="text-2xl font-bold mb-4">Deep Investigation</h2>
+                        <p class="text-gray-400 mb-6">Comprehensive username investigation across multiple platforms</p>
                         <div class="flex space-x-4">
-                            <input id="deep-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input id="deep-username" type="text" placeholder="Username" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
                             <button onclick="startDeepInvestigation()" class="btn-primary p-3 rounded-lg flex items-center">
                                 <i class="fas fa-paper-plane mr-2"></i> Start Investigation
                             </button>
@@ -98,13 +96,13 @@
                     </div>
                 </section>
 
-                <section id="social" class="mb-12">
+                <section id="social" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Social Media Search</h2>
-                        <p class="text-gray-600 mb-6">Search for profiles on specific social media platforms</p>
+                        <h2 class="text-2xl font-bold mb-4">Social Media Search</h2>
+                        <p class="text-gray-400 mb-6">Search for profiles on specific social media platforms</p>
                         <div class="flex space-x-4">
-                            <input id="social-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <select id="social-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input id="social-username" type="text" placeholder="Username" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            <select id="social-platform" class="p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
                                 <option value="tiktok">TikTok</option>
                                 <option value="facebook">Facebook</option>
                                 <option value="instagram">Instagram</option>
@@ -122,12 +120,12 @@
                     </div>
                 </section>
 
-                <section id="accounts" class="mb-12">
+                <section id="accounts" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Find All Accounts</h2>
-                        <p class="text-gray-600 mb-6">Discover all social media accounts associated with a username</p>
+                        <h2 class="text-2xl font-bold mb-4">Find All Accounts</h2>
+                        <p class="text-gray-400 mb-6">Discover all social media accounts associated with a username</p>
                         <div class="flex space-x-4">
-                            <input id="accounts-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input id="accounts-username" type="text" placeholder="Username" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
                             <button onclick="findAllAccounts()" class="btn-primary p-3 rounded-lg flex items-center">
                                 <i class="fas fa-paper-plane mr-2"></i> Find Accounts
                             </button>
@@ -136,17 +134,17 @@
                     </div>
                 </section>
 
-                <section id="advanced" class="mb-12">
+                <section id="advanced" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Advanced Search</h2>
-                        <p class="text-gray-600 mb-6">Search across multiple search engines with custom queries</p>
-                        <input id="advanced-query" type="text" placeholder="Search Query" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <h2 class="text-2xl font-bold mb-4">Advanced Search</h2>
+                        <p class="text-gray-400 mb-6">Search across multiple search engines with custom queries</p>
+                        <input id="advanced-query" type="text" placeholder="Search Query" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 mb-4 focus:outline-none focus:ring-2 focus:ring-gray-500">
                         <div class="flex space-x-4 mb-4">
-                            <label class="flex items-center">
+                            <label class="flex items-center text-gray-400">
                                 <input type="checkbox" id="bing-source" checked class="mr-2">
                                 <span>Bing</span>
                             </label>
-                            <label class="flex items-center">
+                            <label class="flex items-center text-gray-400">
                                 <input type="checkbox" id="ddg-source" checked class="mr-2">
                                 <span>DuckDuckGo</span>
                             </label>
@@ -158,12 +156,12 @@
                     </div>
                 </section>
 
-                <section id="capture" class="mb-12">
+                <section id="capture" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Website Capture</h2>
-                        <p class="text-gray-600 mb-6">Capture and analyze website screenshots and metadata</p>
+                        <h2 class="text-2xl font-bold mb-4">Website Capture</h2>
+                        <p class="text-gray-400 mb-6">Capture and analyze website screenshots and metadata</p>
                         <div class="flex space-x-4">
-                            <input id="capture-url" type="text" placeholder="Website URL" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input id="capture-url" type="text" placeholder="Website URL" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
                             <button onclick="startCapture()" class="btn-primary p-3 rounded-lg flex items-center">
                                 <i class="fas fa-paper-plane mr-2"></i> Capture & Analyze
                             </button>
@@ -172,11 +170,11 @@
                     </div>
                 </section>
 
-                <section id="batch" class="mb-12">
+                <section id="batch" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Batch Investigation</h2>
-                        <p class="text-gray-600 mb-6">Investigate multiple usernames simultaneously</p>
-                        <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <h2 class="text-2xl font-bold mb-4">Batch Investigation</h2>
+                        <p class="text-gray-400 mb-6">Investigate multiple usernames simultaneously</p>
+                        <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 mb-4 focus:outline-none focus:ring-2 focus:ring-gray-500"></textarea>
                         <button onclick="startBatchInvestigation()" class="btn-primary p-3 rounded-lg flex items-center">
                             <i class="fas fa-paper-plane mr-2"></i> Start Batch Analysis
                         </button>
@@ -184,13 +182,13 @@
                     </div>
                 </section>
 
-                <section id="phone" class="mb-12">
+                <section id="phone" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Phone Number Search</h2>
-                        <p class="text-gray-600 mb-6">Search for phone numbers associated with usernames (+62 only)</p>
+                        <h2 class="text-2xl font-bold mb-4">Phone Number Search</h2>
+                        <p class="text-gray-400 mb-6">Search for phone numbers associated with usernames (+62 only)</p>
                         <div class="flex space-x-4">
-                            <input id="phone-number" type="text" placeholder="+62 Phone Number" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <select id="phone-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input id="phone-number" type="text" placeholder="+62 Phone Number" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            <select id="phone-platform" class="p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
                                 <option value="tiktok">TikTok</option>
                                 <option value="facebook">Facebook</option>
                                 <option value="instagram">Instagram</option>
@@ -208,10 +206,10 @@
                     </div>
                 </section>
 
-                <section id="health" class="mb-12">
+                <section id="health" class="section">
                     <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4 text-gray-800">System Health</h2>
-                        <p class="text-gray-600 mb-6">Monitor system status and performance metrics</p>
+                        <h2 class="text-2xl font-bold mb-4">System Health</h2>
+                        <p class="text-gray-400 mb-6">Monitor system status and performance metrics</p>
                         <button onclick="checkSystemHealth()" class="btn-primary p-3 rounded-lg flex items-center">
                             <i class="fas fa-paper-plane mr-2"></i> Check System Health
                         </button>
@@ -228,7 +226,7 @@
             if (!username) return alert('Please enter a username');
             const resultsDiv = document.getElementById('deep-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch('/api/investigate', {
@@ -239,7 +237,7 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data.investigation);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
@@ -249,7 +247,7 @@
             if (!username) return alert('Please enter a username');
             const resultsDiv = document.getElementById('social-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch(`/api/search/${platform}`, {
@@ -260,7 +258,7 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data.results);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
@@ -269,7 +267,7 @@
             if (!username) return alert('Please enter a username');
             const resultsDiv = document.getElementById('accounts-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch('/api/find-accounts', {
@@ -280,7 +278,7 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data.results);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
@@ -290,7 +288,7 @@
             if (!phoneNumber || !phoneNumber.startsWith('+62')) return alert('Please enter a valid +62 phone number');
             const resultsDiv = document.getElementById('phone-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch(`/api/search-phone/${platform}`, {
@@ -301,7 +299,7 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data.results);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
@@ -313,7 +311,7 @@
             if (!query) return alert('Please enter a search query');
             const resultsDiv = document.getElementById('advanced-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch('/api/advanced-search', {
@@ -324,7 +322,7 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data.results);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
@@ -333,7 +331,7 @@
             if (!url) return alert('Please enter a URL');
             const resultsDiv = document.getElementById('capture-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch('/api/capture', {
@@ -344,7 +342,7 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data.capture);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
@@ -353,7 +351,7 @@
             if (!usernames.length) return alert('Please enter at least one username');
             const resultsDiv = document.getElementById('batch-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch('/api/batch-investigate', {
@@ -364,21 +362,21 @@
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data.investigations);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
         async function checkSystemHealth() {
             const resultsDiv = document.getElementById('health-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
 
             try {
                 const response = await fetch('/health');
                 const data = await response.json();
                 resultsDiv.innerHTML = formatResults(data);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
             }
         }
 
@@ -386,15 +384,15 @@
             if (Array.isArray(data)) {
                 return data.map(item => `
                     <div class="result-box">
-                        ${item.title ? `<h3 class="text-lg font-semibold text-gray-800">${item.title}</h3>` : ''}
-                        ${item.url ? `<p><a href="${item.url}" class="text-blue-600 hover:underline">${item.url}</a></p>` : ''}
-                        ${item.snippet ? `<p class="text-gray-600 mt-1">${item.snippet}</p>` : ''}
-                        ${item.bio ? `<p class="text-gray-700 italic mt-1">${item.bio}</p>` : ''}
-                        ${item.aiSummary ? `<div class="bg-gray-50 p-3 rounded-lg mt-2">AI Summary: ${item.aiSummary}</div>` : ''}
-                        ${item.phone ? `<p class="text-green-600 mt-1">Phone: ${item.phone}</p>` : ''}
-                        ${item.platform ? `<p class="text-purple-600 mt-1">Platform: ${item.platform}</p>` : ''}
-                        ${item.followers ? `<p class="text-gray-600 mt-1">Followers: ${item.followers}</p>` : ''}
-                        ${item.postCount ? `<p class="text-gray-600 mt-1">Posts: ${item.postCount}</p>` : ''}
+                        ${item.title ? `<h3 class="text-lg font-semibold">${item.title}</h3>` : ''}
+                        ${item.url ? `<p><a href="${item.url}" class="text-gray-300 hover:underline">${item.url}</a></p>` : ''}
+                        ${item.snippet ? `<p class="text-gray-400 mt-1">${item.snippet}</p>` : ''}
+                        ${item.bio ? `<p class="text-gray-300 italic mt-1">${item.bio}</p>` : ''}
+                        ${item.aiSummary ? `<div class="bg-gray-800 p-3 rounded-lg mt-2">AI Summary: ${item.aiSummary}</div>` : ''}
+                        ${item.phone ? `<p class="text-green-400 mt-1">Phone: ${item.phone}</p>` : ''}
+                        ${item.platform ? `<p class="text-purple-400 mt-1">Platform: ${item.platform}</p>` : ''}
+                        ${item.followers ? `<p class="text-gray-400 mt-1">Followers: ${item.followers}</p>` : ''}
+                        ${item.postCount ? `<p class="text-gray-400 mt-1">Posts: ${item.postCount}</p>` : ''}
                         ${item.screenshot ? `<img src="${item.screenshot}" alt="Screenshot" class="mt-2 max-w-full rounded-lg">` : ''}
                     </div>
                 `).join('');
@@ -403,23 +401,27 @@
                     <div class="result-box">
                         ${Object.entries(data).map(([key, value]) => {
                             if (Array.isArray(value)) {
-                                return `<h3 class="text-lg font-semibold text-gray-800 capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
+                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
                             } else if (typeof value === 'object' && value !== null) {
-                                return `<h3 class="text-lg font-semibold text-gray-800 capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
+                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
                             }
-                            return `<p class="text-gray-600"><strong>${key.replace('_', ' ')}:</strong> ${value}</p>`;
+                            return `<p class="text-gray-400"><strong>${key.replace('_', ' ')}:</strong> ${value}</p>`;
                         }).join('')}
                     </div>
                 `;
             }
-            return `<p class="text-gray-600">${data}</p>`;
+            return `<p class="text-gray-400">${data}</p>`;
         }
 
-        // Sidebar navigation
+        // Sidebar navigation with page-like behavior
         document.querySelectorAll('.sidebar a').forEach(link => {
-            link.addEventListener('click', () => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
                 document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
+                document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+                const target = link.getAttribute('href').substring(1);
+                document.getElementById(target).classList.add('active');
             });
         });
     </script>
