@@ -9,7 +9,7 @@ const userAgentPool = require('./useragents');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'your-api-key-here';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI';
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
