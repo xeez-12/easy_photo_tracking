@@ -42,18 +42,16 @@
             max-width: 80%;
             font-size: 14px;
             line-height: 1.4;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .user-message {
-            background-color: #007bff;
-            color: #fff;
             margin-left: auto;
             border-bottom-right-radius: 2px;
         }
 
         .bot-message {
-            background-color: #fff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             margin-right: auto;
             border-bottom-left-radius: 2px;
         }
@@ -104,7 +102,7 @@
             outline: none;
             padding: 10px;
             font-size: 14px;
-            background: transparent;
+            background: #fff;
         }
 
         .search-container button {
@@ -122,7 +120,7 @@
 
         .settings-icon {
             position: fixed;
-            top: 20px;
+            bottom: 20px;
             right: 20px;
             cursor: pointer;
             z-index: 100;
@@ -137,7 +135,7 @@
         .settings-menu {
             display: none;
             position: fixed;
-            top: 50px;
+            bottom: 60px;
             right: 20px;
             background-color: #fff;
             border-radius: 8px;
@@ -241,28 +239,12 @@
             <label><input type="checkbox" id="bingSource" checked> Bing</label>
             <label><input type="checkbox" id="ddgSource" checked> DuckDuckGo</label>
             <label><input type="checkbox" id="tiktokPlatform" checked> TikTok</label>
-            <label><input type="checkbox" id="facebookPlatform" checked> Facebook</label>
             <label><input type="checkbox" id="instagramPlatform" checked> Instagram</label>
-            <label><input type="checkbox" id="youtubePlatform" checked> YouTube</label>
             <label><input type="checkbox" id="twitterPlatform" checked> Twitter (X)</label>
-            <label><input type="checkbox" id="pinterestPlatform" checked> Pinterest</label>
-            <label><input type="checkbox" id="githubPlatform" checked> GitHub</label>
+            <label><input type="checkbox" id="youtubePlatform" checked> YouTube</label>
             <label><input type="checkbox" id="telegramPlatform" checked> Telegram</label>
-            <label><input type="checkbox" id="linkedinPlatform" checked> LinkedIn</label>
-            <label><input type="checkbox" id="redditPlatform" checked> Reddit</label>
-            <label><input type="checkbox" id="snapchatPlatform" checked> Snapchat</label>
-            <label><input type="checkbox" id="tumblrPlatform" checked> Tumblr</label>
-            <label><input type="checkbox" id="weiboPlatform" checked> Weibo</label>
-            <label><input type="checkbox" id="vkPlatform" checked> VK</label>
-            <label><input type="checkbox" id="discordPlatform" checked> Discord</label>
-            <label><input type="checkbox" id="twitchPlatform" checked> Twitch</label>
-            <label><input type="checkbox" id="mediumPlatform" checked> Medium</label>
-            <label><input type="checkbox" id="quoraPlatform" checked> Quora</label>
-            <label><input type="checkbox" id="flickrPlatform" checked> Flickr</label>
-            <label><input type="checkbox" id="behancePlatform" checked> Behance</label>
-            <label><input type="checkbox" id="dribbblePlatform" checked> Dribbble</label>
-            <label><input type="checkbox" id="soundcloudPlatform" checked> SoundCloud</label>
-            <label><input type="checkbox" id="mastodonPlatform" checked> Mastodon</label>
+            <label><input type="checkbox" id="spotifyPlatform" checked> Spotify</label>
+            <label><input type="checkbox" id="facebookPlatform" checked> Facebook</label>
             <label>Max Results: <input type="number" id="maxResults" value="2" min="1" max="50"></label>
         </div>
     </div>
@@ -280,13 +262,21 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: `Format the following scraped data into a clean, structured, and readable markdown format. Ensure the output is professional, concise, and well-organized with clear headings, bullet points, and a compact style suitable for a chat interface. Data: ${JSON.stringify(data, null, 2)}`
+                                text: `Format the following scraped data into a clean, structured, and readable markdown format. Ensure the output is professional, concise, and well-organized with clear headings, bullet points, and a compact style suitable for a chat interface. Exclude any error fields and only include valid data. Data: ${JSON.stringify(data, null, 2)}`
                             }]
                         }]
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Gemini API request failed: ${response.statusText}`);
+                }
+
                 const result = await response.json();
+                if (!result.candidates || !result.candidates[0]?.content?.parts?.[0]?.text) {
+                    throw new Error('Invalid Gemini API response');
+                }
+
                 return result.candidates[0].content.parts[0].text;
             } catch (error) {
                 console.error('Gemini API error:', error.message);
@@ -304,7 +294,10 @@
         async function performSearch() {
             const username = document.getElementById('searchInput').value.trim();
             if (!username) {
-                alert('Please enter a username');
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot-message';
+                botMessage.textContent = 'Error: Please enter a username';
+                document.getElementById('chatContainer').appendChild(botMessage);
                 return;
             }
 
@@ -326,28 +319,12 @@
 
             const platforms = [];
             if (document.getElementById('tiktokPlatform').checked) platforms.push('tiktok');
-            if (document.getElementById('facebookPlatform').checked) platforms.push('facebook');
             if (document.getElementById('instagramPlatform').checked) platforms.push('instagram');
-            if (document.getElementById('youtubePlatform').checked) platforms.push('youtube');
             if (document.getElementById('twitterPlatform').checked) platforms.push('twitter');
-            if (document.getElementById('pinterestPlatform').checked) platforms.push('pinterest');
-            if (document.getElementById('githubPlatform').checked) platforms.push('github');
+            if (document.getElementById('youtubePlatform').checked) platforms.push('youtube');
             if (document.getElementById('telegramPlatform').checked) platforms.push('telegram');
-            if (document.getElementById('linkedinPlatform').checked) platforms.push('linkedin');
-            if (document.getElementById('redditPlatform').checked) platforms.push('reddit');
-            if (document.getElementById('snapchatPlatform').checked) platforms.push('snapchat');
-            if (document.getElementById('tumblrPlatform').checked) platforms.push('tumblr');
-            if (document.getElementById('weiboPlatform').checked) platforms.push('weibo');
-            if (document.getElementById('vkPlatform').checked) platforms.push('vk');
-            if (document.getElementById('discordPlatform').checked) platforms.push('discord');
-            if (document.getElementById('twitchPlatform').checked) platforms.push('twitch');
-            if (document.getElementById('mediumPlatform').checked) platforms.push('medium');
-            if (document.getElementById('quoraPlatform').checked) platforms.push('quora');
-            if (document.getElementById('flickrPlatform').checked) platforms.push('flickr');
-            if (document.getElementById('behancePlatform').checked) platforms.push('behance');
-            if (document.getElementById('dribbblePlatform').checked) platforms.push('dribbble');
-            if (document.getElementById('soundcloudPlatform').checked) platforms.push('soundcloud');
-            if (document.getElementById('mastodonPlatform').checked) platforms.push('mastodon');
+            if (document.getElementById('spotifyPlatform').checked) platforms.push('spotify');
+            if (document.getElementById('facebookPlatform').checked) platforms.push('facebook');
 
             const maxResults = parseInt(document.getElementById('maxResults').value) || 2;
 
@@ -367,7 +344,7 @@
                     const formattedResults = await formatWithGemini(data.investigation);
                     botMessage.innerHTML = marked.parse(formattedResults);
                 } else {
-                    botMessage.textContent = `Error: ${data.error}: ${data.details}`;
+                    botMessage.textContent = `Error: ${data.error || 'Unknown error'}${data.details ? ': ' + data.details : ''}`;
                 }
                 chatContainer.appendChild(botMessage);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
