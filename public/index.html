@@ -3,248 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Mobile</title>
+    <title>OSINT Investigation Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #ffffff;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        .container {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-        }
-        .section {
-            background-color: #f9f9f9;
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .section h2 {
-            font-size: 1.2em;
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .input-group label {
-            font-size: 0.9em;
-            color: #555;
-        }
-        .input-group input, .input-group select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-        .input-group button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-        .input-group button:hover {
-            background-color: #0056b3;
-        }
-        #search-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #222;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
-        }
-        #search-bar input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 20px 0 0 20px;
-            background-color: #333;
-            color: white;
-            font-size: 1em;
-        }
-        #search-bar button {
-            padding: 10px 15px;
-            background-color: #fff;
-            color: #222;
-            border: none;
-            border-radius: 0 20px 20px 0;
-            cursor: pointer;
-            font-size: 1em;
-        }
-        #options {
-            position: absolute;
-            bottom: 60px;
-            left: 10px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: none;
-            flex-direction: column;
-            z-index: 10;
-        }
-        #options button {
-            padding: 8px;
-            border: none;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-        }
-        #options button:hover {
-            background-color: #f0f0f0;
-        }
-        #response {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            white-space: pre-wrap;
-        }
-        .platform-options {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+        .result-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div id="response"></div>
-    </div>
-    <div id="search-bar">
-        <button id="option-toggle">+</button>
-        <input type="text" id="search-input" placeholder="Tanya FlowAI tentang keuangan ata...">
-        <button id="search-button">➔</button>
-        <div id="options">
-            <button data-section="deep">Deep Investigation</button>
-            <button data-section="social">Social Media</button>
-            <button data-section="advanced">Advanced Search</button>
-            <button data-section="capture">Website Capture</button>
-            <button data-section="batch">Batch Investigation</button>
-            <button data-section="phone">Phone Search</button>
-            <button data-section="health">System Health</button>
-        </div>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-gray-800">OSINT</h1>
+            <p class="text-xl text-gray-600 mt-2">Open-Source Intelligence Investigation Platform</p>
+        </header>
+
+        <nav class="mb-12">
+            <ul class="flex justify-center space-x-6">
+                <li><a href="#overview" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Overview</a></li>
+                <li><a href="#deep" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Deep Investigation</a></li>
+                <li><a href="#social" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Social Media</a></li>
+                <li><a href="#advanced" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Advanced Search</a></li>
+                <li><a href="#capture" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Website Capture</a></li>
+                <li><a href="#batch" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Batch Investigation</a></li>
+                <li><a href="#phone" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Phone Search</a></li>
+                <li><a href="#health" class="text-lg font-semibold text-blue-600 hover:text-blue-800">System Health</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="overview" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+                    <p class="text-gray-600 mb-6">Monitor your investigation activities and system performance</p>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-blue-100 p-4 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
+                                <span class="text-sm font-semibold">Total Projects</span>
+                            </div>
+                            <p class="text-2xl font-bold">0</p>
+                        </div>
+                        <div class="bg-green-100 p-4 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-chart-line text-green-600 mr-2"></i>
+                                <span class="text-sm font-semibold">Active Analyses</span>
+                            </div>
+                            <p class="text-2xl font-bold">5</p>
+                            <span class="text-sm text-green-600">Live</span>
+                        </div>
+                        <div class="bg-yellow-100 p-4 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-database text-yellow-600 mr-2"></i>
+                                <span class="text-sm font-semibold">Data Processed</span>
+                            </div>
+                            <p class="text-2xl font-bold">0.0GB</p>
+                        </div>
+                        <div class="bg-purple-100 p-4 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-check-circle text-purple-600 mr-2"></i>
+                                <span class="text-sm font-semibold">Accuracy Rate</span>
+                            </div>
+                            <p class="text-2xl font-bold">88.7%</p>
+                            <span class="text-sm text-purple-600">High</span>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-2">Recent Activity</h3>
+                        <p class="text-gray-600">No recent activity</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="deep" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Deep Investigation</h2>
+                    <p class="text-gray-600 mb-6">Comprehensive username investigation across multiple platforms</p>
+                    <div class="flex space-x-4">
+                        <input id="deep-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button onclick="startDeepInvestigation()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Start Investigation
+                        </button>
+                    </div>
+                    <div id="deep-results" class="mt-6 result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="social" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Social Media Search</h2>
+                    <p class="text-gray-600 mb-6">Search for profiles on specific social media platforms</p>
+                    <div class="flex space-x-4">
+                        <input id="social-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="social-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="github">GitHub</option>
+                            <option value="reddit">Reddit</option>
+                        </select>
+                        <button onclick="startSocialSearch()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Search Platform
+                        </button>
+                    </div>
+                    <div id="social-results" class="mt-6 result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="advanced" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Advanced Search</h2>
+                    <p class="text-gray-600 mb-6">Search across multiple search engines with custom queries</p>
+                    <input id="advanced-query" type="text" placeholder="Search Query" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="flex space-x-4 mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="bing-source" checked class="mr-2">
+                            <span>Bing</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="ddg-source" checked class="mr-2">
+                            <span>DuckDuckGo</span>
+                        </label>
+                    </div>
+                    <button onclick="startAdvancedSearch()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i class="fas fa-paper-plane mr-2"></i> Execute Search
+                    </button>
+                    <div id="advanced-results" class="mt-6 result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="capture" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Website Capture</h2>
+                    <p class="text-gray-600 mb-6">Capture and analyze website screenshots and metadata</p>
+                    <div class="flex space-x-4">
+                        <input id="capture-url" type="text" placeholder="Website URL" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button onclick="startCapture()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Capture & Analyze
+                        </button>
+                    </div>
+                    <div id="capture-results" class="mt-6 result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="batch" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Batch Investigation</h2>
+                    <p class="text-gray-600 mb-6">Investigate multiple usernames simultaneously</p>
+                    <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <button onclick="startBatchInvestigation()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i class="fas fa-paper-plane mr-2"></i> Start Batch Analysis
+                    </button>
+                    <div id="batch-results" class="mt-6 result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="phone" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Phone Number Search</h2>
+                    <p class="text-gray-600 mb-6">Search for phone numbers associated with usernames (+62 only)</p>
+                    <div class="flex space-x-4">
+                        <input id="phone-number" type="text" placeholder="+62 Phone Number" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="phone-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="github">GitHub</option>
+                            <option value="reddit">Reddit</option>
+                        </select>
+                        <button onclick="startPhoneSearch()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Search Phone Number
+                        </button>
+                    </div>
+                    <div id="phone-results" class="mt-6 result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="health" class="mb-12">
+                <div class="card bg-white p-8 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">System Health</h2>
+                    <p class="text-gray-600 mb-6">Monitor system status and performance metrics</p>
+                    <button onclick="checkSystemHealth()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i class="fas fa-paper-plane mr-2"></i> Check System Health
+                    </button>
+                    <div id="health-results" class="mt-6 result-box hidden"></div>
+                </div>
+            </section>
+        </main>
     </div>
 
     <script>
-        const GEMINI_API_KEY = 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI'; // Replace with actual key
-        const BASE_URL = 'http://localhost:3000';
+        async function startDeepInvestigation() {
+            const username = document.getElementById('deep-username').value;
+            if (!username) return alert('Please enter a username');
+            const resultsDiv = document.getElementById('deep-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
 
-        document.getElementById('option-toggle').addEventListener('click', () => {
-            const options = document.getElementById('options');
-            options.style.display = options.style.display === 'flex' ? 'none' : 'flex';
-        });
-
-        document.getElementById('options').addEventListener('click', async (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                const section = e.target.getAttribute('data-section');
-                const input = document.getElementById('search-input').value;
-                document.getElementById('options').style.display = 'none';
-
-                let endpoint = '';
-                let body = { username: input };
-
-                switch (section) {
-                    case 'deep':
-                        endpoint = '/api/investigate';
-                        break;
-                    case 'social':
-                        body.platform = prompt('Enter platform (e.g., tiktok, facebook):') || 'tiktok';
-                        endpoint = `/api/search/${body.platform}`;
-                        break;
-                    case 'advanced':
-                        body.query = input;
-                        body.sources = ['bing', 'duckduckgo'];
-                        endpoint = '/api/advanced-search';
-                        break;
-                    case 'capture':
-                        body.url = input;
-                        endpoint = '/api/capture';
-                        break;
-                    case 'batch':
-                        body.usernames = input.split(',').map(u => u.trim());
-                        endpoint = '/api/batch-investigate';
-                        break;
-                    case 'phone':
-                        body.platform = prompt('Enter platform (e.g., tiktok, facebook):') || 'tiktok';
-                        endpoint = `/api/search-phone/${body.platform}`;
-                        break;
-                    case 'health':
-                        endpoint = '/health';
-                        body = {};
-                        break;
-                }
-
-                if (endpoint) {
-                    try {
-                        const response = await fetch(`${BASE_URL}${endpoint}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(body)
-                        });
-                        const data = await response.json();
-                        let aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{
-                                    parts: [{ text: JSON.stringify(data) }]
-                                }]
-                            })
-                        });
-                        aiResponse = await aiResponse.json();
-                        document.getElementById('response').innerText = aiResponse.candidates[0].content.parts[0].text || 'No response from AI.';
-                    } catch (error) {
-                        document.getElementById('response').innerText = `Error: ${error.message}`;
-                    }
-                }
-            }
-        });
-
-        document.getElementById('search-button').addEventListener('click', () => {
-            const input = document.getElementById('search-input').value;
-            if (input) {
-                document.getElementById('response').innerText = 'Processing...';
-                fetch(`${BASE_URL}/api/investigate`, {
+            try {
+                const response = await fetch('/api/investigate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: input })
-                })
-                .then(res => res.json())
-                .then(async data => {
-                    const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [{ text: JSON.stringify(data) }]
-                            }]
-                        })
-                    });
-                    const aiData = await aiResponse.json();
-                    document.getElementById('response').innerText = aiData.candidates[0].content.parts[0].text || 'No AI response.';
-                })
-                .catch(error => {
-                    document.getElementById('response').innerText = `Error: ${error.message}`;
+                    body: JSON.stringify({ username, deep: true })
                 });
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data.investigation);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
             }
-        });
+        }
+
+        async function startSocialSearch() {
+            const username = document.getElementById('social-username').value;
+            const platform = document.getElementById('social-platform').value;
+            if (!username) return alert('Please enter a username');
+            const resultsDiv = document.getElementById('social-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch(`/api/search/${platform}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data.results);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function startPhoneSearch() {
+            const phoneNumber = document.getElementById('phone-number').value;
+            const platform = document.getElementById('phone-platform').value;
+            if (!phoneNumber || !phoneNumber.startsWith('+62')) return alert('Please enter a valid +62 phone number');
+            const resultsDiv = document.getElementById('phone-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch(`/api/search-phone/${platform}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber })
+                });
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data.results);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function startAdvancedSearch() {
+            const query = document.getElementById('advanced-query').value;
+            const sources = [];
+            if (document.getElementById('bing-source').checked) sources.push('bing');
+            if (document.getElementById('ddg-source').checked) sources.push('duckduckgo');
+            if (!query) return alert('Please enter a search query');
+            const resultsDiv = document.getElementById('advanced-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/api/advanced-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, sources })
+                });
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data.results);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function startCapture() {
+            const url = document.getElementById('capture-url').value;
+            if (!url) return alert('Please enter a URL');
+            const resultsDiv = document.getElementById('capture-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/api/capture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data.capture);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function startBatchInvestigation() {
+            const usernames = document.getElementById('batch-usernames').value.split('\n').filter(u => u.trim());
+            if (!usernames.length) return alert('Please enter at least one username');
+            const resultsDiv = document.getElementById('batch-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/api/batch-investigate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernames })
+                });
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data.investigations);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function checkSystemHealth() {
+            const resultsDiv = document.getElementById('health-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        function formatResults(data) {
+            if (Array.isArray(data)) {
+                return data.map(item => `
+                    <div class="result-box">
+                        ${item.title ? `<h3 class="text-lg font-semibold">${item.title}</h3>` : ''}
+                        ${item.url ? `<p><a href="${item.url}" class="text-blue-600 hover:underline">${item.url}</a></p>` : ''}
+                        ${item.snippet ? `<p class="text-gray-600">${item.snippet}</p>` : ''}
+                        ${item.bio ? `<p class="text-gray-700 italic">${item.bio}</p>` : ''}
+                        ${item.aiSummary ? `<div class="bg-gray-100 p-3 rounded-lg">AI Summary: ${item.aiSummary}</div>` : ''}
+                        ${item.phone ? `<p class="text-green-600">Phone: ${item.phone}</p>` : ''}
+                        ${item.followers ? `<p class="text-gray-600">Followers: ${item.followers}</p>` : ''}
+                        ${item.postCount ? `<p class="text-gray-600">Posts: ${item.postCount}</p>` : ''}
+                        ${item.screenshot ? `<img src="${item.screenshot}" alt="Screenshot" class="mt-2 max-w-full rounded-lg">` : ''}
+                    </div>
+                `).join('');
+            } else if (typeof data === 'object' && data !== null) {
+                return `
+                    <div class="result-box">
+                        ${Object.entries(data).map(([key, value]) => {
+                            if (Array.isArray(value)) {
+                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
+                            } else if (typeof value === 'object' && value !== null) {
+                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
+                            }
+                            return `<p class="text-gray-600"><strong>${key.replace('_', ' ')}:</strong> ${value}</p>`;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            return `<p>${data}</p>`;
+        }
     </script>
 </body>
 </html>
