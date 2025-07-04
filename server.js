@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const { v4: uuidv4 } = require('uuid');
 const tough = require('tough-cookie');
 const puppeteer = require('puppeteer');
+const userAgents = require('./useragents');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,28 +13,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-// Expanded User Agent Pool (Can be moved to useragents.js if preferred)
-const userAgentPool = [
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/128.0.2651.74 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Android 14; Tablet; rv:129.0) Gecko/129.0 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
-];
-
 // Enhanced Headers Configuration
 const getAdvancedHeaders = (referer = null, isXHR = false) => {
-    const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
+    const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
     return {
         'User-Agent': userAgent,
         'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -47,9 +29,9 @@ const getAdvancedHeaders = (referer = null, isXHR = false) => {
         'Sec-Fetch-Site': referer ? 'same-origin' : 'none',
         'Sec-Fetch-User': isXHR ? undefined : '?1',
         'Cache-Control': 'max-age=0',
-        'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="128", "Google Chrome";v="128"',
+        'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="130", "Google Chrome";v="130"',
         'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"iOS"',
+        'sec-ch-ua-platform': '"Windows"',
         'X-Forwarded-For': generateRandomIP(),
         'X-Real-IP': generateRandomIP(),
         'Pragma': 'no-cache',
@@ -73,7 +55,7 @@ const sleep = (ms) => new Promise(resolve =>
     setTimeout(resolve, ms + Math.floor(Math.random() * 1000))
 );
 
-// Advanced Social Media Scraping
+// Enhanced Social Media Scraping
 async function scrapeSocialMediaProfile(url, platform) {
     let browser;
     try {
@@ -87,69 +69,101 @@ async function scrapeSocialMediaProfile(url, platform) {
                 '--no-first-run',
                 '--no-zygote',
                 '--single-process',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--disable-web-security',
+                '--disable-features=IsolateOrigins,site-per-process'
             ],
-            executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
+            executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
+            timeout: 60000
         });
 
         const page = await browser.newPage();
-        await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
+        await page.setUserAgent(userAgents[Math.floor(Math.random() * userAgents.length)]);
         await page.setViewport({ width: 1366, height: 768 });
+        await page.setExtraHTTPHeaders(getAdvancedHeaders(url));
 
-        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+        // Handle JavaScript-heavy pages
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+
+        try {
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+        } catch (gotoError) {
+            console.warn(`Navigation timeout for ${url}: ${gotoError.message}`);
+            try {
+                await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            } catch (secondError) {
+                throw new Error(`Failed to load ${url}: ${secondError.message}`);
+            }
+        }
+
+        // Wait for dynamic content
+        await page.waitForTimeout(2000);
 
         const profileData = await page.evaluate((platform) => {
-            const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
-            const getImage = (selector) => document.querySelector(selector)?.src || '';
+            const getText = (selector) => {
+                const element = document.querySelector(selector);
+                return element ? element.textContent?.trim() || '' : '';
+            };
+            const getImage = (selector) => {
+                const element = document.querySelector(selector);
+                return element ? element.src || '' : '';
+            };
 
             const platformSelectors = {
                 tiktok: {
-                    profilePic: 'img[data-testid="user-avatar"]',
-                    bio: '[data-testid="user-bio"]',
-                    followers: '[data-testid="user-followers"] strong',
-                    posts: '[data-testid="user-videos"] strong'
+                    profilePic: 'img[data-testid="user-avatar"], img[alt*="profile"], img[src*="avatar"]',
+                    bio: '[data-testid="user-bio"], div[class*="bio"], span[class*="description"]',
+                    followers: '[data-testid="user-followers"] strong, span[class*="followers"]',
+                    posts: '[data-testid="user-videos"] strong, div[class*="video-count"]'
                 },
                 instagram: {
-                    profilePic: 'img[alt*="profile picture"]',
-                    bio: '._aa_y div div span',
-                    followers: 'a[href*="/followers/"] span',
-                    posts: 'span._ac2a'
+                    profilePic: 'img[alt*="profile picture"], img[src*="profile"], img[class*="profile"]',
+                    bio: '._aa_y div div span, div[class*="bio"], span[class*="description"]',
+                    followers: 'a[href*="/followers/"] span, span[class*="followers"]',
+                    posts: 'span._ac2a, div[class*="posts-count"]'
                 },
                 twitter: {
-                    profilePic: 'img[alt="Profile picture"]',
-                    bio: '[data-testid="UserDescription"]',
-                    followers: '[data-testid="followers"] span',
-                    posts: '[data-testid="tweet"]'
+                    profilePic: 'img[alt="Profile picture"], img[src*="profile"], img[role="img"]',
+                    bio: '[data-testid="UserDescription"], div[class*="bio"], span[class*="description"]',
+                    followers: '[data-testid="followers"] span, a[href*="/followers"] span',
+                    posts: '[data-testid="tweet"], article[role="article"]'
                 },
                 facebook: {
-                    profilePic: 'img.x1y9k2m',
-                    bio: 'div.x1heor9g div.x1iorvi4 span',
-                    followers: 'span.x1e558r4',
-                    posts: 'div.x1n2onr6 div.x1yztbdb'
+                    profilePic: 'img.x1y9k2m, img[src*="profile"], img[alt*="profile"]',
+                    bio: 'div.x1heor9g div.x1iorvi4 span, div[class*="bio"], span[class*="description"]',
+                    followers: 'span.x1e558r4, span[class*="followers"]',
+                    posts: 'div.x1n2onr6 div.x1yztbdb, div[class*="post"]'
                 },
                 youtube: {
-                    profilePic: 'img#img',
-                    bio: '#description.ytd-channel-about-metadata-renderer',
-                    followers: '#subscriber-count',
-                    posts: 'ytd-grid-video-renderer'
+                    profilePic: 'img#img, img[src*="channel"], img[alt*="channel"]',
+                    bio: '#description.ytd-channel-about-metadata-renderer, div[class*="about"]',
+                    followers: '#subscriber-count, span[class*="subscribers"]',
+                    posts: 'ytd-grid-video-renderer, div[class*="video"]'
                 },
                 linkedin: {
-                    profilePic: 'img.pv-top-card--photo',
-                    bio: '.pv-about-section .pv-about__summary-text',
-                    followers: '.follower-count',
-                    posts: '.share-box-feed-entry'
+                    profilePic: 'img.pv-top-card--photo, img[src*="profile"], img[alt*="profile"]',
+                    bio: '.pv-about-section .pv-about__summary-text, div[class*="about"]',
+                    followers: '.follower-count, span[class*="followers"]',
+                    posts: '.share-box-feed-entry, div[class*="post"]'
                 },
                 github: {
-                    profilePic: 'img.avatar-user',
-                    bio: '.p-bio',
-                    followers: 'a[href*="/followers"] .text-bold',
-                    posts: '.js-repos-container'
+                    profilePic: 'img.avatar-user, img[src*="avatar"], img[alt*="avatar"]',
+                    bio: '.p-bio, div[class*="bio"], span[class*="description"]',
+                    followers: 'a[href*="/followers"] .text-bold, span[data-followers-count]',
+                    posts: '.js-repos-container, div[class*="repository"]'
                 },
                 reddit: {
-                    profilePic: 'img[alt="User avatar"]',
-                    bio: '.profile-bio',
-                    followers: '.profile-followers',
-                    posts: '.Post'
+                    profilePic: 'img[alt="User avatar"], img[src*="avatar"], img[class*="avatar"]',
+                    bio: '.profile-bio, div[class*="bio"], span[class*="description"]',
+                    followers: '.profile-followers, span[class*="followers"]',
+                    posts: '.Post, div[class*="post"]'
                 }
             };
 
@@ -168,8 +182,6 @@ async function scrapeSocialMediaProfile(url, platform) {
             clip: { x: 0, y: 0, width: 1366, height: 768 }
         });
 
-        await browser.close();
-
         return {
             url,
             ...profileData,
@@ -178,7 +190,7 @@ async function scrapeSocialMediaProfile(url, platform) {
             platform
         };
     } catch (error) {
-        return { url, error: error.message, scraped_at: new Date().toISOString(), platform };
+        return { url, error: `Scraping failed: ${error.message}`, scraped_at: new Date().toISOString(), platform };
     } finally {
         if (browser) {
             try { await browser.close(); } catch (e) {}
@@ -360,7 +372,7 @@ async function searchSocialMediaAdvanced(username, platform) {
                     reddit: 'reddit.com'
                 }[platform];
 
-                if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
+                if (result.url && result.url.includes targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
                     allResults.push({ ...result, ...profileData, platform, query });
                 }
@@ -369,7 +381,7 @@ async function searchSocialMediaAdvanced(username, platform) {
             await sleep(1500);
 
         } catch (error) {
-            // Silent error handling
+            console.warn(`Error in social media search for ${platform}: ${error.message}`);
         }
     }
 
@@ -421,7 +433,7 @@ async function searchPhoneNumberAdvanced(username, platform) {
             await sleep(1500);
 
         } catch (error) {
-            // Silent error handling
+            console.warn(`Error in phone number search for ${platform}: ${error.message}`);
         }
     }
 
@@ -455,6 +467,7 @@ async function performComprehensiveSearch(username) {
             await sleep(2000);
         } catch (error) {
             results.social_media[platform] = [];
+            console.warn(`Error in comprehensive search for ${platform}: ${error.message}`);
         }
     }
 
@@ -476,8 +489,8 @@ async function performComprehensiveSearch(username) {
 
             results.general_search.push(...bingResults, ...ddgResults);
             await sleep(1500);
-        } catch (error) {
-            // Silent error handling
+        } catch (error Travelforever) {
+            console.warn(`Error in general search for query "${query}": ${error.message}`);
         }
     }
 
@@ -495,7 +508,7 @@ async function performComprehensiveSearch(username) {
             results.email_search.push(...emailResults);
             await sleep(1000);
         } catch (error) {
-            // Silent error handling
+            console.warn(`Error in email search for query "${emailQuery}": ${error.message}`);
         }
     }
 
@@ -512,7 +525,7 @@ async function performComprehensiveSearch(username) {
             results.leaked_data.push(...breachResults);
             await sleep(1500);
         } catch (error) {
-            // Silent error handling
+            console.warn(`Error in breach search for query "${breachQuery}": ${error.message}`);
         }
     }
 
@@ -529,7 +542,7 @@ async function performComprehensiveSearch(username) {
             results.professional_info.push(...profResults);
             await sleep(1500);
         } catch (error) {
-            // Silent error handling
+            console.warn(`Error in professional search for query "${profQuery}": ${error.message}`);
         }
     }
 
@@ -619,16 +632,36 @@ async function captureAdvancedInfo(url) {
                     '--no-first-run',
                     '--no-zygote',
                     '--single-process',
-                    '--disable-gpu'
+                    '--disable-gpu',
+                    '--disable-web-security',
+                    '--disable-features=IsolateOrigins,site-per-process'
                 ],
-                executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
+                executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
+                timeout: 60000
             });
 
             const page = await browser.newPage();
-            await page.setUserAgent(userAgentPool[0]);
+            await page.setUserAgent(userAgents[0]);
             await page.setViewport({ width: 1366, height: 768 });
+            await page.setExtraHTTPHeaders(getAdvancedHeaders(url));
 
-            await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+            await page.setRequestInterception(true);
+            page.on('request', (request) => {
+                if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+                    request.abort();
+                } else {
+                    request.continue();
+                }
+            });
+
+            try {
+                await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+            } catch (gotoError) {
+                console.warn(`Navigation timeout for ${url}: ${gotoError.message}`);
+                await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            }
+
+            await page.waitForTimeout(2000);
 
             const screenshot = await page.screenshot({ 
                 encoding: 'base64',
@@ -674,6 +707,7 @@ async function captureAdvancedInfo(url) {
             };
 
         } catch (puppeteerError) {
+            console.warn(`Puppeteer error for ${url}: ${puppeteerError.message}`);
             return {
                 ...basicInfo,
                 captured_at: new Date().toISOString(),
@@ -682,6 +716,7 @@ async function captureAdvancedInfo(url) {
         }
 
     } catch (error) {
+        console.warn(`Capture error for ${url}: ${error.message}`);
         return {
             url,
             error: error.message,
@@ -713,6 +748,7 @@ app.post('/api/investigate', async (req, res) => {
         });
 
     } catch (error) {
+        console.error(`Investigation error for ${username}: ${error.message}`);
         res.status(500).json({ 
             error: 'Investigation failed', 
             details: error.message 
@@ -738,6 +774,7 @@ app.post('/api/search/:platform', async (req, res) => {
             results
         });
     } catch (error) {
+        console.error(`Social media search error for ${platform}: ${error.message}`);
         res.status(500).json({ 
             error: `${platform} search failed`, 
             details: error.message 
@@ -763,6 +800,7 @@ app.post('/api/search-phone/:platform', async (req, res) => {
             results
         });
     } catch (error) {
+        console.error(`Phone search error for ${platform}: ${error.message}`);
         res.status(500).json({ 
             error: `${platform} phone search failed`, 
             details: error.message 
@@ -798,6 +836,7 @@ app.post('/api/advanced-search', async (req, res) => {
             results
         });
     } catch (error) {
+        console.error(`Advanced search error for query "${query}": ${error.message}`);
         res.status(500).json({ 
             error: 'Advanced search failed', 
             details: error.message 
@@ -819,6 +858,7 @@ app.post('/api/capture', async (req, res) => {
             capture
         });
     } catch (error) {
+        console.error(`Capture error for ${url}: ${error.message}`);
         res.status(500).json({ 
             error: 'Capture failed', 
             details: error.message 
@@ -856,6 +896,7 @@ app.post('/api/batch-investigate', async (req, res) => {
         });
 
     } catch (error) {
+        console.error(`Batch investigation error: ${error.message}`);
         res.status(500).json({ 
             error: 'Batch investigation failed', 
             details: error.message 
@@ -895,3 +936,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`OSINT Investigation Platform running on port ${PORT}`);
 });
+
