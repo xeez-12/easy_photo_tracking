@@ -15,15 +15,15 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: #0a0b0d;
-            color: #d1d5db;
+            color: #ffffff;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
         .sidebar {
-            width: 200px;
-            background: #111216;
+            width: 240px;
+            background: linear-gradient(180deg, #1a1d21 0%, #0f1114 100%);
             border-right: 1px solid #2a2d31;
             display: flex;
             flex-direction: column;
@@ -34,11 +34,11 @@
         }
 
         .sidebar.collapsed {
-            width: 50px;
+            width: 60px;
         }
 
         .sidebar-header {
-            padding: 16px;
+            padding: 20px;
             border-bottom: 1px solid #2a2d31;
             display: flex;
             align-items: center;
@@ -46,32 +46,32 @@
         }
 
         .sidebar.collapsed .sidebar-header {
-            padding: 16px 8px;
+            padding: 20px 10px;
             justify-content: center;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
         .logo-icon {
-            width: 24px;
-            height: 24px;
-            background: #2a2d31;
-            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
         }
 
         .logo-text {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
-            color: #d1d5db;
+            color: #ffffff;
         }
 
         .sidebar.collapsed .logo-text {
@@ -81,8 +81,8 @@
         .close-btn {
             background: none;
             border: none;
-            color: #6b7280;
-            font-size: 16px;
+            color: #94a3b8;
+            font-size: 18px;
             cursor: pointer;
             padding: 4px;
             border-radius: 4px;
@@ -91,7 +91,7 @@
 
         .close-btn:hover {
             background: #2a2d31;
-            color: #d1d5db;
+            color: #ffffff;
         }
 
         .sidebar.collapsed .close-btn {
@@ -100,45 +100,49 @@
 
         .nav-menu {
             flex: 1;
-            padding: 16px 0;
+            padding: 20px 0;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 10px 16px;
-            margin: 2px 8px;
-            border-radius: 6px;
+            padding: 12px 20px;
+            margin: 2px 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
-            color: #6b7280;
+            color: #94a3b8;
             text-decoration: none;
-            gap: 8px;
-            font-size: 13px;
+            gap: 12px;
+            font-size: 14px;
             font-weight: 500;
         }
 
         .sidebar.collapsed .nav-item {
-            padding: 10px;
-            margin: 2px 6px;
+            padding: 12px;
+            margin: 2px 8px;
             justify-content: center;
         }
 
         .nav-item:hover {
-            background: #2a2d31;
-            color: #d1d5db;
+            background: rgba(59, 130, 246, 0.1);
+            color: white;
         }
 
         .nav-item.active {
-            background: #1f2226;
-            color: #d1d5db;
-            border: 1px solid #2a2d31;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.1));
+            color: white;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .nav-icon {
-            font-size: 16px;
-            width: 16px;
+            font-size: 18px;
+            width: 18px;
             text-align: center;
+        }
+
+        .nav-text {
+            white-space: nowrap;
         }
 
         .sidebar.collapsed .nav-text {
@@ -147,7 +151,7 @@
 
         .main-content {
             flex: 1;
-            margin-left: 200px;
+            margin-left: 240px;
             background: #0a0b0d;
             transition: margin-left 0.3s ease;
             display: flex;
@@ -156,13 +160,13 @@
         }
 
         .sidebar.collapsed ~ .main-content {
-            margin-left: 50px;
+            margin-left: 60px;
         }
 
         .top-bar {
-            background: #111216;
+            background: linear-gradient(90deg, #1a1d21 0%, #0f1114 100%);
             border-bottom: 1px solid #2a2d31;
-            padding: 12px 20px;
+            padding: 16px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -171,23 +175,23 @@
         .menu-toggle {
             background: none;
             border: none;
-            color: #6b7280;
-            font-size: 16px;
+            color: #94a3b8;
+            font-size: 18px;
             cursor: pointer;
-            padding: 6px;
-            border-radius: 4px;
+            padding: 8px;
+            border-radius: 6px;
             transition: all 0.2s ease;
         }
 
         .menu-toggle:hover {
             background: #2a2d31;
-            color: #d1d5db;
+            color: #ffffff;
         }
 
         .search-container {
             flex: 1;
-            max-width: 350px;
-            margin: 0 16px;
+            max-width: 400px;
+            margin: 0 20px;
             position: relative;
         }
 
@@ -195,84 +199,84 @@
             width: 100%;
             background: #1a1d21;
             border: 1px solid #2a2d31;
-            border-radius: 6px;
-            padding: 8px 12px 8px 32px;
-            color: #d1d5db;
-            font-size: 13px;
+            border-radius: 8px;
+            padding: 10px 16px 10px 40px;
+            color: #ffffff;
+            font-size: 14px;
             transition: all 0.2s ease;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: #4b5563;
-            box-shadow: 0 0 0 2px rgba(75, 85, 99, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .search-icon {
             position: absolute;
-            left: 10px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: #6b7280;
-            font-size: 14px;
+            color: #94a3b8;
+            font-size: 16px;
         }
 
         .top-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
         .action-btn {
             background: none;
             border: none;
-            color: #6b7280;
-            font-size: 16px;
+            color: #94a3b8;
+            font-size: 18px;
             cursor: pointer;
-            padding: 6px;
-            border-radius: 4px;
+            padding: 8px;
+            border-radius: 6px;
             transition: all 0.2s ease;
         }
 
         .action-btn:hover {
             background: #2a2d31;
-            color: #d1d5db;
+            color: #ffffff;
         }
 
         .content-area {
             flex: 1;
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
         }
 
         .page-header {
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
         .page-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #d1d5db;
-            margin-bottom: 6px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
         }
 
         .page-subtitle {
-            color: #6b7280;
-            font-size: 14px;
+            color: #94a3b8;
+            font-size: 16px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
         }
 
         .stat-card {
-            background: #111216;
+            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
             border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 12px;
+            padding: 24px;
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
@@ -280,8 +284,8 @@
 
         .stat-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            border-color: #4b5563;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border-color: black;
         }
 
         .stat-card::before {
@@ -290,140 +294,171 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 2px;
-            background: #4b5563;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
         }
 
         .stat-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .stat-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            background: #2a2d31;
-            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .stat-icon.blue {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.1));
+            color: #3b82f6;
+        }
+
+        .stat-icon.green {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(21, 128, 61, 0.1));
+            color: #22c55e;
+        }
+
+        .stat-icon.purple {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(107, 33, 168, 0.1));
+            color: #9333ea;
+        }
+
+        .stat-icon.orange {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(194, 65, 12, 0.1));
+            color: #f97316;
         }
 
         .stat-indicator {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            padding: 3px 6px;
-            border-radius: 16px;
+            padding: 4px 8px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 4px;
-            background: #2a2d31;
-            color: #d1d5db;
+        }
+
+        .stat-indicator.up {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .stat-indicator.live {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .stat-indicator.high {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
         }
 
         .stat-value {
-            font-size: 24px;
-            font-weight: 600;
-            color: #d1d5db;
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
             margin-bottom: 4px;
         }
 
         .stat-label {
-            color: #6b7280;
-            font-size: 13px;
+            color: #94a3b8;
+            font-size: 14px;
             font-weight: 500;
         }
 
         .form-section {
-            background: #111216;
+            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
             border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 1fr auto;
-            gap: 12px;
+            gap: 16px;
             align-items: end;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .form-label {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
-            color: #d1d5db;
+            color: #ffffff;
         }
 
         .form-input {
             background: #0a0b0d;
             border: 1px solid #2a2d31;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: #d1d5db;
-            font-size: 13px;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            font-size: 14px;
             transition: all 0.2s ease;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #4b5563;
-            box-shadow: 0 0 0 2px rgba(75, 85, 99, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .form-select {
             background: #0a0b0d;
             border: 1px solid #2a2d31;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: #d1d5db;
-            font-size: 13px;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .form-select:focus {
             outline: none;
-            border-color: #4b5563;
-            box-shadow: 0 0 0 2px rgba(75, 85, 99, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .form-textarea {
             background: #0a0b0d;
             border: 1px solid #2a2d31;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: #d1d5db;
-            font-size: 13px;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            font-size: 14px;
             resize: vertical;
-            min-height: 80px;
+            min-height: 100px;
             transition: all 0.2s ease;
         }
 
         .form-textarea:focus {
             outline: none;
-            border-color: #4b5563;
-            box-shadow: 0 0 0 2px rgba(75, 85, 99, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
+            gap: 8px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 6px;
-            font-size: 13px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -431,19 +466,19 @@
         }
 
         .btn-primary {
-            background: #2a2d31;
-            color: #d1d5db;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: #ffffff;
         }
 
         .btn-primary:hover {
-            background: #4b5563;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
             transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
 
         .btn-primary:disabled {
-            background: #1f2226;
-            color: #6b7280;
+            background: #2a2d31;
+            color: #94a3b8;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -451,24 +486,24 @@
 
         .checkbox-group {
             display: flex;
-            gap: 16px;
-            margin: 12px 0;
+            gap: 24px;
+            margin: 16px 0;
             flex-wrap: wrap;
         }
 
         .checkbox-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             cursor: pointer;
         }
 
         .checkbox {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             background: #0a0b0d;
             border: 1px solid #2a2d31;
-            border-radius: 3px;
+            border-radius: 4px;
             position: relative;
             cursor: pointer;
         }
@@ -481,8 +516,8 @@
         }
 
         .checkbox input:checked + .checkmark {
-            background: #4b5563;
-            border-color: #4b5563;
+            background: #3b82f6;
+            border-color: #3b82f6;
         }
 
         .checkbox input:checked + .checkmark::after {
@@ -491,25 +526,25 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #d1d5db;
-            font-size: 9px;
+            color: #ffffff;
+            font-size: 10px;
             font-weight: bold;
         }
 
         .checkbox-label {
-            color: #d1d5db;
-            font-size: 13px;
+            color: #ffffff;
+            font-size: 14px;
             font-weight: 500;
         }
 
         .error-message {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 6px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 12px 16px;
             color: #ef4444;
-            font-size: 13px;
-            margin-top: 12px;
+            font-size: 14px;
+            margin-top: 16px;
             display: none;
         }
 
@@ -518,29 +553,29 @@
         }
 
         .results-section {
-            margin-top: 24px;
+            margin-top: 32px;
         }
 
         .section-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            color: #d1d5db;
-            margin: 24px 0 12px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #2a2d31;
+            color: #ffffff;
+            margin: 32px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2a2d31;
         }
 
         .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
         }
 
         .result-card {
-            background: #111216;
+            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
             border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 20px;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -548,8 +583,8 @@
 
         .result-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            border-color: #4b5563;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border-color: #3b82f6;
         }
 
         .result-card::before {
@@ -559,14 +594,23 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: #4b5563;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
         }
 
         .result-header {
             display: flex;
             align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid #3b82f6;
+            background: #2a2d31;
         }
 
         .result-info {
@@ -574,43 +618,40 @@
         }
 
         .result-title {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 600;
-            color: #d1d5db;
-            margin-bottom: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .result-platform {
-            color: #6b7280;
-            font-size: 12px;
-            font-weight: 500;
+            color: #ffffff;
             margin-bottom: 4px;
         }
 
+        .result-platform {
+            color: #3b82f6;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
         .result-domain {
-            background: #2a2d31;
-            color: #d1d5db;
-            font-size: 10px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            font-size: 12px;
             font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 12px;
+            padding: 4px 8px;
+            border-radius: 20px;
             display: inline-block;
         }
 
         .result-content {
-            margin-top: 8px;
+            margin-top: 16px;
         }
 
         .result-detail {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 4px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #2a2d31;
-            font-size: 12px;
+            font-size: 14px;
         }
 
         .result-detail:last-child {
@@ -618,143 +659,48 @@
         }
 
         .result-detail-label {
-            color: #6b7280;
+            color: #94a3b8;
             font-weight: 500;
         }
 
         .result-detail-value {
-            color: #d1d5db;
+            color: #ffffff;
             font-weight: 600;
         }
 
         .result-bio {
-            color: #6b7280;
-            font-size: 12px;
-            line-height: 1.4;
-            margin-top: 6px;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 100px;
-            overflow-y: auto;
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: 12px;
         }
 
         .result-screenshot {
             width: 100%;
-            border-radius: 6px;
-            margin-top: 8px;
+            border-radius: 8px;
+            margin-top: 16px;
             border: 1px solid #2a2d31;
-            max-height: 150px;
-            object-fit: cover;
         }
 
         .recent-activity {
-            background: #111216;
+            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
             border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 12px;
+            padding: 24px;
             text-align: center;
-            margin-top: 24px;
+            margin-top: 32px;
         }
 
         .activity-icon {
-            font-size: 32px;
-            color: #6b7280;
-            margin-bottom: 12px;
+            font-size: 48px;
+            color: #94a3b8;
+            margin-bottom: 16px;
         }
 
         .activity-message {
-            color: #6b7280;
-            font-size: 14px;
+            color: #94a3b8;
+            font-size: 16px;
             font-weight: 500;
-        }
-
-        /* System Health Specific Styles */
-        .health-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .health-card {
-            background: #111216;
-            border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 12px;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .health-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            border-color: #4b5563;
-        }
-
-        .health-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #4b5563;
-        }
-
-        .health-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .health-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #2a2d31;
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        .health-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #d1d5db;
-        }
-
-        .health-status {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 12px;
-            background: #2a2d31;
-            color: #d1d5db;
-        }
-
-        .health-detail {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 12px;
-            border-bottom: 1px solid #2a2d31;
-        }
-
-        .health-detail:last-child {
-            border-bottom: none;
-        }
-
-        .health-detail-label {
-            color: #6b7280;
-            font-weight: 500;
-        }
-
-        .health-detail-value {
-            color: #d1d5db;
-            font-weight: 600;
         }
 
         .tab-content {
@@ -767,7 +713,7 @@
 
         @media (max-width: 768px) {
             .sidebar {
-                width: 50px;
+                width: 60px;
             }
 
             .sidebar .logo-text,
@@ -776,11 +722,11 @@
             }
 
             .main-content {
-                margin-left: 50px;
+                margin-left: 60px;
             }
 
-            .stats-grid, .health-grid {
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             }
 
             .results-grid {
@@ -793,7 +739,7 @@
 
             .checkbox-group {
                 flex-direction: column;
-                gap: 8px;
+                gap: 12px;
             }
         }
     </style>
@@ -818,7 +764,7 @@
             <a href="#" class="nav-item" data-tab="deep">
                 <i class="nav-icon bi bi-search"></i>
                 <span class="nav-text">Deep Investigation</span>
-            </a.>
+            </a>
             <a href="#" class="nav-item" data-tab="social">
                 <i class="nav-icon bi bi-globe"></i>
                 <span class="nav-text">Social Media</span>
@@ -878,7 +824,7 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-icon">
+                            <div class="stat-icon blue">
                                 <i class="bi bi-folder"></i>
                             </div>
                             <div class="stat-indicator up">
@@ -892,7 +838,7 @@
 
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-icon">
+                            <div class="stat-icon green">
                                 <i class="bi bi-activity"></i>
                             </div>
                             <div class="stat-indicator live">
@@ -906,7 +852,7 @@
 
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-icon">
+                            <div class="stat-icon purple">
                                 <i class="bi bi-database"></i>
                             </div>
                             <div class="stat-indicator up">
@@ -919,7 +865,7 @@
 
                     <div class="stat-card">
                         <div class="stat-header">
-                            <div class="stat-icon">
+                            <div class="stat-icon orange">
                                 <i class="bi bi-graph-up"></i>
                             </div>
                             <div class="stat-indicator high">
@@ -1118,7 +1064,7 @@
                             Search Phone Number
                         </button>
                     </div>
-                </div>
+                </div>
 
                 <div id="phone-error" class="error-message"></div>
                 <div id="phone-results" class="results-section"></div>
@@ -1146,26 +1092,37 @@
 
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
     <script>
+        // Sidebar toggle functionality
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('collapsed');
         }
 
+        // Tab navigation
         const navItems = document.querySelectorAll('.nav-item');
         const tabContents = document.querySelectorAll('.tab-content');
 
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
+                
+                // Remove active class from all nav items and tabs
                 navItems.forEach(nav => nav.classList.remove('active'));
                 tabContents.forEach(tab => tab.classList.remove('active'));
+                
+                // Add active class to clicked nav item
                 item.classList.add('active');
+                
+                // Show corresponding tab
                 const tabId = item.dataset.tab + '-tab';
                 document.getElementById(tabId).classList.add('active');
+                
+                // Clear previous results
                 clearResults();
             });
         });
 
+        // Clear all results and errors
         function clearResults() {
             document.querySelectorAll('.results-section').forEach(el => el.innerHTML = '');
             document.querySelectorAll('.error-message').forEach(el => {
@@ -1174,24 +1131,13 @@
             });
         }
 
-        function formatScrapedText(text) {
-            if (!text) return '';
-            // Clean and format scraped text
-            return text
-                .trim()
-                .replace(/\n+/g, '\n') // Remove multiple newlines
-                .replace(/\s+/g, ' ')  // Normalize spaces
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 0)
-                .join('\n');
-        }
-
+        // Main search handler
         async function handleSearch(tab) {
             const errorEl = document.getElementById(`${tab}-error`);
             const resultsEl = document.getElementById(`${tab}-results`);
             const button = document.querySelector(`#${tab}-tab .btn-primary`);
             
+            // Reset UI
             button.disabled = true;
             button.innerHTML = '<i class="bi bi-clock"></i> Processing...';
             errorEl.classList.remove('show');
@@ -1200,17 +1146,20 @@
 
             try {
                 let response;
+                
                 if (tab === 'deep') {
                     const username = document.getElementById('deep-username').value.trim();
                     if (!username) throw new Error('Username is required');
                     response = await axios.post('/api/investigate', { username });
                     renderDeepResults(response.data.investigation, resultsEl);
+                    
                 } else if (tab === 'social') {
                     const username = document.getElementById('social-username').value.trim();
                     const platform = document.getElementById('social-platform').value;
                     if (!username) throw new Error('Username is required');
                     response = await axios.post(`/api/search/${platform}`, { username });
                     renderProfileResults(response.data.results, resultsEl);
+                    
                 } else if (tab === 'advanced') {
                     const query = document.getElementById('advanced-query').value.trim();
                     const sources = [];
@@ -1220,11 +1169,13 @@
                     if (sources.length === 0) throw new Error('At least one search source must be selected');
                     response = await axios.post('/api/advanced-search', { query, sources });
                     renderProfileResults(response.data.results, resultsEl);
+                    
                 } else if (tab === 'capture') {
                     const url = document.getElementById('capture-url').value.trim();
                     if (!url) throw new Error('URL is required');
                     response = await axios.post('/api/capture', { url });
                     renderCaptureResults(response.data.capture, resultsEl);
+                    
                 } else if (tab === 'batch') {
                     const usernames = document.getElementById('batch-usernames').value
                         .split('\n')
@@ -1233,21 +1184,25 @@
                     if (usernames.length === 0) throw new Error('At least one username is required');
                     response = await axios.post('/api/batch-investigate', { usernames });
                     renderBatchResults(response.data.investigations, resultsEl);
+                    
                 } else if (tab === 'phone') {
                     const username = document.getElementById('phone-username').value.trim();
                     const platform = document.getElementById('phone-platform').value;
                     if (!username) throw new Error('Username is required');
                     response = await axios.post(`/api/search-phone/${platform}`, { username });
                     renderPhoneResults(response.data.results, resultsEl);
+                    
                 } else if (tab === 'health') {
                     response = await axios.get('/health');
                     renderHealthResults(response.data, resultsEl);
                 }
+                
             } catch (err) {
                 const errorMessage = err.response?.data?.error || err.message || 'An unexpected error occurred';
                 errorEl.innerHTML = errorMessage;
                 errorEl.classList.add('show');
             } finally {
+                // Reset button
                 button.disabled = false;
                 const buttonTexts = {
                     deep: '<i class="bi bi-search"></i> Start Investigation',
@@ -1262,6 +1217,7 @@
             }
         }
 
+        // Utility functions
         function getShortDomain(url) {
             try {
                 const domain = new URL(url).hostname.replace('www.', '');
@@ -1276,10 +1232,12 @@
             return `<div class="result-card">${content}</div>`;
         }
 
+        // Result rendering functions
         function renderProfileCard(profile) {
             const domain = getShortDomain(profile.url || '');
             let content = `
                 <div class="result-header">
+                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile Picture">` : `<div class="profile-pic"></div>`}
                     <div class="result-info">
                         <div class="result-title">${profile.title || profile.name || 'Unknown'}</div>
                         <div class="result-platform">${profile.platform || 'Platform'}</div>
@@ -1289,8 +1247,8 @@
                 <div class="result-content">
             `;
 
-            if (profile.bio) content += `<div class="result-bio">${formatScrapedText(profile.bio)}</div>`;
-            if (profile.snippet) content += `<div class="result-bio">${formatScrapedText(profile.snippet)}</div>`;
+            if (profile.bio) content += `<div class="result-bio">${profile.bio}</div>`;
+            if (profile.snippet) content += `<div class="result-bio">${profile.snippet}</div>`;
 
             if (profile.followers || profile.postCount || profile.following) {
                 content += '<div>';
@@ -1319,7 +1277,7 @@
                 <div class="result-content">
             `;
 
-            if (capture.description) content += `<div class="result-bio">${formatScrapedText(capture.description)}</div>`;
+            if (capture.description) content += `<div class="result-bio">${capture.description}</div>`;
             if (capture.error) content += `<div class="error-message show">Error: ${capture.error}</div>`;
             if (capture.screenshot) content += `<img src="${capture.screenshot}" class="result-screenshot" alt="Website Screenshot">`;
 
@@ -1331,6 +1289,7 @@
             const domain = getShortDomain(profile.url || '');
             let content = `
                 <div class="result-header">
+                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile Picture">` : `<div class="profile-pic"></div>`}
                     <div class="result-info">
                         <div class="result-title">${profile.title || profile.name || 'Unknown'}</div>
                         <div class="result-platform">${profile.platform || 'Platform'}</div>
@@ -1354,66 +1313,51 @@
 
         function renderHealthCard(data) {
             let content = `
-                <div class="health-grid">
-                    <div class="health-card">
-                        <div class="health-header">
-                            <div class="health-icon"><i class="bi bi-heart-pulse"></i></div>
-                            <div class="health-title">System Status</div>
-                            <div class="health-status">${data.status || 'Unknown'}</div>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-detail-label">Status:</span>
-                            <span class="health-detail-value">${data.status || 'Unknown'}</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-detail-label">Version:</span>
-                            <span class="health-detail-value">${data.version || 'Unknown'}</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-detail-label">Uptime:</span>
-                            <span class="health-detail-value">${Math.round(data.uptime || 0)} seconds</span>
-                        </div>
+                <div class="result-header">
+                    <div class="result-info">
+                        <div class="result-title">System Status</div>
+                        <div class="result-platform">Health Monitor</div>
+                        <div class="result-domain">system</div>
+                    </div>
+                </div>
+                <div class="result-content">
+                    <div class="result-detail">
+                        <span class="result-detail-label">Status:</span>
+                        <span class="result-detail-value">${data.status || 'Unknown'}</span>
+                    </div>
+                    <div class="result-detail">
+                        <span class="result-detail-label">Version:</span>
+                        <span class="result-detail-value">${data.version || 'Unknown'}</span>
+                    </div>
+                    <div class="result-detail">
+                        <span class="result-detail-label">Uptime:</span>
+                        <span class="result-detail-value">${Math.round(data.uptime || 0)} seconds</span>
                     </div>
             `;
 
             if (data.supported_platforms) {
-                content += `
-                    <div class="health-card">
-                        <div class="health-header">
-                            <div class="health-icon"><i class="bi bi-globe"></i></div>
-                            <div class="health-title">Supported Platforms</div>
-                            <div class="health-status">${data.supported_platforms.length} Platforms</div>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-detail-label">Platforms:</span>
-                            <span class="health-detail-value">${data.supported_platforms.join(', ')}</span>
-                        </div>
-                    </div>
-                `;
+                content += `<div class="result-detail">
+                    <span class="result-detail-label">Platforms:</span>
+                    <span class="result-detail-value">${data.supported_platforms.join(', ')}</span>
+                </div>`;
             }
 
             if (data.features) {
-                content += `
-                    <div class="health-card">
-                        <div class="health-header">
-                            <div class="health-icon"><i class="bi bi-gear"></i></div>
-                            <div class="health-title">Features</div>
-                            <div class="health-status">${data.features.length} Active</div>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-detail-label">Features:</span>
-                            <span class="health-detail-value">${data.features.join(', ')}</span>
-                        </div>
-                    </div>
-                `;
+                content += `<div class="result-detail">
+                    <span class="result-detail-label">Features:</span>
+                    <span class="result-detail-value">${data.features.join(', ')}</span>
+                </div>`;
             }
 
             content += '</div>';
-            return content;
+            return createResultCard(content);
         }
 
+        // Main result rendering functions
         function renderDeepResults(investigation, resultsEl) {
             let html = '';
+            
+            // Social Media Results
             if (investigation.social_media) {
                 Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
                     if (profiles && profiles.length > 0) {
@@ -1427,6 +1371,7 @@
                 });
             }
 
+            // General Search Results
             if (investigation.general_search && investigation.general_search.length > 0) {
                 html += '<h2 class="section-title">General Search Results</h2>';
                 html += '<div class="results-grid">';
@@ -1470,10 +1415,11 @@
             let html = '';
             investigations.forEach(investigation => {
                 html += `<h2 class="section-title">Username: ${investigation.username}</h2>`;
+                
                 if (investigation.social_media) {
                     Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
                         if (profiles && profiles.length > 0) {
-                            html += `<h3 style="font-size: 14px; margin: 12px 0 8px; color: #6b7280;">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
+                            html += `<h3 style="font-size: 16px; margin: 16px 0 12px; color: #94a3b8;">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
                             html += '<div class="results-grid">';
                             profiles.forEach(profile => {
                                 html += renderProfileCard({ ...profile, platform });
@@ -1506,10 +1452,12 @@
         }
 
         function renderHealthResults(data, resultsEl) {
-            resultsEl.innerHTML = renderHealthCard(data);
+            resultsEl.innerHTML = '<div class="results-grid">' + renderHealthCard(data) + '</div>';
         }
 
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Set up enter key handlers for inputs
             document.querySelectorAll('input, textarea').forEach(input => {
                 input.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1525,6 +1473,7 @@
                 });
             });
 
+            // Auto-focus first input in active tab
             const activeTab = document.querySelector('.tab-content.active');
             if (activeTab) {
                 const firstInput = activeTab.querySelector('input, textarea');
