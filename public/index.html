@@ -4,337 +4,390 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSINT Investigation Platform</title>
-    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a202c, #2d3748);
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #3b82f6, #60a5fa);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+            transform: scale(1.05);
+        }
+        .nav-link {
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover {
+            color: #60a5fa;
+        }
+        .profile-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .profile-link {
+            color: #60a5fa;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .profile-link:hover {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4">
+                <span class="text-blue-400">O</span>SINT
+            </h1>
+            <p class="text-gray-400 text-lg">Advanced Open-Source Intelligence Platform</p>
+        </header>
+
+        <nav class="mb-12">
+            <ul class="flex justify-center space-x-6 text-lg font-medium">
+                <li><a href="#overview" class="nav-link">Overview</a></li>
+                <li><a href="#investigation" class="nav-link">Deep Investigation</a></li>
+                <li><a href="#social" class="nav-link">Social Media</a></li>
+                <li><a href="#advanced" class="nav-link">Advanced Search</a></li>
+                <li><a href="#capture" class="nav-link">Website Capture</a></li>
+                <li><a href="#batch" class="nav-link">Batch Investigation</a></li>
+                <li><a href="#phone" class="nav-link">Phone Search</a></li>
+                <li><a href="#location" class="nav-link">Location Search</a></li>
+                <li><a href="#health" class="nav-link">System Health</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="overview" class="mb-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card p-6 rounded-lg">
+                        <h2 class="text-2xl font-semibold mb-4">Dashboard</h2>
+                        <p class="text-gray-400 mb-6">Monitor your investigation activities and system performance</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-gray-400">Total Projects</p>
+                                <p class="text-2xl font-bold">0</p>
+                            </div>
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-gray-400">Active Analyses</p>
+                                <p class="text-2xl font-bold">5</p>
+                                <p class="text-green-400 text-sm">Live</p>
+                            </div>
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-gray-400">Data Processed</p>
+                                <p class="text-2xl font-bold">0.0GB</p>
+                            </div>
+                            <div class="bg-gray-800 p-4 rounded-lg">
+                                <p class="text-gray-400">Accuracy Rate</p>
+                                <p class="text-2xl font-bold">88.7%</p>
+                                <p class="text-blue-400 text-sm">High</p>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold">Recent Activity</h3>
+                            <p class="text-gray-400">No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="investigation" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Deep Investigation</h2>
+                    <p class="text-gray-400 mb-6">Comprehensive username investigation across multiple platforms</p>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input id="investigate-username" type="text" placeholder="Username" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <button onclick="investigate()" class="btn-primary text-white px-6 py-3 rounded-lg">Start Investigation</button>
+                    </div>
+                    <div id="investigation-results" class="mt-6"></div>
+                </div>
+            </section>
+
+            <section id="social" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Social Media Search</h2>
+                    <p class="text-gray-400 mb-6">Search for profiles on specific social media platforms</p>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input id="social-username" type="text" placeholder="Username" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <select id="social-platform" class="bg-gray-800 text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="github">GitHub</option>
+                            <option value="reddit">Reddit</option>
+                        </select>
+                        <button onclick="searchSocial()" class="btn-primary text-white px-6 py-3 rounded-lg">Search Platform</button>
+                    </div>
+                    <div id="social-results" class="mt-6"></div>
+                </div>
+            </section>
+
+            <section id="location" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Location-Based Social Media Search</h2>
+                    <p class="text-gray-400 mb-6">Search for social media profiles in a specific location</p>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input id="location-query" type="text" placeholder="Location (e.g., Jatijajar)" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <select id="location-platform" class="bg-gray-800 text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="github">GitHub</option>
+                            <option value="reddit">Reddit</option>
+                        </select>
+                        <button onclick="searchLocation()" class="btn-primary text-white px-6 py-3 rounded-lg">Search Location</button>
+                    </div>
+                    <div id="location-results" class="mt-6"></div>
+                </div>
+            </section>
+
+            <section id="advanced" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Advanced Search</h2>
+                    <p class="text-gray-400 mb-6">Search across multiple search engines with custom queries</p>
+                    <input id="advanced-query" type="text" placeholder="Search Query" class="bg-gray-800 text-gray-100 p-3 rounded-lg w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <div class="flex gap-4 mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="source-bing" checked class="mr-2">
+                            <span>Bing</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="source-ddg" checked class="mr-2">
+                            <span>DuckDuckGo</span>
+                        </label>
+                    </div>
+                    <button onclick="advancedSearch()" class="btn-primary text-white px-6 py-3 rounded-lg">Execute Search</button>
+                    <div id="advanced-results" class="mt-6"></div>
+                </div>
+            </section>
+
+            <section id="capture" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Website Capture</h2>
+                    <p class="text-gray-400 mb-6">Capture and analyze website screenshots and metadata</p>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input id="capture-url" type="text" placeholder="Website URL" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <button onclick="captureWebsite()" class="btn-primary text-white px-6 py-3 rounded-lg">Capture & Analyze</button>
+                    </div>
+                    <div id="capture-results" class="mt-6"></div>
+                </div>
+            </section>
+
+            <section id="batch" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Batch Investigation</h2>
+                    <p class="text-gray-400 mb-6">Investigate multiple usernames simultaneously</p>
+                    <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="bg-gray-800 text-gray-100 p-3 rounded-lg w-full h-32 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                    <button onclick="batchInvestigate()" class="btn-primary text-white px-6 py-3 rounded-lg mt-4">Start Batch Analysis</button>
+                    <div id="batch-results" class="mt-6"></div>
+                </div>
+            </section>
+
+            <section id="phone" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Phone Number Search</h2>
+                    <p class="text-gray-400 mb-6">Search for phone numbers associated with usernames</p>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input id="phone-username" type="text" placeholder="Username" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <select id="phone-platform" class="bg-gray-800 text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="github">GitHub</option>
+                            <option value="reddit">Reddit</option>
+                        </select>
+                        <button onclick="searchPhone()" class="btn-primary text-white px-6 py-3 rounded-lg">Search Phone Number</button>
+                    </div>
+                    <div id="phone-results" class="mt-6"></div>
+                </div>
+            </section>
+
+            <section id="health" class="mb-12">
+                <div class="card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">System Health</h2>
+                    <p class="text-gray-400 mb-6">Monitor system status and performance metrics</p>
+                    <button onclick="checkHealth()" class="btn-primary text-white px-6 py-3 rounded-lg">Check System Health</button>
+                    <div id="health-results" class="mt-6"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'dark-bg': '#1a1a1a',
-                        'dark-card': '#2a2a2a',
-                        'dark-accent': '#4a4a4a',
-                        'text-primary': '#ffffff',
-                        'text-secondary': '#a0a0a0',
-                    }
-                }
+        const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with actual Gemini API key
+
+        async function fetchAIProfileAnalysis(profileData) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Analyze this social media profile data and provide a formatted summary:
+                                Platform: ${profileData.platform}
+                                URL: ${profileData.url}
+                                Bio: ${profileData.bio || 'N/A'}
+                                Followers: ${profileData.followers || 'N/A'}
+                                Posts: ${profileData.postCount || 'N/A'}`
+                            }]
+                        }]
+                    })
+                });
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                return `AI Analysis Error: ${error.message}`;
             }
         }
-    </script>
-</head>
-<body class="bg-dark-bg text-text-primary min-h-screen">
-    <header class="bg-dark-card p-4 shadow-lg">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-3xl font-bold">OSINT</h1>
-            <nav>
-                <ul class="flex space-x-4">
-                    <li><a href="#overview" class="hover:text-text-secondary">Overview</a></li>
-                    <li><a href="#deep-investigation" class="hover:text-text-secondary">Deep Investigation</a></li>
-                    <li><a href="#social-media" class="hover:text-text-secondary">Social Media</a></li>
-                    <li><a href="#deep-social" class="hover:text-text-secondary">Deep Social Search</a></li>
-                    <li><a href="#advanced-search" class="hover:text-text-secondary">Advanced Search</a></li>
-                    <li><a href="#website-capture" class="hover:text-text-secondary">Website Capture</a></li>
-                    <li><a href="#batch-investigation" class="hover:text-text-secondary">Batch Investigation</a></li>
-                    <li><a href="#phone-search" class="hover:text-text-secondary">Phone Search</a></li>
-                    <li><a href="#system-health" class="hover:text-text-secondary">System Health</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
 
-    <main class="container mx-auto p-4">
-        <section id="overview" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
-            <p class="text-text-secondary mb-4">Monitor your investigation activities and system performance</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-dark-card p-4 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        <div>
-                            <p class="text-text-secondary text-sm">+12%</p>
-                            <p class="text-2xl font-bold">0</p>
-                            <p class="text-text-secondary">Total Projects</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-dark-card p-4 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        <div>
-                            <p class="text-text-secondary text-sm">Live</p>
-                            <p class="text-2xl font-bold">5</p>
-                            <p class="text-text-secondary">Active Analyses</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-dark-card p-4 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"></path></svg>
-                        <div>
-                            <p class="text-text-secondary text-sm"></p>
-                            <p class="text-2xl font-bold">0.0GB</p>
-                            <p class="text-text-secondary">Data Processed</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-dark-card p-4 rounded-lg shadow">
-                    <div class="flex items-center">
-                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <div>
-                            <p class="text-text-secondary text-sm">High</p>
-                            <p class="text-2xl font-bold">88.7%</p>
-                            <p class="text-text-secondary">Accuracy Rate</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-dark-card p-4 rounded-lg shadow mt-4">
-                <h3 class="text-lg font-bold">Recent Activity</h3>
-                <p class="text-text-secondary">No recent activity</p>
-            </div>
-        </section>
-
-        <section id="deep-investigation" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Deep Investigation</h2>
-            <p class="text-text-secondary mb-4">Comprehensive username investigation across multiple platforms</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Username</label>
-                    <input id="deep-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
-                </div>
-                <button id="deep-investigate-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Start Investigation</button>
-            </div>
-        </section>
-
-        <section id="social-media" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Social Media Search</h2>
-            <p class="text-text-secondary mb-4">Search for profiles on specific social media platforms</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Username</label>
-                    <input id="social-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
-                </div>
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Platform</label>
-                    <select id="social-platform" class="w-full p-2 bg-dark-accent text-text-primary rounded">
-                        <option value="tiktok">TikTok</option>
-                        <option value="facebook">Facebook</option>
-                        <option value="instagram">Instagram</option>
-                        <option value="youtube">YouTube</option>
-                        <option value="twitter">Twitter</option>
-                        <option value="linkedin">LinkedIn</option>
-                        <option value="github">GitHub</option>
-                        <option value="reddit">Reddit</option>
-                    </select>
-                </div>
-                <button id="social-search-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Search Platform</button>
-            </div>
-        </section>
-
-        <section id="deep-social" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Deep Social Search</h2>
-            <p class="text-text-secondary mb-4">In-depth search for profiles on Instagram, TikTok, X, and Facebook</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Username</label>
-                    <input id="deep-social-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
-                </div>
-                <button id="deep-social-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Start Deep Social Search</button>
-            </div>
-        </section>
-
-        <section id="advanced-search" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Advanced Search</h2>
-            <p class="text-text-secondary mb-4">Search across multiple search engines with custom queries</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Search Query</label>
-                    <input id="advanced-query" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter search query" />
-                </div>
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Sources</label>
-                    <div class="flex space-x-4">
-                        <label class="flex items-center text-text-secondary">
-                            <input id="bing-source" type="checkbox" class="mr-2 bg-dark-accent" checked />
-                            Bing
-                        </label>
-                        <label class="flex items-center text-text-secondary">
-                            <input id="ddg-source" type="checkbox" class="mr-2 bg-dark-accent" checked />
-                            DuckDuckGo
-                        </label>
-                    </div>
-                </div>
-                <button id="advanced-search-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Execute Search</button>
-            </div>
-        </section>
-
-        <section id="website-capture" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Website Capture</h2>
-            <p class="text-text-secondary mb-4">Capture and analyze website screenshots and metadata</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Website URL</label>
-                    <input id="capture-url" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter website URL" />
-                </div>
-                <button id="capture-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Capture & Analyze</button>
-            </div>
-        </section>
-
-        <section id="batch-investigation" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Batch Investigation</h2>
-            <p class="text-text-secondary mb-4">Investigate multiple usernames simultaneously</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Usernames</label>
-                    <textarea id="batch-usernames" class="w-full p-2 bg-dark-accent text-text-primary rounded" rows="4" placeholder="Enter usernames (one per line)"></textarea>
-                </div>
-                <button id="batch-investigate-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Start Batch Analysis</button>
-            </div>
-        </section>
-
-        <section id="phone-search" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">Phone Number Search</h2>
-            <p class="text-text-secondary mb-4">Search for phone numbers associated with usernames</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Username</label>
-                    <input id="phone-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
-                </div>
-                <div class="mb-4">
-                    <label class="block text-text-secondary mb-2">Platform</label>
-                    <select id="phone-platform" class="w-full p-2 bg-dark-accent text-text-primary rounded">
-                        <option value="tiktok">TikTok</option>
-                        <option value="facebook">Facebook</option>
-                        <option value="instagram">Instagram</option>
-                        <option value="youtube">YouTube</option>
-                        <option value="twitter">Twitter</option>
-                        <option value="linkedin">LinkedIn</option>
-                        <option value="github">GitHub</option>
-                        <option value="reddit">Reddit</option>
-                    </select>
-                </div>
-                <button id="phone-search-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Search Phone Number</button>
-            </div>
-        </section>
-
-        <section id="system-health" class="mb-8">
-            <h2 class="text-2xl font-bold mb-4">System Health</h2>
-            <p class="text-text-secondary mb-4">Monitor system status and performance metrics</p>
-            <div class="bg-dark-card p-4 rounded-lg shadow">
-                <button id="health-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Check System Health</button>
-            </div>
-        </section>
-    </main>
-
-    <script>
-        const apiUrl = '/api';
-
-        document.getElementById('deep-investigate-btn').addEventListener('click', async () => {
-            const username = document.getElementById('deep-username').value;
-            if (!username) return alert('Username is required');
-            try {
-                const response = await axios.post(`${apiUrl}/investigate`, { username });
-                console.log('Deep Investigation:', response.data);
-                alert('Investigation completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
+        async function displayResults(elementId, data) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+            if (data.success && data.results && data.results.length > 0) {
+                for (const result of data.results) {
+                    const aiAnalysis = await fetchAIProfileAnalysis(result);
+                    const profileCard = document.createElement('div');
+                    profileCard.className = 'profile-card';
+                    profileCard.innerHTML = `
+                        <h3 class="text-lg font-semibold text-blue-400">${result.platform.charAt(0).toUpperCase() + result.platform.slice(1)} Profile</h3>
+                        <p><strong>URL:</strong> <a href="${result.url}" target="_blank" class="profile-link">${result.url}</a></p>
+                        <p><strong>Bio:</strong> ${result.bio || 'N/A'}</p>
+                        <p><strong>Followers:</strong> ${result.followers || 'N/A'}</p>
+                        <p><strong>Posts:</strong> ${result.postCount || 'N/A'}</p>
+                        ${result.profilePic ? `<img src="${result.profilePic}" alt="Profile Picture" class="w-24 h-24 rounded-full my-2" />` : ''}
+                        <p><strong>AI Analysis:</strong> ${aiAnalysis.replace(/\n/g, '<br>')}</p>
+                    `;
+                    container.appendChild(profileCard);
+                }
+            } else {
+                container.innerHTML = '<p class="text-gray-400">No results found or an error occurred.</p>';
             }
-        });
+        }
 
-        document.getElementById('social-search-btn').addEventListener('click', async () => {
+        async function investigate() {
+            const username = document.getElementById('investigate-username').value;
+            if (!username) return alert('Please enter a username');
+            const response = await fetch('/api/investigate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+            const data = await response.json();
+            document.getElementById('investigation-results').innerHTML = JSON.stringify(data, null, 2);
+        }
+
+        async function searchSocial() {
             const username = document.getElementById('social-username').value;
             const platform = document.getElementById('social-platform').value;
-            if (!username) return alert('Username is required');
-            try {
-                const response = await axios.post(`${apiUrl}/search/${platform}`, { username });
-                console.log('Social Media Search:', response.data);
-                alert('Search completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
-            }
-        });
+            if (!username) return alert('Please enter a username');
+            const response = await fetch(`/api/search/${platform}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+            const data = await response.json();
+            await displayResults('social-results', data);
+        }
 
-        document.getElementById('deep-social-btn').addEventListener('click', async () => {
-            const username = document.getElementById('deep-social-username').value;
-            if (!username) return alert('Username is required');
-            try {
-                const platforms = ['instagram', 'tiktok', 'twitter', 'facebook'];
-                const results = [];
-                for (const platform of platforms) {
-                    const response = await axios.post(`${apiUrl}/search/${platform}`, { username });
-                    results.push(response.data);
-                }
-                console.log('Deep Social Search:', results);
-                alert('Deep social search completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
-            }
-        });
+        async function searchLocation() {
+            const location = document.getElementById('location-query').value;
+            const platform = document.getElementById('location-platform').value;
+            if (!location) return alert('Please enter a location');
+            const response = await fetch(`/api/search-location/${platform}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ location })
+            });
+            const data = await response.json();
+            await displayResults('location-results', data);
+        }
 
-        document.getElementById('advanced-search-btn').addEventListener('click', async () => {
+        async function advancedSearch() {
             const query = document.getElementById('advanced-query').value;
             const sources = [];
-            if (document.getElementById('bing-source').checked) sources.push('bing');
-            if (document.getElementById('ddg-source').checked) sources.push('duckduckgo');
-            if (!query) return alert('Query is required');
-            try {
-                const response = await axios.post(`${apiUrl}/advanced-search`, { query, sources });
-                console.log('Advanced Search:', response.data);
-                alert('Search completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
-            }
-        });
+            if (document.getElementById('source-bing').checked) sources.push('bing');
+            if (document.getElementById('source-ddg').checked) sources.push('duckduckgo');
+            if (!query) return alert('Please enter a search query');
+            const response = await fetch('/api/advanced-search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, sources })
+            });
+            const data = await response.json();
+            document.getElementById('advanced-results').innerHTML = JSON.stringify(data, null, 2);
+        }
 
-        document.getElementById('capture-btn').addEventListener('click', async () => {
+        async function captureWebsite() {
             const url = document.getElementById('capture-url').value;
-            if (!url) return alert('URL is required');
-            try {
-                const response = await axios.post(`${apiUrl}/capture`, { url });
-                console.log('Website Capture:', response.data);
-                alert('Capture completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
-            }
-        });
+            if (!url) return alert('Please enter a URL');
+            const response = await fetch('/api/capture', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await response.json();
+            document.getElementById('capture-results').innerHTML = JSON.stringify(data, null, 2);
+        }
 
-        document.getElementById('batch-investigate-btn').addEventListener('click', async () => {
-            const usernames = document.getElementById('batch-usernames').value.split('\n').map(u => u.trim()).filter(u => u);
-            if (!usernames.length) return alert('At least one username is required');
-            try {
-                const response = await axios.post(`${apiUrl}/batch-investigate`, { usernames });
-                console.log('Batch Investigation:', response.data);
-                alert('Batch investigation completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
-            }
-        });
+        async function batchInvestigate() {
+            const usernames = document.getElementById('batch-usernames').value.split('\n').filter(u => u.trim());
+            if (!usernames.length) return alert('Please enter at least one username');
+            const response = await fetch('/api/batch-investigate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usernames })
+            });
+            const data = await response.json();
+            document.getElementById('batch-results').innerHTML = JSON.stringify(data, null, 2);
+        }
 
-        document.getElementById('phone-search-btn').addEventListener('click', async () => {
+        async function searchPhone() {
             const username = document.getElementById('phone-username').value;
             const platform = document.getElementById('phone-platform').value;
-            if (!username) return alert('Username is required');
-            try {
-                const response = await axios.post(`${apiUrl}/search-phone/${platform}`, { username });
-                console.log('Phone Number Search:', response.data);
-                alert('Phone search completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
-            }
-        });
+            if (!username) return alert('Please enter a username');
+            const response = await fetch(`/api/search-phone/${platform}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+            const data = await response.json();
+            document.getElementById('phone-results').innerHTML = JSON.stringify(data, null, 2);
+        }
 
-        document.getElementById('health-btn').addEventListener('click', async () => {
-            try {
-                const response = await axios.get(`${apiUrl}/health`);
-                console.log('System Health:', response.data);
-                alert('System health check completed. Check console for results.');
-            } catch (error) {
-                alert('Error: ' + error.response?.data?.error || error.message);
-            }
-        });
+        async function checkHealth() {
+            const response = await fetch('/health');
+            const data = await response.json();
+            document.getElementById('health-results').innerHTML = JSON.stringify(data, null, 2);
+        }
     </script>
 </body>
 </html>
+
 
