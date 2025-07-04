@@ -4,1482 +4,337 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSINT Investigation Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0a0b0d;
-            color: #ffffff;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 240px;
-            background: linear-gradient(180deg, #1a1d21 0%, #0f1114 100%);
-            border-right: 1px solid #2a2d31;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100%;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar.collapsed {
-            width: 60px;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #2a2d31;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .sidebar.collapsed .sidebar-header {
-            padding: 20px 10px;
-            justify-content: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .logo-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .sidebar.collapsed .logo-text {
-            display: none;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .close-btn:hover {
-            background: #2a2d31;
-            color: #ffffff;
-        }
-
-        .sidebar.collapsed .close-btn {
-            display: none;
-        }
-
-        .nav-menu {
-            flex: 1;
-            padding: 20px 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            margin: 2px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #94a3b8;
-            text-decoration: none;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .sidebar.collapsed .nav-item {
-            padding: 12px;
-            margin: 2px 8px;
-            justify-content: center;
-        }
-
-        .nav-item:hover {
-            background: rgba(59, 130, 246, 0.1);
-            color: white;
-        }
-
-        .nav-item.active {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.1));
-            color: white;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .nav-icon {
-            font-size: 18px;
-            width: 18px;
-            text-align: center;
-        }
-
-        .nav-text {
-            white-space: nowrap;
-        }
-
-        .sidebar.collapsed .nav-text {
-            display: none;
-        }
-
-        .main-content {
-            flex: 1;
-            margin-left: 240px;
-            background: #0a0b0d;
-            transition: margin-left 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .sidebar.collapsed ~ .main-content {
-            margin-left: 60px;
-        }
-
-        .top-bar {
-            background: linear-gradient(90deg, #1a1d21 0%, #0f1114 100%);
-            border-bottom: 1px solid #2a2d31;
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .menu-toggle {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .menu-toggle:hover {
-            background: #2a2d31;
-            color: #ffffff;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 400px;
-            margin: 0 20px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            background: #1a1d21;
-            border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 10px 16px 10px 40px;
-            color: #ffffff;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 16px;
-        }
-
-        .top-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-            background: #2a2d31;
-            color: #ffffff;
-        }
-
-        .content-area {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        .page-header {
-            margin-bottom: 32px;
-        }
-
-        .page-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 8px;
-        }
-
-        .page-subtitle {
-            color: #94a3b8;
-            font-size: 16px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
-            border: 1px solid #2a2d31;
-            border-radius: 12px;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            border-color: black;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-        }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .stat-icon.blue {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.1));
-            color: #3b82f6;
-        }
-
-        .stat-icon.green {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(21, 128, 61, 0.1));
-            color: #22c55e;
-        }
-
-        .stat-icon.purple {
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(107, 33, 168, 0.1));
-            color: #9333ea;
-        }
-
-        .stat-icon.orange {
-            background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(194, 65, 12, 0.1));
-            color: #f97316;
-        }
-
-        .stat-indicator {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stat-indicator.up {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-        }
-
-        .stat-indicator.live {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-        }
-
-        .stat-indicator.high {
-            background: rgba(249, 115, 22, 0.1);
-            color: #f97316;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            color: #94a3b8;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .form-section {
-            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
-            border: 1px solid #2a2d31;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 16px;
-            align-items: end;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .form-input {
-            background: #0a0b0d;
-            border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: #ffffff;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-select {
-            background: #0a0b0d;
-            border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: #ffffff;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-textarea {
-            background: #0a0b0d;
-            border: 1px solid #2a2d31;
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: #ffffff;
-            font-size: 14px;
-            resize: vertical;
-            min-height: 100px;
-            transition: all 0.2s ease;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-primary:disabled {
-            background: #2a2d31;
-            color: #94a3b8;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .checkbox-group {
-            display: flex;
-            gap: 24px;
-            margin: 16px 0;
-            flex-wrap: wrap;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        .checkbox {
-            width: 16px;
-            height: 16px;
-            background: #0a0b0d;
-            border: 1px solid #2a2d31;
-            border-radius: 4px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .checkbox input {
-            opacity: 0;
-            position: absolute;
-            inset: 0;
-            cursor: pointer;
-        }
-
-        .checkbox input:checked + .checkmark {
-            background: #3b82f6;
-            border-color: #3b82f6;
-        }
-
-        .checkbox input:checked + .checkmark::after {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffffff;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .checkbox-label {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: #ef4444;
-            font-size: 14px;
-            margin-top: 16px;
-            display: none;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .results-section {
-            margin-top: 32px;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #ffffff;
-            margin: 32px 0 16px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #2a2d31;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-        }
-
-        .result-card {
-            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
-            border: 1px solid #2a2d31;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            border-color: #3b82f6;
-        }
-
-        .result-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-        }
-
-        .result-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .profile-pic {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            object-fit: cover;
-            border: 2px solid #3b82f6;
-            background: #2a2d31;
-        }
-
-        .result-info {
-            flex: 1;
-        }
-
-        .result-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 4px;
-        }
-
-        .result-platform {
-            color: #3b82f6;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .result-domain {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-
-        .result-content {
-            margin-top: 16px;
-        }
-
-        .result-detail {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #2a2d31;
-            font-size: 14px;
-        }
-
-        .result-detail:last-child {
-            border-bottom: none;
-        }
-
-        .result-detail-label {
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .result-detail-value {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .result-bio {
-            color: #94a3b8;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-top: 12px;
-        }
-
-        .result-screenshot {
-            width: 100%;
-            border-radius: 8px;
-            margin-top: 16px;
-            border: 1px solid #2a2d31;
-        }
-
-        .recent-activity {
-            background: linear-gradient(135deg, #1a1d21 0%, #0f1114 100%);
-            border: 1px solid #2a2d31;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            margin-top: 32px;
-        }
-
-        .activity-icon {
-            font-size: 48px;
-            color: #94a3b8;
-            margin-bottom: 16px;
-        }
-
-        .activity-message {
-            color: #94a3b8;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 60px;
-            }
-
-            .sidebar .logo-text,
-            .sidebar .nav-text {
-                display: none;
-            }
-
-            .main-content {
-                margin-left: 60px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            }
-
-            .results-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .checkbox-group {
-                flex-direction: column;
-                gap: 12px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">O</div>
-                <div class="logo-text">OSINT</div>
-            </div>
-            <button class="close-btn" onclick="toggleSidebar()">
-                <i class="bi bi-x"></i>
-            </button>
-        </div>
-        
-        <nav class="nav-menu">
-            <a href="#" class="nav-item active" data-tab="overview">
-                <i class="nav-icon bi bi-house"></i>
-                <span class="nav-text">Overview</span>
-            </a>
-            <a href="#" class="nav-item" data-tab="deep">
-                <i class="nav-icon bi bi-search"></i>
-                <span class="nav-text">Deep Investigation</span>
-            </a>
-            <a href="#" class="nav-item" data-tab="social">
-                <i class="nav-icon bi bi-globe"></i>
-                <span class="nav-text">Social Media</span>
-            </a>
-            <a href="#" class="nav-item" data-tab="advanced">
-                <i class="nav-icon bi bi-zoom-in"></i>
-                <span class="nav-text">Advanced Search</span>
-            </a>
-            <a href="#" class="nav-item" data-tab="capture">
-                <i class="nav-icon bi bi-camera"></i>
-                <span class="nav-text">Website Capture</span>
-            </a>
-            <a href="#" class="nav-item" data-tab="batch">
-                <i class="nav-icon bi bi-list-task"></i>
-                <span class="nav-text">Batch Investigation</span>
-            </a>
-            <a href="#" class="nav-item" data-tab="phone">
-                <i class="nav-icon bi bi-telephone"></i>
-                <span class="nav-text">Phone Search</span>
-            </a>
-            <a href="#" class="nav-item" data-tab="health">
-                <i class="nav-icon bi bi-heart-pulse"></i>
-                <span class="nav-text">System Health</span>
-            </a>
-        </nav>
-    </div>
-
-    <div class="main-content">
-        <div class="top-bar">
-            <button class="menu-toggle" onclick="toggleSidebar()">
-                <i class="bi bi-list"></i>
-            </button>
-            
-            <div class="search-container">
-                <i class="search-icon bi bi-search"></i>
-                <input type="text" class="search-input" placeholder="Search...">
-            </div>
-            
-            <div class="top-actions">
-                <button class="action-btn">
-                    <i class="bi bi-bell"></i>
-                </button>
-                <button class="action-btn">
-                    <i class="bi bi-gear"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="content-area">
-            <!-- Overview Tab -->
-            <div id="overview-tab" class="tab-content active">
-                <div class="page-header">
-                    <h1 class="page-title">Dashboard</h1>
-                    <p class="page-subtitle">Monitor your investigation activities and system performance</p>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon blue">
-                                <i class="bi bi-folder"></i>
-                            </div>
-                            <div class="stat-indicator up">
-                                <i class="bi bi-arrow-up"></i>
-                                +12%
-                            </div>
-                        </div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Total Projects</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon green">
-                                <i class="bi bi-activity"></i>
-                            </div>
-                            <div class="stat-indicator live">
-                                <i class="bi bi-circle-fill"></i>
-                                Live
-                            </div>
-                        </div>
-                        <div class="stat-value">5</div>
-                        <div class="stat-label">Active Analyses</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon purple">
-                                <i class="bi bi-database"></i>
-                            </div>
-                            <div class="stat-indicator up">
-                                <i class="bi bi-globe"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value">0.0GB</div>
-                        <div class="stat-label">Data Processed</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon orange">
-                                <i class="bi bi-graph-up"></i>
-                            </div>
-                            <div class="stat-indicator high">
-                                High
-                            </div>
-                        </div>
-                        <div class="stat-value">88.7%</div>
-                        <div class="stat-label">Accuracy Rate</div>
-                    </div>
-                </div>
-
-                <div class="recent-activity">
-                    <div class="activity-icon">
-                        <i class="bi bi-activity"></i>
-                    </div>
-                    <div class="activity-message">No recent activity</div>
-                </div>
-            </div>
-
-            <!-- Deep Investigation Tab -->
-            <div id="deep-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Deep Investigation</h1>
-                    <p class="page-subtitle">Comprehensive username investigation across multiple platforms</p>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Username</label>
-                            <input type="text" id="deep-username" class="form-input" placeholder="Enter username to investigate">
-                        </div>
-                        <button class="btn btn-primary" onclick="handleSearch('deep')">
-                            <i class="bi bi-search"></i>
-                            Start Investigation
-                        </button>
-                    </div>
-                </div>
-
-                <div id="deep-error" class="error-message"></div>
-                <div id="deep-results" class="results-section"></div>
-            </div>
-
-            <!-- Social Media Tab -->
-            <div id="social-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Social Media Search</h1>
-                    <p class="page-subtitle">Search for profiles on specific social media platforms</p>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Username</label>
-                            <input type="text" id="social-username" class="form-input" placeholder="Enter username">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Platform</label>
-                            <select id="social-platform" class="form-select">
-                                <option value="tiktok">TikTok</option>
-                                <option value="facebook">Facebook</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="youtube">YouTube</option>
-                                <option value="twitter">Twitter</option>
-                                <option value="linkedin">LinkedIn</option>
-                                <option value="github">GitHub</option>
-                                <option value="reddit">Reddit</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" onclick="handleSearch('social')">
-                            <i class="bi bi-globe"></i>
-                            Search Platform
-                        </button>
-                    </div>
-                </div>
-
-                <div id="social-error" class="error-message"></div>
-                <div id="social-results" class="results-section"></div>
-            </div>
-
-            <!-- Advanced Search Tab -->
-            <div id="advanced-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Advanced Search</h1>
-                    <p class="page-subtitle">Search across multiple search engines with custom queries</p>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-group">
-                        <label class="form-label">Search Query</label>
-                        <input type="text" id="advanced-query" class="form-input" placeholder="Enter search query">
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <div class="checkbox">
-                                <input type="checkbox" id="bing-source" checked>
-                                <div class="checkmark"></div>
-                            </div>
-                            <label class="checkbox-label">Bing</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <div class="checkbox">
-                                <input type="checkbox" id="duckduckgo-source" checked>
-                                <div class="checkmark"></div>
-                            </div>
-                            <label class="checkbox-label">DuckDuckGo</label>
-                        </div>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="handleSearch('advanced')">
-                        <i class="bi bi-zoom-in"></i>
-                        Execute Search
-                    </button>
-                </div>
-
-                <div id="advanced-error" class="error-message"></div>
-                <div id="advanced-results" class="results-section"></div>
-            </div>
-
-            <!-- Website Capture Tab -->
-            <div id="capture-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Website Capture</h1>
-                    <p class="page-subtitle">Capture and analyze website screenshots and metadata</p>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Website URL</label>
-                            <input type="text" id="capture-url" class="form-input" placeholder="Enter website URL">
-                        </div>
-                        <button class="btn btn-primary" onclick="handleSearch('capture')">
-                            <i class="bi bi-camera"></i>
-                            Capture & Analyze
-                        </button>
-                    </div>
-                </div>
-
-                <div id="capture-error" class="error-message"></div>
-                <div id="capture-results" class="results-section"></div>
-            </div>
-
-            <!-- Batch Investigation Tab -->
-            <div id="batch-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Batch Investigation</h1>
-                    <p class="page-subtitle">Investigate multiple usernames simultaneously</p>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-group">
-                        <label class="form-label">Usernames</label>
-                        <textarea id="batch-usernames" class="form-textarea" placeholder="Enter usernames (one per line)" rows="6"></textarea>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="handleSearch('batch')">
-                        <i class="bi bi-list-task"></i>
-                        Start Batch Analysis
-                    </button>
-                </div>
-
-                <div id="batch-error" class="error-message"></div>
-                <div id="batch-results" class="results-section"></div>
-            </div>
-
-            <!-- Phone Search Tab -->
-            <div id="phone-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">Phone Number Search</h1>
-                    <p class="page-subtitle">Search for phone numbers associated with usernames</p>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Username</label>
-                            <input type="text" id="phone-username" class="form-input" placeholder="Enter username">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Platform</label>
-                            <select id="phone-platform" class="form-select">
-                                <option value="tiktok">TikTok</option>
-                                <option value="facebook">Facebook</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="youtube">YouTube</option>
-                                <option value="twitter">Twitter</option>
-                                <option value="linkedin">LinkedIn</option>
-                                <option value="github">GitHub</option>
-                                <option value="reddit">Reddit</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-primary" onclick="handleSearch('phone')">
-                            <i class="bi bi-telephone"></i>
-                            Search Phone Number
-                        </button>
-                    </div>
-                </div>
-
-                <div id="phone-error" class="error-message"></div>
-                <div id="phone-results" class="results-section"></div>
-            </div>
-
-            <!-- System Health Tab -->
-            <div id="health-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">System Health</h1>
-                    <p class="page-subtitle">Monitor system status and performance metrics</p>
-                </div>
-
-                <div class="form-section">
-                    <button class="btn btn-primary" onclick="handleSearch('health')">
-                        <i class="bi bi-heart-pulse"></i>
-                        Check System Health
-                    </button>
-                </div>
-
-                <div id="health-error" class="error-message"></div>
-                <div id="health-results" class="results-section"></div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Sidebar toggle functionality
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#1a1a1a',
+                        'dark-card': '#2a2a2a',
+                        'dark-accent': '#4a4a4a',
+                        'text-primary': '#ffffff',
+                        'text-secondary': '#a0a0a0',
+                    }
+                }
+            }
         }
+    </script>
+</head>
+<body class="bg-dark-bg text-text-primary min-h-screen">
+    <header class="bg-dark-card p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold">OSINT</h1>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li><a href="#overview" class="hover:text-text-secondary">Overview</a></li>
+                    <li><a href="#deep-investigation" class="hover:text-text-secondary">Deep Investigation</a></li>
+                    <li><a href="#social-media" class="hover:text-text-secondary">Social Media</a></li>
+                    <li><a href="#deep-social" class="hover:text-text-secondary">Deep Social Search</a></li>
+                    <li><a href="#advanced-search" class="hover:text-text-secondary">Advanced Search</a></li>
+                    <li><a href="#website-capture" class="hover:text-text-secondary">Website Capture</a></li>
+                    <li><a href="#batch-investigation" class="hover:text-text-secondary">Batch Investigation</a></li>
+                    <li><a href="#phone-search" class="hover:text-text-secondary">Phone Search</a></li>
+                    <li><a href="#system-health" class="hover:text-text-secondary">System Health</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-        // Tab navigation
-        const navItems = document.querySelectorAll('.nav-item');
-        const tabContents = document.querySelectorAll('.tab-content');
+    <main class="container mx-auto p-4">
+        <section id="overview" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+            <p class="text-text-secondary mb-4">Monitor your investigation activities and system performance</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-dark-card p-4 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <div>
+                            <p class="text-text-secondary text-sm">+12%</p>
+                            <p class="text-2xl font-bold">0</p>
+                            <p class="text-text-secondary">Total Projects</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-dark-card p-4 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <div>
+                            <p class="text-text-secondary text-sm">Live</p>
+                            <p class="text-2xl font-bold">5</p>
+                            <p class="text-text-secondary">Active Analyses</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-dark-card p-4 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"></path></svg>
+                        <div>
+                            <p class="text-text-secondary text-sm"></p>
+                            <p class="text-2xl font-bold">0.0GB</p>
+                            <p class="text-text-secondary">Data Processed</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-dark-card p-4 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <div>
+                            <p class="text-text-secondary text-sm">High</p>
+                            <p class="text-2xl font-bold">88.7%</p>
+                            <p class="text-text-secondary">Accuracy Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-dark-card p-4 rounded-lg shadow mt-4">
+                <h3 class="text-lg font-bold">Recent Activity</h3>
+                <p class="text-text-secondary">No recent activity</p>
+            </div>
+        </section>
 
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Remove active class from all nav items and tabs
-                navItems.forEach(nav => nav.classList.remove('active'));
-                tabContents.forEach(tab => tab.classList.remove('active'));
-                
-                // Add active class to clicked nav item
-                item.classList.add('active');
-                
-                // Show corresponding tab
-                const tabId = item.dataset.tab + '-tab';
-                document.getElementById(tabId).classList.add('active');
-                
-                // Clear previous results
-                clearResults();
-            });
+        <section id="deep-investigation" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Deep Investigation</h2>
+            <p class="text-text-secondary mb-4">Comprehensive username investigation across multiple platforms</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Username</label>
+                    <input id="deep-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
+                </div>
+                <button id="deep-investigate-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Start Investigation</button>
+            </div>
+        </section>
+
+        <section id="social-media" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Social Media Search</h2>
+            <p class="text-text-secondary mb-4">Search for profiles on specific social media platforms</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Username</label>
+                    <input id="social-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Platform</label>
+                    <select id="social-platform" class="w-full p-2 bg-dark-accent text-text-primary rounded">
+                        <option value="tiktok">TikTok</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="github">GitHub</option>
+                        <option value="reddit">Reddit</option>
+                    </select>
+                </div>
+                <button id="social-search-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Search Platform</button>
+            </div>
+        </section>
+
+        <section id="deep-social" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Deep Social Search</h2>
+            <p class="text-text-secondary mb-4">In-depth search for profiles on Instagram, TikTok, X, and Facebook</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Username</label>
+                    <input id="deep-social-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
+                </div>
+                <button id="deep-social-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Start Deep Social Search</button>
+            </div>
+        </section>
+
+        <section id="advanced-search" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Advanced Search</h2>
+            <p class="text-text-secondary mb-4">Search across multiple search engines with custom queries</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Search Query</label>
+                    <input id="advanced-query" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter search query" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Sources</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center text-text-secondary">
+                            <input id="bing-source" type="checkbox" class="mr-2 bg-dark-accent" checked />
+                            Bing
+                        </label>
+                        <label class="flex items-center text-text-secondary">
+                            <input id="ddg-source" type="checkbox" class="mr-2 bg-dark-accent" checked />
+                            DuckDuckGo
+                        </label>
+                    </div>
+                </div>
+                <button id="advanced-search-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Execute Search</button>
+            </div>
+        </section>
+
+        <section id="website-capture" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Website Capture</h2>
+            <p class="text-text-secondary mb-4">Capture and analyze website screenshots and metadata</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Website URL</label>
+                    <input id="capture-url" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter website URL" />
+                </div>
+                <button id="capture-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Capture & Analyze</button>
+            </div>
+        </section>
+
+        <section id="batch-investigation" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Batch Investigation</h2>
+            <p class="text-text-secondary mb-4">Investigate multiple usernames simultaneously</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Usernames</label>
+                    <textarea id="batch-usernames" class="w-full p-2 bg-dark-accent text-text-primary rounded" rows="4" placeholder="Enter usernames (one per line)"></textarea>
+                </div>
+                <button id="batch-investigate-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Start Batch Analysis</button>
+            </div>
+        </section>
+
+        <section id="phone-search" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">Phone Number Search</h2>
+            <p class="text-text-secondary mb-4">Search for phone numbers associated with usernames</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Username</label>
+                    <input id="phone-username" type="text" class="w-full p-2 bg-dark-accent text-text-primary rounded" placeholder="Enter username" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-text-secondary mb-2">Platform</label>
+                    <select id="phone-platform" class="w-full p-2 bg-dark-accent text-text-primary rounded">
+                        <option value="tiktok">TikTok</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="github">GitHub</option>
+                        <option value="reddit">Reddit</option>
+                    </select>
+                </div>
+                <button id="phone-search-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Search Phone Number</button>
+            </div>
+        </section>
+
+        <section id="system-health" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">System Health</h2>
+            <p class="text-text-secondary mb-4">Monitor system status and performance metrics</p>
+            <div class="bg-dark-card p-4 rounded-lg shadow">
+                <button id="health-btn" class="bg-dark-accent hover:bg-gray-600 text-text-primary px-4 py-2 rounded">Check System Health</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const apiUrl = '/api';
+
+        document.getElementById('deep-investigate-btn').addEventListener('click', async () => {
+            const username = document.getElementById('deep-username').value;
+            if (!username) return alert('Username is required');
+            try {
+                const response = await axios.post(`${apiUrl}/investigate`, { username });
+                console.log('Deep Investigation:', response.data);
+                alert('Investigation completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
+            }
         });
 
-        // Clear all results and errors
-        function clearResults() {
-            document.querySelectorAll('.results-section').forEach(el => el.innerHTML = '');
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.innerHTML = '';
-                el.classList.remove('show');
-            });
-        }
-
-        // Main search handler
-        async function handleSearch(tab) {
-            const errorEl = document.getElementById(`${tab}-error`);
-            const resultsEl = document.getElementById(`${tab}-results`);
-            const button = document.querySelector(`#${tab}-tab .btn-primary`);
-            
-            // Reset UI
-            button.disabled = true;
-            button.innerHTML = '<i class="bi bi-clock"></i> Processing...';
-            errorEl.classList.remove('show');
-            errorEl.innerHTML = '';
-            resultsEl.innerHTML = '';
-
+        document.getElementById('social-search-btn').addEventListener('click', async () => {
+            const username = document.getElementById('social-username').value;
+            const platform = document.getElementById('social-platform').value;
+            if (!username) return alert('Username is required');
             try {
-                let response;
-                
-                if (tab === 'deep') {
-                    const username = document.getElementById('deep-username').value.trim();
-                    if (!username) throw new Error('Username is required');
-                    response = await axios.post('/api/investigate', { username });
-                    renderDeepResults(response.data.investigation, resultsEl);
-                    
-                } else if (tab === 'social') {
-                    const username = document.getElementById('social-username').value.trim();
-                    const platform = document.getElementById('social-platform').value;
-                    if (!username) throw new Error('Username is required');
-                    response = await axios.post(`/api/search/${platform}`, { username });
-                    renderProfileResults(response.data.results, resultsEl);
-                    
-                } else if (tab === 'advanced') {
-                    const query = document.getElementById('advanced-query').value.trim();
-                    const sources = [];
-                    if (document.getElementById('bing-source').checked) sources.push('bing');
-                    if (document.getElementById('duckduckgo-source').checked) sources.push('duckduckgo');
-                    if (!query) throw new Error('Search query is required');
-                    if (sources.length === 0) throw new Error('At least one search source must be selected');
-                    response = await axios.post('/api/advanced-search', { query, sources });
-                    renderProfileResults(response.data.results, resultsEl);
-                    
-                } else if (tab === 'capture') {
-                    const url = document.getElementById('capture-url').value.trim();
-                    if (!url) throw new Error('URL is required');
-                    response = await axios.post('/api/capture', { url });
-                    renderCaptureResults(response.data.capture, resultsEl);
-                    
-                } else if (tab === 'batch') {
-                    const usernames = document.getElementById('batch-usernames').value
-                        .split('\n')
-                        .map(u => u.trim())
-                        .filter(u => u.length > 0);
-                    if (usernames.length === 0) throw new Error('At least one username is required');
-                    response = await axios.post('/api/batch-investigate', { usernames });
-                    renderBatchResults(response.data.investigations, resultsEl);
-                    
-                } else if (tab === 'phone') {
-                    const username = document.getElementById('phone-username').value.trim();
-                    const platform = document.getElementById('phone-platform').value;
-                    if (!username) throw new Error('Username is required');
-                    response = await axios.post(`/api/search-phone/${platform}`, { username });
-                    renderPhoneResults(response.data.results, resultsEl);
-                    
-                } else if (tab === 'health') {
-                    response = await axios.get('/health');
-                    renderHealthResults(response.data, resultsEl);
-                }
-                
-            } catch (err) {
-                const errorMessage = err.response?.data?.error || err.message || 'An unexpected error occurred';
-                errorEl.innerHTML = errorMessage;
-                errorEl.classList.add('show');
-            } finally {
-                // Reset button
-                button.disabled = false;
-                const buttonTexts = {
-                    deep: '<i class="bi bi-search"></i> Start Investigation',
-                    social: '<i class="bi bi-globe"></i> Search Platform',
-                    advanced: '<i class="bi bi-zoom-in"></i> Execute Search',
-                    capture: '<i class="bi bi-camera"></i> Capture & Analyze',
-                    batch: '<i class="bi bi-list-task"></i> Start Batch Analysis',
-                    phone: '<i class="bi bi-telephone"></i> Search Phone Number',
-                    health: '<i class="bi bi-heart-pulse"></i> Check System Health'
-                };
-                button.innerHTML = buttonTexts[tab];
+                const response = await axios.post(`${apiUrl}/search/${platform}`, { username });
+                console.log('Social Media Search:', response.data);
+                alert('Search completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
             }
-        }
+        });
 
-        // Utility functions
-        function getShortDomain(url) {
+        document.getElementById('deep-social-btn').addEventListener('click', async () => {
+            const username = document.getElementById('deep-social-username').value;
+            if (!username) return alert('Username is required');
             try {
-                const domain = new URL(url).hostname.replace('www.', '');
-                const parts = domain.split('.');
-                return parts.length > 2 ? parts.slice(-2).join('.') : domain;
-            } catch {
-                return 'unknown';
-            }
-        }
-
-        function createResultCard(content) {
-            return `<div class="result-card">${content}</div>`;
-        }
-
-        // Result rendering functions
-        function renderProfileCard(profile) {
-            const domain = getShortDomain(profile.url || '');
-            let content = `
-                <div class="result-header">
-                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile Picture">` : `<div class="profile-pic"></div>`}
-                    <div class="result-info">
-                        <div class="result-title">${profile.title || profile.name || 'Unknown'}</div>
-                        <div class="result-platform">${profile.platform || 'Platform'}</div>
-                        <div class="result-domain">${domain}</div>
-                    </div>
-                </div>
-                <div class="result-content">
-            `;
-
-            if (profile.bio) content += `<div class="result-bio">${profile.bio}</div>`;
-            if (profile.snippet) content += `<div class="result-bio">${profile.snippet}</div>`;
-
-            if (profile.followers || profile.postCount || profile.following) {
-                content += '<div>';
-                if (profile.followers) content += `<div class="result-detail"><span class="result-detail-label">Followers:</span><span class="result-detail-value">${profile.followers}</span></div>`;
-                if (profile.following) content += `<div class="result-detail"><span class="result-detail-label">Following:</span><span class="result-detail-value">${profile.following}</span></div>`;
-                if (profile.postCount) content += `<div class="result-detail"><span class="result-detail-label">Posts:</span><span class="result-detail-value">${profile.postCount}</span></div>`;
-                content += '</div>';
-            }
-
-            if (profile.screenshot) content += `<img src="${profile.screenshot}" class="result-screenshot" alt="Screenshot">`;
-
-            content += '</div>';
-            return createResultCard(content);
-        }
-
-        function renderCaptureCard(capture) {
-            const domain = getShortDomain(capture.url || '');
-            let content = `
-                <div class="result-header">
-                    <div class="result-info">
-                        <div class="result-title">${capture.title || 'Website Capture'}</div>
-                        <div class="result-platform">Website Analysis</div>
-                        <div class="result-domain">${domain}</div>
-                    </div>
-                </div>
-                <div class="result-content">
-            `;
-
-            if (capture.description) content += `<div class="result-bio">${capture.description}</div>`;
-            if (capture.error) content += `<div class="error-message show">Error: ${capture.error}</div>`;
-            if (capture.screenshot) content += `<img src="${capture.screenshot}" class="result-screenshot" alt="Website Screenshot">`;
-
-            content += '</div>';
-            return createResultCard(content);
-        }
-
-        function renderPhoneCard(profile) {
-            const domain = getShortDomain(profile.url || '');
-            let content = `
-                <div class="result-header">
-                    ${profile.profilePic ? `<img src="${profile.profilePic}" class="profile-pic" alt="Profile Picture">` : `<div class="profile-pic"></div>`}
-                    <div class="result-info">
-                        <div class="result-title">${profile.title || profile.name || 'Unknown'}</div>
-                        <div class="result-platform">${profile.platform || 'Platform'}</div>
-                        <div class="result-domain">${domain}</div>
-                    </div>
-                </div>
-                <div class="result-content">
-            `;
-
-            if (profile.phone) {
-                content += `<div class="result-detail"><span class="result-detail-label">Phone Number:</span><span class="result-detail-value">${profile.phone}</span></div>`;
-            } else {
-                content += `<div class="result-bio">No phone number found</div>`;
-            }
-
-            if (profile.screenshot) content += `<img src="${profile.screenshot}" class="result-screenshot" alt="Screenshot">`;
-
-            content += '</div>';
-            return createResultCard(content);
-        }
-
-        function renderHealthCard(data) {
-            let content = `
-                <div class="result-header">
-                    <div class="result-info">
-                        <div class="result-title">System Status</div>
-                        <div class="result-platform">Health Monitor</div>
-                        <div class="result-domain">system</div>
-                    </div>
-                </div>
-                <div class="result-content">
-                    <div class="result-detail">
-                        <span class="result-detail-label">Status:</span>
-                        <span class="result-detail-value">${data.status || 'Unknown'}</span>
-                    </div>
-                    <div class="result-detail">
-                        <span class="result-detail-label">Version:</span>
-                        <span class="result-detail-value">${data.version || 'Unknown'}</span>
-                    </div>
-                    <div class="result-detail">
-                        <span class="result-detail-label">Uptime:</span>
-                        <span class="result-detail-value">${Math.round(data.uptime || 0)} seconds</span>
-                    </div>
-            `;
-
-            if (data.supported_platforms) {
-                content += `<div class="result-detail">
-                    <span class="result-detail-label">Platforms:</span>
-                    <span class="result-detail-value">${data.supported_platforms.join(', ')}</span>
-                </div>`;
-            }
-
-            if (data.features) {
-                content += `<div class="result-detail">
-                    <span class="result-detail-label">Features:</span>
-                    <span class="result-detail-value">${data.features.join(', ')}</span>
-                </div>`;
-            }
-
-            content += '</div>';
-            return createResultCard(content);
-        }
-
-        // Main result rendering functions
-        function renderDeepResults(investigation, resultsEl) {
-            let html = '';
-            
-            // Social Media Results
-            if (investigation.social_media) {
-                Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
-                    if (profiles && profiles.length > 0) {
-                        html += `<h2 class="section-title">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h2>`;
-                        html += '<div class="results-grid">';
-                        profiles.forEach(profile => {
-                            html += renderProfileCard({ ...profile, platform });
-                        });
-                        html += '</div>';
-                    }
-                });
-            }
-
-            // General Search Results
-            if (investigation.general_search && investigation.general_search.length > 0) {
-                html += '<h2 class="section-title">General Search Results</h2>';
-                html += '<div class="results-grid">';
-                investigation.general_search.forEach(result => {
-                    html += renderProfileCard(result);
-                });
-                html += '</div>';
-            }
-
-            if (!html) {
-                html = '<div class="recent-activity"><div class="activity-icon"><i class="bi bi-search"></i></div><div class="activity-message">No results found</div></div>';
-            }
-
-            resultsEl.innerHTML = html;
-        }
-
-        function renderProfileResults(profiles, resultsEl) {
-            if (!profiles || profiles.length === 0) {
-                resultsEl.innerHTML = '<div class="recent-activity"><div class="activity-icon"><i class="bi bi-search"></i></div><div class="activity-message">No results found</div></div>';
-                return;
-            }
-
-            let html = '<div class="results-grid">';
-            profiles.forEach(profile => {
-                html += renderProfileCard(profile);
-            });
-            html += '</div>';
-            resultsEl.innerHTML = html;
-        }
-
-        function renderCaptureResults(capture, resultsEl) {
-            resultsEl.innerHTML = '<div class="results-grid">' + renderCaptureCard(capture) + '</div>';
-        }
-
-        function renderBatchResults(investigations, resultsEl) {
-            if (!investigations || investigations.length === 0) {
-                resultsEl.innerHTML = '<div class="recent-activity"><div class="activity-icon"><i class="bi bi-list-task"></i></div><div class="activity-message">No results found</div></div>';
-                return;
-            }
-
-            let html = '';
-            investigations.forEach(investigation => {
-                html += `<h2 class="section-title">Username: ${investigation.username}</h2>`;
-                
-                if (investigation.social_media) {
-                    Object.entries(investigation.social_media).forEach(([platform, profiles]) => {
-                        if (profiles && profiles.length > 0) {
-                            html += `<h3 style="font-size: 16px; margin: 16px 0 12px; color: #94a3b8;">${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>`;
-                            html += '<div class="results-grid">';
-                            profiles.forEach(profile => {
-                                html += renderProfileCard({ ...profile, platform });
-                            });
-                            html += '</div>';
-                        }
-                    });
+                const platforms = ['instagram', 'tiktok', 'twitter', 'facebook'];
+                const results = [];
+                for (const platform of platforms) {
+                    const response = await axios.post(`${apiUrl}/search/${platform}`, { username });
+                    results.push(response.data);
                 }
-            });
-
-            if (!html) {
-                html = '<div class="recent-activity"><div class="activity-icon"><i class="bi bi-list-task"></i></div><div class="activity-message">No results found</div></div>';
+                console.log('Deep Social Search:', results);
+                alert('Deep social search completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
             }
+        });
 
-            resultsEl.innerHTML = html;
-        }
-
-        function renderPhoneResults(profiles, resultsEl) {
-            if (!profiles || profiles.length === 0) {
-                resultsEl.innerHTML = '<div class="recent-activity"><div class="activity-icon"><i class="bi bi-telephone"></i></div><div class="activity-message">No phone numbers found</div></div>';
-                return;
+        document.getElementById('advanced-search-btn').addEventListener('click', async () => {
+            const query = document.getElementById('advanced-query').value;
+            const sources = [];
+            if (document.getElementById('bing-source').checked) sources.push('bing');
+            if (document.getElementById('ddg-source').checked) sources.push('duckduckgo');
+            if (!query) return alert('Query is required');
+            try {
+                const response = await axios.post(`${apiUrl}/advanced-search`, { query, sources });
+                console.log('Advanced Search:', response.data);
+                alert('Search completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
             }
+        });
 
-            let html = '<div class="results-grid">';
-            profiles.forEach(profile => {
-                html += renderPhoneCard(profile);
-            });
-            html += '</div>';
-            resultsEl.innerHTML = html;
-        }
+        document.getElementById('capture-btn').addEventListener('click', async () => {
+            const url = document.getElementById('capture-url').value;
+            if (!url) return alert('URL is required');
+            try {
+                const response = await axios.post(`${apiUrl}/capture`, { url });
+                console.log('Website Capture:', response.data);
+                alert('Capture completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
+            }
+        });
 
-        function renderHealthResults(data, resultsEl) {
-            resultsEl.innerHTML = '<div class="results-grid">' + renderHealthCard(data) + '</div>';
-        }
+        document.getElementById('batch-investigate-btn').addEventListener('click', async () => {
+            const usernames = document.getElementById('batch-usernames').value.split('\n').map(u => u.trim()).filter(u => u);
+            if (!usernames.length) return alert('At least one username is required');
+            try {
+                const response = await axios.post(`${apiUrl}/batch-investigate`, { usernames });
+                console.log('Batch Investigation:', response.data);
+                alert('Batch investigation completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
+            }
+        });
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set up enter key handlers for inputs
-            document.querySelectorAll('input, textarea').forEach(input => {
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        const tabContent = input.closest('.tab-content');
-                        if (tabContent) {
-                            const button = tabContent.querySelector('.btn-primary');
-                            if (button && !button.disabled) {
-                                button.click();
-                            }
-                        }
-                    }
-                });
-            });
+        document.getElementById('phone-search-btn').addEventListener('click', async () => {
+            const username = document.getElementById('phone-username').value;
+            const platform = document.getElementById('phone-platform').value;
+            if (!username) return alert('Username is required');
+            try {
+                const response = await axios.post(`${apiUrl}/search-phone/${platform}`, { username });
+                console.log('Phone Number Search:', response.data);
+                alert('Phone search completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
+            }
+        });
 
-            // Auto-focus first input in active tab
-            const activeTab = document.querySelector('.tab-content.active');
-            if (activeTab) {
-                const firstInput = activeTab.querySelector('input, textarea');
-                if (firstInput) firstInput.focus();
+        document.getElementById('health-btn').addEventListener('click', async () => {
+            try {
+                const response = await axios.get(`${apiUrl}/health`);
+                console.log('System Health:', response.data);
+                alert('System health check completed. Check console for results.');
+            } catch (error) {
+                alert('Error: ' + error.response?.data?.error || error.message);
             }
         });
     </script>
 </body>
 </html>
+
