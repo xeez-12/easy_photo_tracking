@@ -8,8 +8,6 @@ const userAgentPool = require('./useragents');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI';
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
@@ -53,36 +51,11 @@ function generateRandomIP() {
     return range.map(num => num + Math.floor(Math.random() * 10)).join('.');
 }
 
-// Sleep function with jitter
-const sleep = (ms) => new Promise(resolve => 
-    setTimeout(resolve, ms + Math.floor(Math.random() * 1500))
-);
+// Sleep function with reduced jitter
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms + Math.floor(Math.random() * 500)));
 
-// Format data using Gemini AI
-async function formatWithGemini(data) {
-    try {
-        const response = await axios.post(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            contents: [{
-                parts: [{
-                    text: `Format the following scraped data into a clean, structured, and readable markdown format. Ensure the output is professional, concise, and well-organized, with clear headings and bullet points where applicable. Data: ${JSON.stringify(data, null, 2)}`
-                }]
-            }]
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            timeout: 10000
-        });
-
-        return response.data.candidates[0].content.parts[0].text;
-    } catch (error) {
-        console.error('Gemini API error:', error.message);
-        return JSON.stringify(data, null, 2); // Fallback to raw JSON
-    }
-}
-
-// Advanced Social Media Scraping with Retry Logic
-async function scrapeSocialMediaProfile(url, platform, retries = 3) {
+// Advanced Social Media Scraping with Optimized Performance
+async function scrapeSocialMediaProfile(url, platform, retries = 2) {
     let browser;
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
@@ -109,10 +82,10 @@ async function scrapeSocialMediaProfile(url, platform, retries = 3) {
             await page.setExtraHTTPHeaders(getAdvancedHeaders(url));
 
             try {
-                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+                await page.goto(url, { waitUntil: 'networkidle0', timeout: 20000 });
             } catch (navError) {
                 if (attempt === retries) throw navError;
-                await sleep(3000);
+                await sleep(1000);
                 continue;
             }
 
@@ -151,11 +124,11 @@ async function scrapeSocialMediaProfile(url, platform, retries = 3) {
                         followers: '#subscriber-count',
                         posts: 'ytd-grid-video-renderer'
                     },
-                    linkedin: {
-                        profilePic: 'img.pv-top-card--photo',
-                        bio: '.pv-about-section .pv-about__summary-text',
+                    pinterest: {
+                        profilePic: 'img[alt*="profile picture"]',
+                        bio: '.profile-bio',
                         followers: '.follower-count',
-                        posts: '.share-box-feed-entry'
+                        posts: '.pin-count'
                     },
                     github: {
                         profilePic: 'img.avatar-user',
@@ -163,11 +136,101 @@ async function scrapeSocialMediaProfile(url, platform, retries = 3) {
                         followers: 'a[href*="/followers"] .text-bold',
                         posts: '.js-repos-container'
                     },
+                    telegram: {
+                        profilePic: 'img.tgme_page_photo_image',
+                        bio: '.tgme_page_description',
+                        followers: '.tgme_page_extra',
+                        posts: '.tgme_channel_history'
+                    },
+                    linkedin: {
+                        profilePic: 'img.pv-top-card--photo',
+                        bio: '.pv-about-section .pv-about__summary-text',
+                        followers: '.follower-count',
+                        posts: '.share-box-feed-entry'
+                    },
                     reddit: {
                         profilePic: 'img[alt="User avatar"]',
                         bio: '.profile-bio',
                         followers: '.profile-followers',
                         posts: '.Post'
+                    },
+                    snapchat: {
+                        profilePic: 'img.snapcode',
+                        bio: '.profile-bio',
+                        followers: '.follower-count',
+                        posts: '.story-count'
+                    },
+                    tumblr: {
+                        profilePic: 'img.avatar',
+                        bio: '.blog-description',
+                        followers: '.follower-count',
+                        posts: '.post'
+                    },
+                    weibo: {
+                        profilePic: 'img.user-avatar',
+                        bio: '.profile-desc',
+                        followers: '.follower-count',
+                        posts: '.weibo-post'
+                    },
+                    vk: {
+                        profilePic: 'img.profile-img',
+                        bio: '.profile-info',
+                        followers: '.friends-count',
+                        posts: '.wall-post'
+                    },
+                    discord: {
+                        profilePic: 'img.avatar',
+                        bio: '.user-bio',
+                        followers: '.member-count',
+                        posts: '.message'
+                    },
+                    twitch: {
+                        profilePic: 'img.profile-picture',
+                        bio: '.channel-bio',
+                        followers: '.follower-count',
+                        posts: '.video-count'
+                    },
+                    medium: {
+                        profilePic: 'img.author-image',
+                        bio: '.author-bio',
+                        followers: '.follower-count',
+                        posts: '.post-count'
+                    },
+                    quora: {
+                        profilePic: 'img.profile-photo',
+                        bio: '.profile-bio',
+                        followers: '.follower-count',
+                        posts: '.answer-count'
+                    },
+                    flickr: {
+                        profilePic: 'img.buddyicon',
+                        bio: '.profile-description',
+                        followers: '.follower-count',
+                        posts: '.photo-count'
+                    },
+                    behance: {
+                        profilePic: 'img.profile-image',
+                        bio: '.profile-bio',
+                        followers: '.follower-count',
+                        posts: '.project-count'
+                    },
+                    dribbble: {
+                        profilePic: 'img.user-avatar',
+                        bio: '.bio-text',
+                        followers: '.follower-count',
+                        posts: '.shot-count'
+                    },
+                    soundcloud: {
+                        profilePic: 'img.profile-pic',
+                        bio: '.profile-bio',
+                        followers: '.follower-count',
+                        posts: '.track-count'
+                    },
+                    mastodon: {
+                        profilePic: 'img.account-avatar',
+                        bio: '.account-bio',
+                        followers: '.followers-count',
+                        posts: '.toot-count'
                     }
                 };
 
@@ -188,25 +251,23 @@ async function scrapeSocialMediaProfile(url, platform, retries = 3) {
 
             await browser.close();
 
-            const formattedData = await formatWithGemini({
+            return {
                 url,
                 ...profileData,
                 screenshot: `data:image/png;base64,${screenshot}`,
                 scraped_at: new Date().toISOString(),
                 platform
-            });
-
-            return formattedData;
+            };
         } catch (error) {
             if (attempt === retries) {
-                return await formatWithGemini({
+                return {
                     url,
                     error: error.message,
                     scraped_at: new Date().toISOString(),
                     platform
-                });
+                };
             }
-            await sleep(3000);
+            await sleep(1000);
         } finally {
             if (browser) {
                 try { await browser.close(); } catch (e) {}
@@ -215,8 +276,8 @@ async function scrapeSocialMediaProfile(url, platform, retries = 3) {
     }
 }
 
-// Advanced Bing Search with Retry Logic
-async function searchBingAdvanced(query, maxPages = 5, retries = 3) {
+// Advanced Bing Search with Optimized Performance
+async function searchBingAdvanced(query, maxPages = 2, retries = 2) {
     const allResults = [];
     const cookieJar = new tough.CookieJar();
 
@@ -228,8 +289,8 @@ async function searchBingAdvanced(query, maxPages = 5, retries = 3) {
             try {
                 const response = await axios.get(searchUrl, {
                     headers: getAdvancedHeaders('https://www.bing.com/'),
-                    timeout: 20000,
-                    maxRedirects: 5,
+                    timeout: 15000,
+                    maxRedirects: 3,
                     jar: cookieJar,
                     withCredentials: true
                 });
@@ -261,12 +322,12 @@ async function searchBingAdvanced(query, maxPages = 5, retries = 3) {
                 allResults.push(...pageResults);
 
                 if (pageResults.length === 0) break;
-                await sleep(2000);
+                await sleep(1000);
                 break;
 
             } catch (error) {
                 if (error.response?.status === 429 && attempt < retries) {
-                    await sleep(10000 * attempt);
+                    await sleep(5000 * attempt);
                     continue;
                 }
                 break;
@@ -274,11 +335,11 @@ async function searchBingAdvanced(query, maxPages = 5, retries = 3) {
         }
     }
 
-    return await formatWithGemini(allResults);
+    return allResults;
 }
 
-// Enhanced DuckDuckGo Search with Retry Logic
-async function searchDuckDuckGoAdvanced(query, maxResults = 50, retries = 3) {
+// Enhanced DuckDuckGo Search with Optimized Performance
+async function searchDuckDuckGoAdvanced(query, maxResults = 20, retries = 2) {
     const strategies = [
         { url: 'https://html.duckduckgo.com/html/', method: 'POST' },
         { url: 'https://duckduckgo.com/html/', method: 'GET' },
@@ -298,14 +359,14 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50, retries = 3) {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                                 'Origin': 'https://duckduckgo.com'
                             },
-                            timeout: 20000
+                            timeout: 15000
                         }
                     );
                 } else {
                     response = await axios.get(strategy.url, {
                         params: { q: query, kl: 'us-en' },
                         headers: getAdvancedHeaders('https://duckduckgo.com/'),
-                        timeout: 20000
+                        timeout: 15000
                     });
                 }
 
@@ -343,17 +404,17 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50, retries = 3) {
                     if (results.length > 0) break;
                 }
 
-                if (results.length > 0) return await formatWithGemini(results);
-                await sleep(2000);
+                if (results.length > 0) return results;
+                await sleep(1000);
 
             } catch (error) {
                 if (attempt === retries) continue;
-                await sleep(3000 * attempt);
+                await sleep(1500 * attempt);
             }
         }
     }
 
-    return await formatWithGemini([]);
+    return [];
 }
 
 // Social Media URL Builders
@@ -363,13 +424,28 @@ const socialMediaPatterns = {
     instagram: ['site:instagram.com "{username}"', 'instagram.com/{username}', '"{username}" instagram'],
     youtube: ['site:youtube.com "{username}"', 'youtube.com/@{username}', '"{username}" youtube channel'],
     twitter: ['site:twitter.com "{username}"', 'twitter.com/{username}', '"{username}" twitter profile'],
-    linkedin: ['site:linkedin.com/in "{username}"', 'linkedin.com/in/{username}', '"{username}" linkedin profile'],
+    pinterest: ['site:pinterest.com "{username}"', 'pinterest.com/{username}', '"{username}" pinterest profile'],
     github: ['site:github.com "{username}"', 'github.com/{username}', '"{username}" github profile'],
-    reddit: ['site:reddit.com/u "{username}"', 'reddit.com/u/{username}', '"{username}" reddit user']
+    telegram: ['site:t.me "{username}"', 't.me/{username}', '"{username}" telegram profile'],
+    linkedin: ['site:linkedin.com/in "{username}"', 'linkedin.com/in/{username}', '"{username}" linkedin profile'],
+    reddit: ['site:reddit.com/u "{username}"', 'reddit.com/u/{username}', '"{username}" reddit user'],
+    snapchat: ['site:snapchat.com/add/{username}', 'snapchat.com/add/{username}', '"{username}" snapchat profile'],
+    tumblr: ['site:{username}.tumblr.com', '{username}.tumblr.com', '"{username}" tumblr blog'],
+    weibo: ['site:weibo.com "{username}"', 'weibo.com/{username}', '"{username}" weibo profile'],
+    vk: ['site:vk.com "{username}"', 'vk.com/{username}', '"{username}" vk profile'],
+    discord: ['site:discord.com/users/{username}', 'discord.com/users/{username}', '"{username}" discord profile'],
+    twitch: ['site:twitch.tv "{username}"', 'twitch.tv/{username}', '"{username}" twitch channel'],
+    medium: ['site:medium.com/@{username}', 'medium.com/@{username}', '"{username}" medium profile'],
+    quora: ['site:quora.com/profile/{username}', 'quora.com/profile/{username}', '"{username}" quora profile'],
+    flickr: ['site:flickr.com/people/{username}', 'flickr.com/people/{username}', '"{username}" flickr profile'],
+    behance: ['site:behance.net/{username}', 'behance.net/{username}', '"{username}" behance profile'],
+    dribbble: ['site:dribbble.com/{username}', 'dribbble.com/{username}', '"{username}" dribbble profile'],
+    soundcloud: ['site:soundcloud.com/{username}', 'soundcloud.com/{username}', '"{username}" soundcloud profile'],
+    mastodon: ['site:mastodon.social/@{username}', 'mastodon.social/@{username}', '"{username}" mastodon profile']
 };
 
 // Advanced Social Media Search
-async function searchSocialMediaAdvanced(username, platform) {
+async function searchSocialMediaAdvanced(username, platform, maxResults = 2) {
     const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
     const allResults = [];
 
@@ -378,11 +454,11 @@ async function searchSocialMediaAdvanced(username, platform) {
 
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(query, 2),
-                searchDuckDuckGoAdvanced(query, 20)
+                searchBingAdvanced(query, 1),
+                searchDuckDuckGoAdvanced(query, maxResults)
             ]);
 
-            const combinedResults = [...JSON.parse(bingResults), ...JSON.parse(ddgResults)];
+            const combinedResults = [...bingResults, ...ddgResults].slice(0, maxResults);
 
             for (const result of combinedResults) {
                 const targetDomain = {
@@ -391,33 +467,44 @@ async function searchSocialMediaAdvanced(username, platform) {
                     instagram: 'instagram.com',
                     youtube: 'youtube.com',
                     twitter: 'twitter.com',
-                    linkedin: 'linkedin.com',
+                    pinterest: 'pinterest.com',
                     github: 'github.com',
-                    reddit: 'reddit.com'
+                    telegram: 't.me',
+                    linkedin: 'linkedin.com',
+                    reddit: 'reddit.com',
+                    snapchat: 'snapchat.com',
+                    tumblr: 'tumblr.com',
+                    weibo: 'weibo.com',
+                    vk: 'vk.com',
+                    discord: 'discord.com',
+                    twitch: 'twitch.tv',
+                    medium: 'medium.com',
+                    quora: 'quora.com',
+                    flickr: 'flickr.com',
+                    behance: 'behance.net',
+                    dribbble: 'dribbble.com',
+                    soundcloud: 'soundcloud.com',
+                    mastodon: 'mastodon.social'
                 }[platform];
 
                 if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
-                    allResults.push(JSON.parse(profileData));
+                    allResults.push({ ...result, ...profileData, platform, query });
                 }
             }
 
-            await sleep(1500);
+            await sleep(500);
 
         } catch (error) {
             // Silent error handling
         }
     }
 
-    const uniqueResults = allResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.url === result.url)
-    );
-
-    return await formatWithGemini(uniqueResults);
+    return allResults.slice(0, maxResults);
 }
 
 // Phone Number Search
-async function searchPhoneNumberAdvanced(username, platform) {
+async function searchPhoneNumberAdvanced(username, platform, maxResults = 2) {
     const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
     const allResults = [];
 
@@ -426,11 +513,11 @@ async function searchPhoneNumberAdvanced(username, platform) {
 
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(`${query} phone number`, 2),
-                searchDuckDuckGoAdvanced(`${query} phone number`, 20)
+                searchBingAdvanced(`${query} phone number`, 1),
+                searchDuckDuckGoAdvanced(`${query} phone number`, maxResults)
             ]);
 
-            const combinedResults = [...JSON.parse(bingResults), ...JSON.parse(ddgResults)];
+            const combinedResults = [...bingResults, ...ddgResults].slice(0, maxResults);
 
             for (const result of combinedResults) {
                 const targetDomain = {
@@ -439,37 +526,48 @@ async function searchPhoneNumberAdvanced(username, platform) {
                     instagram: 'instagram.com',
                     youtube: 'youtube.com',
                     twitter: 'twitter.com',
-                    linkedin: 'linkedin.com',
+                    pinterest: 'pinterest.com',
                     github: 'github.com',
-                    reddit: 'reddit.com'
+                    telegram: 't.me',
+                    linkedin: 'linkedin.com',
+                    reddit: 'reddit.com',
+                    snapchat: 'snapchat.com',
+                    tumblr: 'tumblr.com',
+                    weibo: 'weibo.com',
+                    vk: 'vk.com',
+                    discord: 'discord.com',
+                    twitch: 'twitch.tv',
+                    medium: 'medium.com',
+                    quora: 'quora.com',
+                    flickr: 'flickr.com',
+                    behance: 'behance.net',
+                    dribbble: 'dribbble.com',
+                    soundcloud: 'soundcloud.com',
+                    mastodon: 'mastodon.social'
                 }[platform];
 
                 if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
-                    const profileData = JSON.parse(await scrapeSocialMediaProfile(result.url, platform));
+                    const profileData = await scrapeSocialMediaProfile(result.url, platform);
                     const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
                     const textContent = profileData.bio || result.snippet || '';
                     const phoneMatch = textContent.match(phoneRegex);
                     const phone = phoneMatch ? phoneMatch[0] : null;
-                    allResults.push({ ...result, ...profileData, phone });
+                    allResults.push({ ...result, ...profileData, platform, query, phone });
                 }
             }
 
-            await sleep(1500);
+            await sleep(500);
 
         } catch (error) {
             // Silent error handling
         }
     }
 
-    const uniqueResults = allResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.url === result.url)
-    );
-
-    return await formatWithGemini(uniqueResults);
+    return allResults.slice(0, maxResults);
 }
 
 // Comprehensive Deep Search Function
-async function performComprehensiveSearch(username) {
+async function performComprehensiveSearch(username, platforms = [], maxResults = 2) {
     const results = {
         timestamp: new Date().toISOString(),
         username,
@@ -482,13 +580,13 @@ async function performComprehensiveSearch(username) {
         total_results: 0
     };
 
-    const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
-    for (const platform of platforms) {
+    const selectedPlatforms = platforms.length > 0 ? platforms : Object.keys(socialMediaPatterns);
+    for (const platform of selectedPlatforms) {
         try {
-            const platformResults = JSON.parse(await searchSocialMediaAdvanced(username, platform));
+            const platformResults = await searchSocialMediaAdvanced(username, platform, maxResults);
             results.social_media[platform] = platformResults;
             results.total_results += platformResults.length;
-            await sleep(2000);
+            await sleep(500);
         } catch (error) {
             results.social_media[platform] = [];
         }
@@ -506,12 +604,12 @@ async function performComprehensiveSearch(username) {
     for (const query of generalQueries) {
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(query, 2),
-                searchDuckDuckGoAdvanced(query, 15)
+                searchBingAdvanced(query, 1),
+                searchDuckDuckGoAdvanced(query, maxResults)
             ]);
 
-            results.general_search.push(...JSON.parse(bingResults), ...JSON.parse(ddgResults));
-            await sleep(1500);
+            results.general_search.push(...bingResults, ...ddgResults);
+            await sleep(500);
         } catch (error) {
             // Silent error handling
         }
@@ -527,9 +625,9 @@ async function performComprehensiveSearch(username) {
 
     for (const emailQuery of emailPatterns) {
         try {
-            const emailResults = JSON.parse(await searchBingAdvanced(emailQuery, 1));
+            const emailResults = await searchBingAdvanced(emailQuery, 1);
             results.email_search.push(...emailResults);
-            await sleep(1000);
+            await sleep(500);
         } catch (error) {
             // Silent error handling
         }
@@ -544,9 +642,9 @@ async function performComprehensiveSearch(username) {
 
     for (const breachQuery of breachQueries) {
         try {
-            const breachResults = JSON.parse(await searchDuckDuckGoAdvanced(breachQuery, 10));
+            const breachResults = await searchDuckDuckGoAdvanced(breachQuery, maxResults);
             results.leaked_data.push(...breachResults);
-            await sleep(1500);
+            await sleep(500);
         } catch (error) {
             // Silent error handling
         }
@@ -561,9 +659,9 @@ async function performComprehensiveSearch(username) {
 
     for (const profQuery of professionalQueries) {
         try {
-            const profResults = JSON.parse(await searchBingAdvanced(profQuery, 1));
+            const profResults = await searchBingAdvanced(profQuery, 1);
             results.professional_info.push(...profResults);
-            await sleep(1500);
+            await sleep(500);
         } catch (error) {
             // Silent error handling
         }
@@ -598,7 +696,7 @@ async function performComprehensiveSearch(username) {
                            results.professional_info.length;
 
     console.log(`Investigation complete for ${username}. Total results: ${results.total_results}`);
-    return await formatWithGemini(results);
+    return results;
 }
 
 // Advanced Contact Info Extraction
@@ -607,7 +705,7 @@ function extractAdvancedContactInfo(text) {
     const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
     const usernameRegex = /@([a-zA-Z0-9_]+)/g;
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
-    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube)\.com\/[\w.-]+/gi;
+    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube|pinterest|github|telegram|reddit|snapchat|tumblr|weibo|vk|discord|twitch|medium|quora|flickr|behance|dribbble|soundcloud|mastodon)\.com\/[\w.-]+/gi;
 
     return {
         emails: [...new Set(text.match(emailRegex) || [])],
@@ -619,14 +717,14 @@ function extractAdvancedContactInfo(text) {
 }
 
 // Enhanced Website Capture
-async function captureAdvancedInfo(url, retries = 3) {
+async function captureAdvancedInfo(url, retries = 2) {
     let browser;
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             const axiosResponse = await axios.get(url, {
                 headers: getAdvancedHeaders(),
-                timeout: 15000,
-                maxRedirects: 5
+                timeout: 10000,
+                maxRedirects: 3
             });
 
             const $ = cheerio.load(axiosResponse.data);
@@ -665,7 +763,7 @@ async function captureAdvancedInfo(url, retries = 3) {
                 await page.setUserAgent(userAgentPool[0]);
                 await page.setViewport({ width: 1366, height: 768 });
 
-                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+                await page.goto(url, { waitUntil: 'networkidle0', timeout: 20000 });
 
                 const screenshot = await page.screenshot({ 
                     encoding: 'base64',
@@ -702,32 +800,32 @@ async function captureAdvancedInfo(url, retries = 3) {
 
                 await browser.close();
 
-                return await formatWithGemini({
+                return {
                     ...basicInfo,
                     ...advancedInfo,
                     screenshot: `data:image/png;base64,${screenshot}`,
                     captured_at: new Date().toISOString(),
                     capture_method: 'advanced'
-                });
+                };
 
             } catch (puppeteerError) {
-                return await formatWithGemini({
+                return {
                     ...basicInfo,
                     captured_at: new Date().toISOString(),
                     capture_method: 'basic'
-                });
+                };
             }
 
         } catch (error) {
             if (attempt === retries) {
-                return await formatWithGemini({
+                return {
                     url,
                     error: error.message,
                     captured_at: new Date().toISOString(),
                     capture_method: 'failed'
-                });
+                };
             }
-            await sleep(3000);
+            await sleep(1000);
         } finally {
             if (browser) {
                 try { await browser.close(); } catch (e) {}
@@ -738,14 +836,14 @@ async function captureAdvancedInfo(url, retries = 3) {
 
 // Routes
 app.post('/api/investigate', async (req, res) => {
-    const { username, deep = true } = req.body;
+    const { username, platforms = [], maxResults = 2 } = req.body;
 
     if (!username) {
         return res.status(400).json({ error: 'Username is required' });
     }
 
     try {
-        const investigation = await performComprehensiveSearch(username);
+        const investigation = await performComprehensiveSearch(username, platforms, maxResults);
 
         res.json({
             success: true,
@@ -763,19 +861,19 @@ app.post('/api/investigate', async (req, res) => {
 
 app.post('/api/search/:platform', async (req, res) => {
     const { platform } = req.params;
-    const { username } = req.body;
+    const { username, maxResults = 2 } = req.body;
 
     if (!username) {
         return res.status(400).json({ error: 'Username is required' });
     }
 
     try {
-        const results = await searchSocialMediaAdvanced(username, platform);
+        const results = await searchSocialMediaAdvanced(username, platform, maxResults);
         res.json({
             success: true,
             platform,
             username,
-            count: JSON.parse(results).length,
+            count: results.length,
             results
         });
     } catch (error) {
@@ -788,19 +886,19 @@ app.post('/api/search/:platform', async (req, res) => {
 
 app.post('/api/search-phone/:platform', async (req, res) => {
     const { platform } = req.params;
-    const { username } = req.body;
+    const { username, maxResults = 2 } = req.body;
 
     if (!username) {
         return res.status(400).json({ error: 'Username is required' });
     }
 
     try {
-        const results = await searchPhoneNumberAdvanced(username, platform);
+        const results = await searchPhoneNumberAdvanced(username, platform, maxResults);
         res.json({
             success: true,
             platform,
             username,
-            count: JSON.parse(results).length,
+            count: results.length,
             results
         });
     } catch (error) {
@@ -812,7 +910,7 @@ app.post('/api/search-phone/:platform', async (req, res) => {
 });
 
 app.post('/api/advanced-search', async (req, res) => {
-    const { query, maxResults = 50, sources = ['bing', 'duckduckgo'] } = req.body;
+    const { query, maxResults = 20, sources = ['bing', 'duckduckgo'] } = req.body;
 
     if (!query) {
         return res.status(400).json({ error: 'Query is required' });
@@ -822,23 +920,21 @@ app.post('/api/advanced-search', async (req, res) => {
         const results = [];
 
         if (sources.includes('bing')) {
-            const bingResults = JSON.parse(await searchBingAdvanced(query, 3));
+            const bingResults = await searchBingAdvanced(query, 1);
             results.push(...bingResults);
         }
 
         if (sources.includes('duckduckgo')) {
-            const ddgResults = JSON.parse(await searchDuckDuckGoAdvanced(query, maxResults));
+            const ddgResults = await searchDuckDuckGoAdvanced(query, maxResults);
             results.push(...ddgResults);
         }
-
-        const formattedResults = await formatWithGemini(results);
 
         res.json({
             success: true,
             query,
             sources_used: sources,
             total: results.length,
-            results: formattedResults
+            results
         });
     } catch (error) {
         res.status(500).json({ 
@@ -870,7 +966,7 @@ app.post('/api/capture', async (req, res) => {
 });
 
 app.post('/api/batch-investigate', async (req, res) => {
-    const { usernames, reportProgress = false } = req.body;
+    const { usernames, platforms = [], maxResults = 2, reportProgress = false } = req.body;
 
     if (!usernames || !Array.isArray(usernames)) {
         return res.status(400).json({ error: 'Usernames array is required' });
@@ -882,12 +978,10 @@ app.post('/api/batch-investigate', async (req, res) => {
 
         for (let i = 0; i < usernames.length; i++) {
             const username = usernames[i];
-            const investigation = await performComprehensiveSearch(username);
-            investigations.push(JSON.parse(investigation));
-            await sleep(5000);
+            const investigation = await performComprehensiveSearch(username, platforms, maxResults);
+            investigations.push(investigation);
+            await sleep(1000);
         }
-
-        const formattedInvestigations = await formatWithGemini(investigations);
 
         res.json({
             success: true,
@@ -897,7 +991,7 @@ app.post('/api/batch-investigate', async (req, res) => {
                 total_results: investigations.reduce((sum, inv) => sum + inv.total_results, 0),
                 avg_results_per_user: Math.round(investigations.reduce((sum, inv) => sum + inv.total_results, 0) / investigations.length)
             },
-            investigations: formattedInvestigations
+            investigations
         });
 
     } catch (error) {
@@ -912,7 +1006,7 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.3.1-railway',
+        version: '3.3.2-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
@@ -927,8 +1021,7 @@ app.get('/health', (req, res) => {
             'Rate Limiting & Evasion',
             'Browser Fingerprinting',
             'Social Media Metadata Extraction',
-            'Phone Number Search',
-            'Gemini AI Formatting'
+            'Phone Number Search'
         ],
         supported_platforms: Object.keys(socialMediaPatterns)
     });
