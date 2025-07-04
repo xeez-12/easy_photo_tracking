@@ -4,426 +4,427 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSINT Investigation Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #111827; color: #e5e7eb; }
-        .sidebar { position: fixed; width: 60px; height: 100vh; background: #1f2937; border-right: 1px solid #ffffff; }
-        .sidebar a { display: flex; justify-content: center; align-items: center; padding: 15px; color: #e5e7eb; font-size: 1.5rem; }
-        .sidebar a:hover { background: #374151; }
-        .sidebar a.active { background: #4b5563; }
-        .main-content { margin-left: 60px; padding: 20px; }
-        .card { background: #1f2937; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.3s ease; }
-        .card:hover { transform: translateY(-2px); }
-        .result-box { background: #374151; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        .btn-primary { background: #4b5563; color: #e5e7eb; }
-        .btn-primary:hover { background: #6b7280; }
-        .section { display: none; }
-        .section.active { display: block; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #ffffff;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav a:hover {
+            background-color: #333;
+        }
+
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #222;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .section h2 {
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #e0e0e0;
+            font-size: 1em;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .form-group button {
+            padding: 10px 20px;
+            background-color: #555;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .form-group button:hover {
+            background-color: #666;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #e0e0e0;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .card h3 {
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #e0e0e0;
+            font-size: 1.5em;
+        }
+
+        .card .status {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .recent-activity {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .recent-activity p {
+            color: #e0e0e0;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .results pre {
+            background-color: #222;
+            padding: 15px;
+            border-radius: 5px;
+            color: #e0e0e0;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
-</head>
-<body>
-    <div class="flex">
-        <div class="sidebar">
-            <nav>
-                <a href="#overview" class="active"><i class="fas fa-home"></i></a>
-                <a href="#deep"><i class="fas fa-search"></i></a>
-                <a href="#social"><i class="fas fa-users"></i></a>
-                <a href="#accounts"><i class="fas fa-user-check"></i></a>
-                <a href="#advanced"><i class="fas fa-magnifying-glass"></i></a>
-                <a href="#capture"><i class="fas fa-camera"></i></a>
-                <a href="#batch"><i class="fas fa-list"></i></a>
-                <a href="#phone"><i class="fas fa-phone"></i></a>
-                <a href="#health"><i class="fas fa-heartbeat"></i></a>
-            </nav>
-        </div>
-        <div class="main-content">
-            <main>
-                <section id="overview" class="section active">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
-                        <p class="text-gray-400 mb-6">Monitor your investigation activities and system performance</p>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="flex items-center mb-2">
-                                    <i class="fas fa-project-diagram text-gray-300 mr-2"></i>
-                                    <span class="text-sm font-semibold">Total Projects</span>
-                                </div>
-                                <p class="text-2xl font-bold">0</p>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="flex items-center mb-2">
-                                    <i class="fas fa-chart-line text-gray-300 mr-2"></i>
-                                    <span class="text-sm font-semibold">Active Analyses</span>
-                                </div>
-                                <p class="text-2xl font-bold">5</p>
-                                <span class="text-sm text-green-400">Live</span>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="flex items-center mb-2">
-                                    <i class="fas fa-database text-gray-300 mr-2"></i>
-                                    <span class="text-sm font-semibold">Data Processed</span>
-                                </div>
-                                <p class="text-2xl font-bold">0.0GB</p>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <div class="flex items-center mb-2">
-                                    <i class="fas fa-check-circle text-gray-300 mr-2"></i>
-                                    <span class="text-sm font-semibold">Accuracy Rate</span>
-                                </div>
-                                <p class="text-2xl font-bold">88.7%</p>
-                                <span class="text-sm text-purple-400">High</span>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            <h3 class="text-lg font-semibold mb-2">Recent Activity</h3>
-                            <p class="text-gray-400">No recent activity</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="deep" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Deep Investigation</h2>
-                        <p class="text-gray-400 mb-6">Comprehensive username investigation across multiple platforms</p>
-                        <div class="flex space-x-4">
-                            <input id="deep-username" type="text" placeholder="Username" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                            <button onclick="startDeepInvestigation()" class="btn-primary p-3 rounded-lg flex items-center">
-                                <i class="fas fa-paper-plane mr-2"></i> Start Investigation
-                            </button>
-                        </div>
-                        <div id="deep-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-
-                <section id="social" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Social Media Search</h2>
-                        <p class="text-gray-400 mb-6">Search for profiles on specific social media platforms</p>
-                        <div class="flex space-x-4">
-                            <input id="social-username" type="text" placeholder="Username" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                            <select id="social-platform" class="p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                                <option value="tiktok">TikTok</option>
-                                <option value="facebook">Facebook</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="youtube">YouTube</option>
-                                <option value="twitter">Twitter</option>
-                                <option value="linkedin">LinkedIn</option>
-                                <option value="github">GitHub</option>
-                                <option value="reddit">Reddit</option>
-                            </select>
-                            <button onclick="startSocialSearch()" class="btn-primary p-3 rounded-lg flex items-center">
-                                <i class="fas fa-paper-plane mr-2"></i> Search Platform
-                            </button>
-                        </div>
-                        <div id="social-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-
-                <section id="accounts" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Find All Accounts</h2>
-                        <p class="text-gray-400 mb-6">Discover all social media accounts associated with a username</p>
-                        <div class="flex space-x-4">
-                            <input id="accounts-username" type="text" placeholder="Username" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                            <button onclick="findAllAccounts()" class="btn-primary p-3 rounded-lg flex items-center">
-                                <i class="fas fa-paper-plane mr-2"></i> Find Accounts
-                            </button>
-                        </div>
-                        <div id="accounts-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-
-                <section id="advanced" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Advanced Search</h2>
-                        <p class="text-gray-400 mb-6">Search across multiple search engines with custom queries</p>
-                        <input id="advanced-query" type="text" placeholder="Search Query" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 mb-4 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                        <div class="flex space-x-4 mb-4">
-                            <label class="flex items-center text-gray-400">
-                                <input type="checkbox" id="bing-source" checked class="mr-2">
-                                <span>Bing</span>
-                            </label>
-                            <label class="flex items-center text-gray-400">
-                                <input type="checkbox" id="ddg-source" checked class="mr-2">
-                                <span>DuckDuckGo</span>
-                            </label>
-                        </div>
-                        <button onclick="startAdvancedSearch()" class="btn-primary p-3 rounded-lg flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Execute Search
-                        </button>
-                        <div id="advanced-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-
-                <section id="capture" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Website Capture</h2>
-                        <p class="text-gray-400 mb-6">Capture and analyze website screenshots and metadata</p>
-                        <div class="flex space-x-4">
-                            <input id="capture-url" type="text" placeholder="Website URL" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                            <button onclick="startCapture()" class="btn-primary p-3 rounded-lg flex items-center">
-                                <i class="fas fa-paper-plane mr-2"></i> Capture & Analyze
-                            </button>
-                        </div>
-                        <div id="capture-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-
-                <section id="batch" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Batch Investigation</h2>
-                        <p class="text-gray-400 mb-6">Investigate multiple usernames simultaneously</p>
-                        <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 mb-4 focus:outline-none focus:ring-2 focus:ring-gray-500"></textarea>
-                        <button onclick="startBatchInvestigation()" class="btn-primary p-3 rounded-lg flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Start Batch Analysis
-                        </button>
-                        <div id="batch-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-
-                <section id="phone" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">Phone Number Search</h2>
-                        <p class="text-gray-400 mb-6">Search for phone numbers associated with usernames (+62 only)</p>
-                        <div class="flex space-x-4">
-                            <input id="phone-number" type="text" placeholder="+62 Phone Number" class="flex-1 p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                            <select id="phone-platform" class="p-3 border border-gray-600 rounded-lg bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                                <option value="tiktok">TikTok</option>
-                                <option value="facebook">Facebook</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="youtube">YouTube</option>
-                                <option value="twitter">Twitter</option>
-                                <option value="linkedin">LinkedIn</option>
-                                <option value="github">GitHub</option>
-                                <option value="reddit">Reddit</option>
-                            </select>
-                            <button onclick="startPhoneSearch()" class="btn-primary p-3 rounded-lg flex items-center">
-                                <i class="fas fa-paper-plane mr-2"></i> Search Phone Number
-                            </button>
-                        </div>
-                        <div id="phone-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-
-                <section id="health" class="section">
-                    <div class="card p-8">
-                        <h2 class="text-2xl font-bold mb-4">System Health</h2>
-                        <p class="text-gray-400 mb-6">Monitor system status and performance metrics</p>
-                        <button onclick="checkSystemHealth()" class="btn-primary p-3 rounded-lg flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Check System Health
-                        </button>
-                        <div id="health-results" class="mt-6 result-box hidden"></div>
-                    </div>
-                </section>
-            </main>
-        </div>
-    </div>
-
     <script>
-        async function startDeepInvestigation() {
-            const username = document.getElementById('deep-username').value;
-            if (!username) return alert('Please enter a username');
-            const resultsDiv = document.getElementById('deep-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-
+        async function makeRequest(endpoint, data) {
             try {
-                const response = await fetch('/api/investigate', {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, deep: true })
+                    body: JSON.stringify(data)
                 });
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data.investigation);
+                const result = await response.json();
+                displayResults(result);
             } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
+                displayResults({ error: error.message });
             }
         }
 
-        async function startSocialSearch() {
-            const username = document.getElementById('social-username').value;
-            const platform = document.getElementById('social-platform').value;
-            if (!username) return alert('Please enter a username');
-            const resultsDiv = document.getElementById('social-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-
-            try {
-                const response = await fetch(`/api/search/${platform}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data.results);
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-            }
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
         }
 
-        async function findAllAccounts() {
-            const username = document.getElementById('accounts-username').value;
-            if (!username) return alert('Please enter a username');
-            const resultsDiv = document.getElementById('accounts-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+        document.addEventListener('DOMContentLoaded', () => {
+            // Deep Investigation
+            document.getElementById('investigate-btn').addEventListener('click', () => {
+                const username = document.getElementById('investigate-username').value;
+                makeRequest('/api/investigate', { username });
+            });
 
-            try {
-                const response = await fetch('/api/find-accounts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data.results);
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-            }
-        }
+            // Social Media Search
+            document.getElementById('social-search-btn').addEventListener('click', () => {
+                const username = document.getElementById('social-username').value;
+                const platform = document.getElementById('social-platform').value;
+                makeRequest(`/api/search/${platform}`, { username });
+            });
 
-        async function startPhoneSearch() {
-            const phoneNumber = document.getElementById('phone-number').value;
-            const platform = document.getElementById('phone-platform').value;
-            if (!phoneNumber || !phoneNumber.startsWith('+62')) return alert('Please enter a valid +62 phone number');
-            const resultsDiv = document.getElementById('phone-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+            // Cross-Platform Search
+            document.getElementById('cross-platform-btn').addEventListener('click', () => {
+                const username = document.getElementById('cross-platform-username').value;
+                makeRequest('/api/cross-platform-search', { username });
+            });
 
-            try {
-                const response = await fetch(`/api/search-phone/${platform}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phoneNumber })
-                });
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data.results);
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-            }
-        }
+            // Advanced Search
+            document.getElementById('advanced-search-btn').addEventListener('click', () => {
+                const query = document.getElementById('advanced-query').value;
+                const sources = [];
+                if (document.getElementById('bing-checkbox').checked) sources.push('bing');
+                if (document.getElementById('ddg-checkbox').checked) sources.push('duckduckgo');
+                makeRequest('/api/advanced-search', { query, sources });
+            });
 
-        async function startAdvancedSearch() {
-            const query = document.getElementById('advanced-query').value;
-            const sources = [];
-            if (document.getElementById('bing-source').checked) sources.push('bing');
-            if (document.getElementById('ddg-source').checked) sources.push('duckduckgo');
-            if (!query) return alert('Please enter a search query');
-            const resultsDiv = document.getElementById('advanced-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+            // Website Capture
+            document.getElementById('capture-btn').addEventListener('click', () => {
+                const url = document.getElementById('capture-url').value;
+                makeRequest('/api/capture', { url });
+            });
 
-            try {
-                const response = await fetch('/api/advanced-search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, sources })
-                });
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data.results);
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-            }
-        }
+            // Batch Investigation
+            document.getElementById('batch-btn').addEventListener('click', () => {
+                const usernames = document.getElementById('batch-usernames').value.split('\n').map(u => u.trim()).filter(u => u);
+                makeRequest('/api/batch-investigate', { usernames });
+            });
 
-        async function startCapture() {
-            const url = document.getElementById('capture-url').value;
-            if (!url) return alert('Please enter a URL');
-            const resultsDiv = document.getElementById('capture-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
+            // Phone Number Search
+            document.getElementById('phone-search-btn').addEventListener('click', () => {
+                const username = document.getElementById('phone-username').value;
+                const platform = document.getElementById('phone-platform').value;
+                makeRequest(`/api/search-phone/${platform}`, { username });
+            });
 
-            try {
-                const response = await fetch('/api/capture', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
-                });
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data.capture);
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-            }
-        }
-
-        async function startBatchInvestigation() {
-            const usernames = document.getElementById('batch-usernames').value.split('\n').filter(u => u.trim());
-            if (!usernames.length) return alert('Please enter at least one username');
-            const resultsDiv = document.getElementById('batch-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-
-            try {
-                const response = await fetch('/api/batch-investigate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usernames })
-                });
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data.investigations);
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-            }
-        }
-
-        async function checkSystemHealth() {
-            const resultsDiv = document.getElementById('health-results');
-            resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p class="text-gray-400">Loading...</p>';
-
-            try {
-                const response = await fetch('/health');
-                const data = await response.json();
-                resultsDiv.innerHTML = formatResults(data);
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-            }
-        }
-
-        function formatResults(data) {
-            if (Array.isArray(data)) {
-                return data.map(item => `
-                    <div class="result-box">
-                        ${item.title ? `<h3 class="text-lg font-semibold">${item.title}</h3>` : ''}
-                        ${item.url ? `<p><a href="${item.url}" class="text-gray-300 hover:underline">${item.url}</a></p>` : ''}
-                        ${item.snippet ? `<p class="text-gray-400 mt-1">${item.snippet}</p>` : ''}
-                        ${item.bio ? `<p class="text-gray-300 italic mt-1">${item.bio}</p>` : ''}
-                        ${item.aiSummary ? `<div class="bg-gray-800 p-3 rounded-lg mt-2">AI Summary: ${item.aiSummary}</div>` : ''}
-                        ${item.phone ? `<p class="text-green-400 mt-1">Phone: ${item.phone}</p>` : ''}
-                        ${item.platform ? `<p class="text-purple-400 mt-1">Platform: ${item.platform}</p>` : ''}
-                        ${item.followers ? `<p class="text-gray-400 mt-1">Followers: ${item.followers}</p>` : ''}
-                        ${item.postCount ? `<p class="text-gray-400 mt-1">Posts: ${item.postCount}</p>` : ''}
-                        ${item.screenshot ? `<img src="${item.screenshot}" alt="Screenshot" class="mt-2 max-w-full rounded-lg">` : ''}
-                    </div>
-                `).join('');
-            } else if (typeof data === 'object' && data !== null) {
-                return `
-                    <div class="result-box">
-                        ${Object.entries(data).map(([key, value]) => {
-                            if (Array.isArray(value)) {
-                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
-                            } else if (typeof value === 'object' && value !== null) {
-                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
-                            }
-                            return `<p class="text-gray-400"><strong>${key.replace('_', ' ')}:</strong> ${value}</p>`;
-                        }).join('')}
-                    </div>
-                `;
-            }
-            return `<p class="text-gray-400">${data}</p>`;
-        }
-
-        // Sidebar navigation with page-like behavior
-        document.querySelectorAll('.sidebar a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
-                const target = link.getAttribute('href').substring(1);
-                document.getElementById(target).classList.add('active');
+            // System Health
+            document.getElementById('health-btn').addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/health');
+                    const result = await response.json();
+                    displayResults(result);
+                } catch (error) {
+                    displayResults({ error: error.message });
+                }
             });
         });
     </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>OSINT Investigation Platform</h1>
+        </div>
+
+        <div class="nav">
+            <a href="#dashboard">Overview</a>
+            <a href="#investigate">Deep Investigation</a>
+            <a href="#social">Social Media</a>
+            <a href="#cross-platform">Cross-Platform Search</a>
+            <a href="#advanced">Advanced Search</a>
+            <a href="#capture">Website Capture</a>
+            <a href="#batch">Batch Investigation</a>
+            <a href="#phone">Phone Search</a>
+            <a href="#health">System Health</a>
+        </div>
+
+        <div id="results" class="results"></div>
+
+        <div id="dashboard" class="section">
+            <h2>Dashboard</h2>
+            <p>Monitor your investigation activities and system performance</p>
+            <div class="dashboard">
+                <div class="card">
+                    <h3>Total Projects</h3>
+                    <p>0</p>
+                    <p class="status">+12%</p>
+                </div>
+                <div class="card">
+                    <h3>Active Analyses</h3>
+                    <p>5</p>
+                    <p class="status">Live</p>
+                </div>
+                <div class="card">
+                    <h3>Data Processed</h3>
+                    <p>0.0GB</p>
+                </div>
+                <div class="card">
+                    <h3>Accuracy Rate</h3>
+                    <p>88.7%</p>
+                    <p class="status">High</p>
+                </div>
+            </div>
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <p>No recent activity</p>
+            </div>
+        </div>
+
+        <div id="investigate" class="section">
+            <h2>Deep Investigation</h2>
+            <p>Comprehensive username investigation across multiple platforms</p>
+            <div class="form-group">
+                <label for="investigate-username">Username</label>
+                <input type="text" id="investigate-username" placeholder="Enter username">
+                <button id="investigate-btn">Start Investigation</button>
+            </div>
+        </div>
+
+        <div id="social" class="section">
+            <h2>Social Media Search</h2>
+            <p>Search for profiles on specific social media platforms</p>
+            <div class="form-group">
+                <label for="social-username">Username</label>
+                <input type="text" id="social-username" placeholder="Enter username">
+                <label for="social-platform">Platform</label>
+                <select id="social-platform">
+                    <option value="tiktok">TikTok</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="github">GitHub</option>
+                    <option value="reddit">Reddit</option>
+                </select>
+                <button id="social-search-btn">Search Platform</button>
+            </div>
+        </div>
+
+        <div id="cross-platform" class="section">
+            <h2>Cross-Platform Search</h2>
+            <p>Discover all social media accounts associated with a username</p>
+            <div class="form-group">
+                <label for="cross-platform-username">Username</label>
+                <input type="text" id="cross-platform-username" placeholder="Enter username">
+                <button id="cross-platform-btn">Search All Platforms</button>
+            </div>
+        </div>
+
+        <div id="advanced" class="section">
+            <h2>Advanced Search</h2>
+            <p>Search across multiple search engines with custom queries</p>
+            <div class="form-group">
+                <label for="advanced-query">Search Query</label>
+                <input type="text" id="advanced-query" placeholder="Enter search query">
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="bing-checkbox" checked> Bing</label>
+                    <label><input type="checkbox" id="ddg-checkbox" checked> DuckDuckGo</label>
+                </div>
+                <button id="advanced-search-btn">Execute Search</button>
+            </div>
+        </div>
+
+        <div id="capture" class="section">
+            <h2>Website Capture</h2>
+            <p>Capture and analyze website screenshots and metadata</p>
+            <div class="form-group">
+                <label for="capture-url">Website URL</label>
+                <input type="text" id="capture-url" placeholder="Enter website URL">
+                <button id="capture-btn">Capture & Analyze</button>
+            </div>
+        </div>
+
+        <div id="batch" class="section">
+            <h2>Batch Investigation</h2>
+            <p>Investigate multiple usernames simultaneously</p>
+            <div class="form-group">
+                <label for="batch-usernames">Usernames</label>
+                <textarea id="batch-usernames" rows="5" placeholder="Enter usernames (one per line)"></textarea>
+                <button id="batch-btn">Start Batch Analysis</button>
+            </div>
+        </div>
+
+        <div id="phone" class="section">
+            <h2>Phone Number Search</h2>
+            <p>Search for phone numbers associated with usernames</p>
+            <div class="form-group">
+                <label for="phone-username">Username</label>
+                <input type="text" id="phone-username" placeholder="Enter username">
+                <label for="phone-platform">Platform</label>
+                <select id="phone-platform">
+                    <option value="tiktok">TikTok</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="github">GitHub</option>
+                    <option value="reddit">Reddit</option>
+                </select>
+                <button id="phone-search-btn">Search Phone Number</button>
+            </div>
+        </div>
+
+        <div id="health" class="section">
+            <h2>System Health</h2>
+            <p>Monitor system status and performance metrics</p>
+            <div class="form-group">
+                <button id="health-btn">Check System Health</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
