@@ -1,6 +1,6 @@
 {
   "name": "osint-platform",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "Advanced OSINT Investigation Platform with Enhanced UI and Social Media Scraping",
   "main": "server.js",
   "scripts": {
