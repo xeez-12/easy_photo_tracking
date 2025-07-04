@@ -4,12 +4,12 @@ const cheerio = require('cheerio');
 const { v4: uuidv4 } = require('uuid');
 const tough = require('tough-cookie');
 const puppeteer = require('puppeteer');
-const userAgents = require('./useragents');
+const userAgentPool = require('./useragents');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBy6dWTt2Ezq1_RJ9tK5pTmMYW3NWmUhrk'; // Set in environment variables
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'your-api-key-here';
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
@@ -17,7 +17,7 @@ app.use(express.static('public'));
 
 // Enhanced Headers Configuration
 const getAdvancedHeaders = (referer = null, isXHR = false) => {
-    const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+    const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
     return {
         'User-Agent': userAgent,
         'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -32,8 +32,8 @@ const getAdvancedHeaders = (referer = null, isXHR = false) => {
         'Sec-Fetch-User': isXHR ? undefined : '?1',
         'Cache-Control': 'max-age=0',
         'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="130", "Google Chrome";v="130"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
+        'sec-ch-ua-mobile': userAgent.includes('Mobile') ? '?1' : '?0',
+        'sec-ch-ua-platform': userAgent.includes('Windows') ? '"Windows"' : userAgent.includes('Macintosh') ? '"macOS"' : '"Linux"',
         'X-Forwarded-For': generateRandomIP(),
         'X-Real-IP': generateRandomIP(),
         'Pragma': 'no-cache',
@@ -47,187 +47,176 @@ function generateRandomIP() {
     const ranges = [
         [8, 8, 8, 8], [1, 1, 1, 1], [208, 67, 222, 222],
         [4, 2, 2, 1], [64, 6, 64, 6], [185, 228, 168, 9],
-        [172, 217, 0, 0], [104, 244, 222, 1], [198, 51, 100, 1]
+        [172, 217, 0, 0], [142, 250, 0, 0], [104, 16, 0, 0]
     ];
     const range = ranges[Math.floor(Math.random() * ranges.length)];
     return range.map(num => num + Math.floor(Math.random() * 10)).join('.');
 }
 
-// Sleep function with randomization
+// Sleep function with jitter
 const sleep = (ms) => new Promise(resolve => 
-    setTimeout(resolve, ms + Math.floor(Math.random() * 1000))
+    setTimeout(resolve, ms + Math.floor(Math.random() * 1500))
 );
 
-// Format data with Gemini AI
+// Format data using Gemini AI
 async function formatWithGemini(data) {
     try {
-        const response = await axios.post(
-            `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-            {
-                contents: [{
-                    parts: [{
-                        text: `Format the following scraped data into a clean, professional, and readable JSON structure. Ensure the output is concise, well-organized, and includes only relevant information. Data: ${JSON.stringify(data, null, 2)}`
-                    }]
+        const response = await axios.post(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+            contents: [{
+                parts: [{
+                    text: `Format the following scraped data into a clean, structured, and readable markdown format. Ensure the output is professional, concise, and well-organized, with clear headings and bullet points where applicable. Data: ${JSON.stringify(data, null, 2)}`
                 }]
+            }]
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
             },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...getAdvancedHeaders()
-                },
-                timeout: 30000
-            }
-        );
+            timeout: 10000
+        });
 
-        return JSON.parse(response.data.candidates[0].content.parts[0].text);
+        return response.data.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error('Gemini API error:', error.message);
-        return data; // Fallback to original data if Gemini fails
+        return JSON.stringify(data, null, 2); // Fallback to raw JSON
     }
 }
 
-// Enhanced Social Media Scraping
-async function scrapeSocialMediaProfile(url, platform, retries = 2) {
+// Advanced Social Media Scraping with Retry Logic
+async function scrapeSocialMediaProfile(url, platform, retries = 3) {
     let browser;
-    try {
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-gpu'
-            ],
-            executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
-        });
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            browser = await puppeteer.launch({
+                headless: 'new',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-gpu',
+                    '--window-size=1366,768'
+                ],
+                executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
+            });
 
-        const page = await browser.newPage();
-        await page.setUserAgent(userAgents[Math.floor(Math.random() * userAgents.length)]);
-        await page.setViewport({ width: 1366, height: 768 });
+            const page = await browser.newPage();
+            const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
+            await page.setUserAgent(userAgent);
+            await page.setViewport({ width: 1366, height: 768 });
+            await page.setExtraHTTPHeaders(getAdvancedHeaders(url));
 
-        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+            try {
+                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+            } catch (navError) {
+                if (attempt === retries) throw navError;
+                await sleep(3000);
+                continue;
+            }
 
-        const profileData = await page.evaluate((platform) => {
-            const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
-            const getImage = (selector) => document.querySelector(selector)?.src || '';
-            const getAttribute = (selector, attr) => document.querySelector(selector)?.getAttribute(attr) || '';
+            const profileData = await page.evaluate((platform) => {
+                const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
+                const getImage = (selector) => document.querySelector(selector)?.src || '';
 
-            const platformSelectors = {
-                tiktok: {
-                    profilePic: 'img[data-testid="user-avatar"], img[alt*="profile photo"]',
-                    username: '[data-testid="user-username"], h1',
-                    bio: '[data-testid="user-bio"], .user-bio',
-                    followers: '[data-testid="user-followers"] strong, .follower-count',
-                    posts: '[data-testid="user-videos"] strong, .video-count',
-                    verified: '[data-testid="verified-badge"]'
-                },
-                instagram: {
-                    profilePic: 'img[alt*="profile picture"], img[src*="profile"]',
-                    username: 'h2, ._aacl',
-                    bio: '._aa_y div div span, .bio-text',
-                    followers: 'a[href*="/followers/"] span, .follower-count',
-                    posts: 'span._ac2a, .post-count',
-                    verified: 'span[aria-label="Verified"]'
-                },
-                twitter: {
-                    profilePic: 'img[alt="Profile picture"], img[src*="profile_images"]',
-                    username: '[data-testid="UserName"], h1',
-                    bio: '[data-testid="UserDescription"], .user-bio',
-                    followers: '[data-testid="followers"] span, .followers-count',
-                    posts: '[data-testid="tweet"], .tweet-count',
-                    verified: '[data-testid="verified"]'
-                },
-                facebook: {
-                    profilePic: 'img.x1y9k2m, img[alt*="profile"]',
-                    username: 'h1, .profile-name',
-                    bio: 'div.x1heor9g div.x1iorvi4 span, .bio-text',
-                    followers: 'span.x1e558r4, .follower-count',
-                    posts: 'div.x1n2onr6 div.x1yztbdb, .post-count',
-                    verified: 'span[aria-label="Verified"]'
-                },
-                youtube: {
-                    profilePic: 'img#img, img[src*="ytimg"]',
-                    username: '#channel-name, h1',
-                    bio: '#description.ytd-channel-about-metadata-renderer, .channel-bio',
-                    followers: '#subscriber-count, .subscriber-count',
-                    posts: 'ytd-grid-video-renderer, .video-count',
-                    verified: '#badges .badge'
-                },
-                linkedin: {
-                    profilePic: 'img.pv-top-card--photo, img.profile-photo',
-                    username: 'h1, .profile-name',
-                    bio: '.pv-about-section .pv-about__summary-text, .about-text',
-                    followers: '.follower-count, .followers',
-                    posts: '.share-box-feed-entry, .post-count',
-                    verified: '.verified-badge'
-                },
-                github: {
-                    profilePic: 'img.avatar-user, img[src*="avatar"]',
-                    username: 'h1, .user-name',
-                    bio: '.p-bio, .bio-text',
-                    followers: 'a[href*="/followers"] .text-bold, .follower-count',
-                    posts: '.js-repos-container, .repo-count',
-                    verified: '.verified-badge'
-                },
-                reddit: {
-                    profilePic: 'img[alt="User avatar"], img[src*="avatar"]',
-                    username: 'h1, .user-name',
-                    bio: '.profile-bio, .bio-text',
-                    followers: '.profile-followers, .followers',
-                    posts: '.Post, .post-count',
-                    verified: '.verified-icon'
-                }
-            };
+                const platformSelectors = {
+                    tiktok: {
+                        profilePic: 'img[data-testid="user-avatar"]',
+                        bio: '[data-testid="user-bio"]',
+                        followers: '[data-testid="user-followers"] strong',
+                        posts: '[data-testid="user-videos"] strong'
+                    },
+                    instagram: {
+                        profilePic: 'img[alt*="profile picture"]',
+                        bio: '._aa_y div div span',
+                        followers: 'a[href*="/followers/"] span',
+                        posts: 'span._ac2a'
+                    },
+                    twitter: {
+                        profilePic: 'img[alt="Profile picture"]',
+                        bio: '[data-testid="UserDescription"]',
+                        followers: '[data-testid="followers"] span',
+                        posts: '[data-testid="tweet"]'
+                    },
+                    facebook: {
+                        profilePic: 'img.x1y9k2m',
+                        bio: 'div.x1heor9g div.x1iorvi4 span',
+                        followers: 'span.x1e558r4',
+                        posts: 'div.x1n2onr6 div.x1yztbdb'
+                    },
+                    youtube: {
+                        profilePic: 'img#img',
+                        bio: '#description.ytd-channel-about-metadata-renderer',
+                        followers: '#subscriber-count',
+                        posts: 'ytd-grid-video-renderer'
+                    },
+                    linkedin: {
+                        profilePic: 'img.pv-top-card--photo',
+                        bio: '.pv-about-section .pv-about__summary-text',
+                        followers: '.follower-count',
+                        posts: '.share-box-feed-entry'
+                    },
+                    github: {
+                        profilePic: 'img.avatar-user',
+                        bio: '.p-bio',
+                        followers: 'a[href*="/followers"] .text-bold',
+                        posts: '.js-repos-container'
+                    },
+                    reddit: {
+                        profilePic: 'img[alt="User avatar"]',
+                        bio: '.profile-bio',
+                        followers: '.profile-followers',
+                        posts: '.Post'
+                    }
+                };
 
-            const selectors = platformSelectors[platform] || {};
-            return {
-                profilePic: getImage(selectors.profilePic),
-                username: getText(selectors.username),
-                bio: getText(selectors.bio),
-                followers: getText(selectors.followers),
-                postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts),
-                verified: !!document.querySelector(selectors.verified),
-                creationDate: getText('[data-testid="creation-date"], .join-date, .created-date')
-            };
-        }, platform);
+                const selectors = platformSelectors[platform] || {};
+                return {
+                    profilePic: getImage(selectors.profilePic),
+                    bio: getText(selectors.bio),
+                    followers: getText(selectors.followers),
+                    postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts)
+                };
+            }, platform);
 
-        const screenshot = await page.screenshot({ 
-            encoding: 'base64',
-            fullPage: false,
-            clip: { x: 0, y: 0, width: 1366, height: 768 }
-        });
+            const screenshot = await page.screenshot({ 
+                encoding: 'base64',
+                fullPage: false,
+                clip: { x: 0, y: 0, width: 1366, height: 768 }
+            });
 
-        await browser.close();
+            await browser.close();
 
-        const formattedData = await formatWithGemini({
-            url,
-            ...profileData,
-            screenshot: `data:image/png;base64,${screenshot}`,
-            scraped_at: new Date().toISOString(),
-            platform
-        });
+            const formattedData = await formatWithGemini({
+                url,
+                ...profileData,
+                screenshot: `data:image/png;base64,${screenshot}`,
+                scraped_at: new Date().toISOString(),
+                platform
+            });
 
-        return formattedData;
-    } catch (error) {
-        if (retries > 0) {
-            await sleep(5000);
-            return scrapeSocialMediaProfile(url, platform, retries - 1);
-        }
-        console.error(`Failed to scrape ${platform} profile: ${error.message}`);
-        return { url, error: error.message, scraped_at: new Date().toISOString(), platform };
-    } finally {
-        if (browser) {
-            try { await browser.close(); } catch (e) {}
+            return formattedData;
+        } catch (error) {
+            if (attempt === retries) {
+                return await formatWithGemini({
+                    url,
+                    error: error.message,
+                    scraped_at: new Date().toISOString(),
+                    platform
+                });
+            }
+            await sleep(3000);
+        } finally {
+            if (browser) {
+                try { await browser.close(); } catch (e) {}
+            }
         }
     }
 }
 
-// Advanced Bing Search
-async function searchBingAdvanced(query, maxPages = 5, retries = 2) {
+// Advanced Bing Search with Retry Logic
+async function searchBingAdvanced(query, maxPages = 5, retries = 3) {
     const allResults = [];
     const cookieJar = new tough.CookieJar();
 
@@ -235,59 +224,61 @@ async function searchBingAdvanced(query, maxPages = 5, retries = 2) {
         const first = page * 10;
         const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${first}&count=10&FORM=PERE`;
 
-        try {
-            const response = await axios.get(searchUrl, {
-                headers: getAdvancedHeaders('https://www.bing.com/'),
-                timeout: 20000,
-                maxRedirects: 5,
-                jar: cookieJar,
-                withCredentials: true
-            });
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const response = await axios.get(searchUrl, {
+                    headers: getAdvancedHeaders('https://www.bing.com/'),
+                    timeout: 20000,
+                    maxRedirects: 5,
+                    jar: cookieJar,
+                    withCredentials: true
+                });
 
-            const $ = cheerio.load(response.data);
-            const pageResults = [];
+                const $ = cheerio.load(response.data);
+                const pageResults = [];
 
-            $('.b_algo, .b_ans, .b_top').each((i, element) => {
-                const $el = $(element);
-                const titleEl = $el.find('h2 a, h3 a, .b_topTitle a').first();
-                const title = titleEl.text().trim();
-                const url = titleEl.attr('href');
-                const snippet = $el.find('.b_caption p, .b_snippet, .b_descript').text().trim();
-                const displayUrl = $el.find('cite').text().trim();
+                $('.b_algo, .b_ans, .b_top').each((i, element) => {
+                    const $el = $(element);
+                    const titleEl = $el.find('h2 a, h3 a, .b_topTitle a').first();
+                    const title = titleEl.text().trim();
+                    const url = titleEl.attr('href');
+                    const snippet = $el.find('.b_caption p, .b_snippet, .b_descript').text().trim();
+                    const displayUrl = $el.find('cite').text().trim();
 
-                if (title && url && !url.includes('bing.com/ck/')) {
-                    pageResults.push({
-                        title,
-                        url: url.startsWith('http') ? url : 'https://' + url,
-                        snippet,
-                        displayUrl,
-                        source: 'bing',
-                        page: page + 1,
-                        position: i + 1
-                    });
+                    if (title && url && !url.includes('bing.com/ck/')) {
+                        pageResults.push({
+                            title,
+                            url: url.startsWith('http') ? url : 'https://' + url,
+                            snippet,
+                            displayUrl,
+                            source: 'bing',
+                            page: page + 1,
+                            position: i + 1
+                        });
+                    }
+                });
+
+                allResults.push(...pageResults);
+
+                if (pageResults.length === 0) break;
+                await sleep(2000);
+                break;
+
+            } catch (error) {
+                if (error.response?.status === 429 && attempt < retries) {
+                    await sleep(10000 * attempt);
+                    continue;
                 }
-            });
-
-            allResults.push(...pageResults);
-
-            if (pageResults.length === 0) break;
-            await sleep(2000);
-
-        } catch (error) {
-            if (error.response?.status === 429 && retries > 0) {
-                await sleep(10000);
-                return searchBingAdvanced(query, maxPages, retries - 1);
+                break;
             }
-            console.error(`Bing search error: ${error.message}`);
-            break;
         }
     }
 
-    return allResults;
+    return await formatWithGemini(allResults);
 }
 
-// Enhanced DuckDuckGo Search
-async function searchDuckDuckGoAdvanced(query, maxResults = 50, retries = 2) {
+// Enhanced DuckDuckGo Search with Retry Logic
+async function searchDuckDuckGoAdvanced(query, maxResults = 50, retries = 3) {
     const strategies = [
         { url: 'https://html.duckduckgo.com/html/', method: 'POST' },
         { url: 'https://duckduckgo.com/html/', method: 'GET' },
@@ -295,74 +286,74 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50, retries = 2) {
     ];
 
     for (const strategy of strategies) {
-        try {
-            let response;
-            if (strategy.method === 'POST') {
-                response = await axios.post(strategy.url, 
-                    `q=${encodeURIComponent(query)}&b=&kl=us-en&df=`,
-                    {
-                        headers: {
-                            ...getAdvancedHeaders('https://duckduckgo.com/'),
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'Origin': 'https://duckduckgo.com'
-                        },
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                let response;
+                if (strategy.method === 'POST') {
+                    response = await axios.post(strategy.url, 
+                        `q=${encodeURIComponent(query)}&b=&kl=us-en&df=`,
+                        {
+                            headers: {
+                                ...getAdvancedHeaders('https://duckduckgo.com/'),
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Origin': 'https://duckduckgo.com'
+                            },
+                            timeout: 20000
+                        }
+                    );
+                } else {
+                    response = await axios.get(strategy.url, {
+                        params: { q: query, kl: 'us-en' },
+                        headers: getAdvancedHeaders('https://duckduckgo.com/'),
                         timeout: 20000
-                    }
-                );
-            } else {
-                response = await axios.get(strategy.url, {
-                    params: { q: query, kl: 'us-en' },
-                    headers: getAdvancedHeaders('https://duckduckgo.com/'),
-                    timeout: 20000
-                });
+                    });
+                }
+
+                const $ = cheerio.load(response.data);
+                const results = [];
+
+                const selectors = [
+                    '.result, .web-result',
+                    '.results_links',
+                    '[data-result-index]',
+                    '.result__body'
+                ];
+
+                for (const selector of selectors) {
+                    $(selector).each((i, element) => {
+                        if (results.length >= maxResults) return false;
+
+                        const $el = $(element);
+                        const titleEl = $el.find('a[href]:first, .result__title a, .result__a');
+                        const title = titleEl.text().trim();
+                        const url = titleEl.attr('href');
+                        const snippet = $el.find('.result__snippet, .snippet, .result-snippet').text().trim();
+
+                        if (title && url && !url.includes('duckduckgo.com') && !results.find(r => r.url === url)) {
+                            results.push({
+                                title,
+                                url: url.startsWith('//') ? 'https:' + url : url,
+                                snippet,
+                                source: 'duckduckgo',
+                                strategy: strategy.url
+                            });
+                        }
+                    });
+
+                    if (results.length > 0) break;
+                }
+
+                if (results.length > 0) return await formatWithGemini(results);
+                await sleep(2000);
+
+            } catch (error) {
+                if (attempt === retries) continue;
+                await sleep(3000 * attempt);
             }
-
-            const $ = cheerio.load(response.data);
-            const results = [];
-
-            const selectors = [
-                '.result, .web-result',
-                '.results_links',
-                '[data-result-index]',
-                '.result__body'
-            ];
-
-            for (const selector of selectors) {
-                $(selector).each((i, element) => {
-                    if (results.length >= maxResults) return false;
-
-                    const $el = $(element);
-                    const titleEl = $el.find('a[href]:first, .result__title a, .result__a');
-                    const title = titleEl.text().trim();
-                    const url = titleEl.attr('href');
-                    const snippet = $el.find('.result__snippet, .snippet, .result-snippet').text().trim();
-
-                    if (title && url && !url.includes('duckduckgo.com') && !results.find(r => r.url === url)) {
-                        results.push({
-                            title,
-                            url: url.startsWith('//') ? 'https:' + url : url,
-                            snippet,
-                            source: 'duckduckgo',
-                            strategy: strategy.url
-                        });
-                    }
-                });
-
-                if (results.length > 0) break;
-            }
-
-            if (results.length > 0) return results;
-
-        } catch (error) {
-            if (retries > 0) {
-                await sleep(5000);
-                continue;
-            }
-            console.error(`DuckDuckGo search error: ${error.message}`);
         }
     }
 
-    return [];
+    return await formatWithGemini([]);
 }
 
 // Social Media URL Builders
@@ -377,7 +368,7 @@ const socialMediaPatterns = {
     reddit: ['site:reddit.com/u "{username}"', 'reddit.com/u/{username}', '"{username}" reddit user']
 };
 
-// Advanced Social Media Search (Platform-Specific)
+// Advanced Social Media Search
 async function searchSocialMediaAdvanced(username, platform) {
     const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
     const allResults = [];
@@ -391,7 +382,7 @@ async function searchSocialMediaAdvanced(username, platform) {
                 searchDuckDuckGoAdvanced(query, 20)
             ]);
 
-            const combinedResults = [...bingResults, ...ddgResults];
+            const combinedResults = [...JSON.parse(bingResults), ...JSON.parse(ddgResults)];
 
             for (const result of combinedResults) {
                 const targetDomain = {
@@ -407,14 +398,14 @@ async function searchSocialMediaAdvanced(username, platform) {
 
                 if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
-                    allResults.push({ ...result, ...profileData, platform, query });
+                    allResults.push(JSON.parse(profileData));
                 }
             }
 
             await sleep(1500);
 
         } catch (error) {
-            console.error(`Social media search error for ${platform}: ${error.message}`);
+            // Silent error handling
         }
     }
 
@@ -423,33 +414,6 @@ async function searchSocialMediaAdvanced(username, platform) {
     );
 
     return await formatWithGemini(uniqueResults);
-}
-
-// Cross-Platform Social Media Search
-async function searchCrossPlatform(username) {
-    const platforms = Object.keys(socialMediaPatterns);
-    const allResults = [];
-
-    await Promise.all(platforms.map(async (platform) => {
-        try {
-            const platformResults = await searchSocialMediaAdvanced(username, platform);
-            allResults.push(...platformResults);
-            await sleep(2000);
-        } catch (error) {
-            console.error(`Cross-platform search error for ${platform}: ${error.message}`);
-        }
-    }));
-
-    const uniqueResults = allResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.url === result.url)
-    );
-
-    return await formatWithGemini({
-        username,
-        platforms_searched: platforms,
-        total_results: uniqueResults.length,
-        results: uniqueResults
-    });
 }
 
 // Phone Number Search
@@ -466,7 +430,7 @@ async function searchPhoneNumberAdvanced(username, platform) {
                 searchDuckDuckGoAdvanced(`${query} phone number`, 20)
             ]);
 
-            const combinedResults = [...bingResults, ...ddgResults];
+            const combinedResults = [...JSON.parse(bingResults), ...JSON.parse(ddgResults)];
 
             for (const result of combinedResults) {
                 const targetDomain = {
@@ -481,19 +445,19 @@ async function searchPhoneNumberAdvanced(username, platform) {
                 }[platform];
 
                 if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
-                    const profileData = await scrapeSocialMediaProfile(result.url, platform);
+                    const profileData = JSON.parse(await scrapeSocialMediaProfile(result.url, platform));
                     const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
                     const textContent = profileData.bio || result.snippet || '';
                     const phoneMatch = textContent.match(phoneRegex);
                     const phone = phoneMatch ? phoneMatch[0] : null;
-                    allResults.push({ ...result, ...profileData, platform, query, phone });
+                    allResults.push({ ...result, ...profileData, phone });
                 }
             }
 
             await sleep(1500);
 
         } catch (error) {
-            console.error(`Phone search error for ${platform}: ${error.message}`);
+            // Silent error handling
         }
     }
 
@@ -518,16 +482,15 @@ async function performComprehensiveSearch(username) {
         total_results: 0
     };
 
-    const platforms = Object.keys(socialMediaPatterns);
+    const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
     for (const platform of platforms) {
         try {
-            const platformResults = await searchSocialMediaAdvanced(username, platform);
+            const platformResults = JSON.parse(await searchSocialMediaAdvanced(username, platform));
             results.social_media[platform] = platformResults;
             results.total_results += platformResults.length;
             await sleep(2000);
         } catch (error) {
             results.social_media[platform] = [];
-            console.error(`Comprehensive search error for ${platform}: ${error.message}`);
         }
     }
 
@@ -547,10 +510,10 @@ async function performComprehensiveSearch(username) {
                 searchDuckDuckGoAdvanced(query, 15)
             ]);
 
-            results.general_search.push(...bingResults, ...ddgResults);
+            results.general_search.push(...JSON.parse(bingResults), ...JSON.parse(ddgResults));
             await sleep(1500);
         } catch (error) {
-            console.error(`General search error: ${error.message}`);
+            // Silent error handling
         }
     }
 
@@ -564,11 +527,11 @@ async function performComprehensiveSearch(username) {
 
     for (const emailQuery of emailPatterns) {
         try {
-            const emailResults = await searchBingAdvanced(emailQuery, 1);
+            const emailResults = JSON.parse(await searchBingAdvanced(emailQuery, 1));
             results.email_search.push(...emailResults);
             await sleep(1000);
         } catch (error) {
-            console.error(`Email search error: ${error.message}`);
+            // Silent error handling
         }
     }
 
@@ -581,11 +544,11 @@ async function performComprehensiveSearch(username) {
 
     for (const breachQuery of breachQueries) {
         try {
-            const breachResults = await searchDuckDuckGoAdvanced(breachQuery, 10);
+            const breachResults = JSON.parse(await searchDuckDuckGoAdvanced(breachQuery, 10));
             results.leaked_data.push(...breachResults);
             await sleep(1500);
         } catch (error) {
-            console.error(`Breach search error: ${error.message}`);
+            // Silent error handling
         }
     }
 
@@ -598,11 +561,11 @@ async function performComprehensiveSearch(username) {
 
     for (const profQuery of professionalQueries) {
         try {
-            const profResults = await searchBingAdvanced(profQuery, 1);
+            const profResults = JSON.parse(await searchBingAdvanced(profQuery, 1));
             results.professional_info.push(...profResults);
             await sleep(1500);
         } catch (error) {
-            console.error(`Professional search error: ${error.message}`);
+            // Silent error handling
         }
     }
 
@@ -656,122 +619,119 @@ function extractAdvancedContactInfo(text) {
 }
 
 // Enhanced Website Capture
-async function captureAdvancedInfo(url, retries = 2) {
+async function captureAdvancedInfo(url, retries = 3) {
     let browser;
-    try {
-        const axiosResponse = await axios.get(url, {
-            headers: getAdvancedHeaders(),
-            timeout: 15000,
-            maxRedirects: 5
-        });
-
-        const $ = cheerio.load(axiosResponse.data);
-        const basicInfo = {
-            url,
-            title: $('title').text().trim(),
-            description: $('meta[name="description"]').attr('content') || '',
-            keywords: $('meta[name="keywords"]').attr('content') || '',
-            ogTitle: $('meta[property="og:title"]').attr('content') || '',
-            ogDescription: $('meta[property="og:description"]').attr('content') || '',
-            ogImage: $('meta[property="og:image"]').attr('content') || '',
-            twitterCard: $('meta[name="twitter:card"]').attr('content') || '',
-            canonical: $('link[rel="canonical"]').attr('href') || '',
-            robots: $('meta[name="robots"]').attr('content') || '',
-            headers: axiosResponse.headers,
-            status: axiosResponse.status
-        };
-
+    for (let attempt = 1; attempt <= retries; attempt++) {
         try {
-            browser = await puppeteer.launch({
-                headless: 'new',
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--single-process',
-                    '--disable-gpu'
-                ],
-                executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
+            const axiosResponse = await axios.get(url, {
+                headers: getAdvancedHeaders(),
+                timeout: 15000,
+                maxRedirects: 5
             });
 
-            const page = await browser.newPage();
-            await page.setUserAgent(userAgents[0]);
-            await page.setViewport({ width: 1366, height: 768 });
+            const $ = cheerio.load(axiosResponse.data);
+            const basicInfo = {
+                url,
+                title: $('title').text().trim(),
+                description: $('meta[name="description"]').attr('content') || '',
+                keywords: $('meta[name="keywords"]').attr('content') || '',
+                ogTitle: $('meta[property="og:title"]').attr('content') || '',
+                ogDescription: $('meta[property="og:description"]').attr('content') || '',
+                ogImage: $('meta[property="og:image"]').attr('content') || '',
+                twitterCard: $('meta[name="twitter:card"]').attr('content') || '',
+                canonical: $('link[rel="canonical"]').attr('href') || '',
+                robots: $('meta[name="robots"]').attr('content') || '',
+                headers: axiosResponse.headers,
+                status: axiosResponse.status
+            };
 
-            await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+            try {
+                browser = await puppeteer.launch({
+                    headless: 'new',
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-accelerated-2d-canvas',
+                        '--no-first-run',
+                        '--no-zygote',
+                        '--single-process',
+                        '--disable-gpu'
+                    ],
+                    executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
+                });
 
-            const screenshot = await page.screenshot({ 
-                encoding: 'base64',
-                fullPage: false,
-                clip: { x: 0, y: 0, width: 1366, height: 768 }
-            });
+                const page = await browser.newPage();
+                await page.setUserAgent(userAgentPool[0]);
+                await page.setViewport({ width: 1366, height: 768 });
 
-            const advancedInfo = await page.evaluate(() => {
-                return {
-                    finalUrl: window.location.href,
-                    pageText: document.body.innerText.substring(0, 2000),
-                    forms: Array.from(document.forms).map(form => ({
-                        action: form.action,
-                        method: form.method,
-                        inputs: Array.from(form.elements).map(el => ({
-                            type: el.type,
-                            name: el.name,
-                            id: el.id
-                        }))
-                    })),
-                    links: Array.from(document.links).slice(0, 50).map(link => ({
-                        href: link.href,
-                        text: link.textContent.trim()
-                    })),
-                    scripts: Array.from(document.scripts).map(script => script.src).filter(Boolean),
-                    technologies: {
-                        hasJquery: typeof window.jQuery !== 'undefined',
-                        hasReact: typeof window.React !== 'undefined',
-                        hasAngular: typeof window.angular !== 'undefined',
-                        hasVue: typeof window.Vue !== 'undefined'
-                    }
-                };
-            });
+                await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
-            await browser.close();
+                const screenshot = await page.screenshot({ 
+                    encoding: 'base64',
+                    fullPage: false,
+                    clip: { x: 0, y: 0, width: 1366, height: 768 }
+                });
 
-            const formattedData = await formatWithGemini({
-                ...basicInfo,
-                ...advancedInfo,
-                screenshot: `data:image/png;base64,${screenshot}`,
-                captured_at: new Date().toISOString(),
-                capture_method: 'advanced'
-            });
+                const advancedInfo = await page.evaluate(() => {
+                    return {
+                        finalUrl: window.location.href,
+                        pageText: document.body.innerText.substring(0, 2000),
+                        forms: Array.from(document.forms).map(form => ({
+                            action: form.action,
+                            method: form.method,
+                            inputs: Array.from(form.elements).map(el => ({
+                                type: el.type,
+                                name: el.name,
+                                id: el.id
+                            }))
+                        })),
+                        links: Array.from(document.links).slice(0, 50).map(link => ({
+                            href: link.href,
+                            text: link.textContent.trim()
+                        })),
+                        scripts: Array.from(document.scripts).map(script => script.src).filter(Boolean),
+                        technologies: {
+                            hasJquery: typeof window.jQuery !== 'undefined',
+                            hasReact: typeof window.React !== 'undefined',
+                            hasAngular: typeof window.angular !== 'undefined',
+                            hasVue: typeof window.Vue !== 'undefined'
+                        }
+                    };
+                });
 
-            return formattedData;
+                await browser.close();
 
-        } catch (puppeteerError) {
-            console.error(`Puppeteer error during capture: ${puppeteerError.message}`);
-            return await formatWithGemini({
-                ...basicInfo,
-                captured_at: new Date().toISOString(),
-                capture_method: 'basic'
-            });
-        }
+                return await formatWithGemini({
+                    ...basicInfo,
+                    ...advancedInfo,
+                    screenshot: `data:image/png;base64,${screenshot}`,
+                    captured_at: new Date().toISOString(),
+                    capture_method: 'advanced'
+                });
 
-    } catch (error) {
-        if (retries > 0) {
-            await sleep(5000);
-            return captureAdvancedInfo(url, retries - 1);
-        }
-        console.error(`Capture error: ${error.message}`);
-        return await formatWithGemini({
-            url,
-            error: error.message,
-            captured_at: new Date().toISOString(),
-            capture_method: 'failed'
-        });
-    } finally {
-        if (browser) {
-            try { await browser.close(); } catch (e) {}
+            } catch (puppeteerError) {
+                return await formatWithGemini({
+                    ...basicInfo,
+                    captured_at: new Date().toISOString(),
+                    capture_method: 'basic'
+                });
+            }
+
+        } catch (error) {
+            if (attempt === retries) {
+                return await formatWithGemini({
+                    url,
+                    error: error.message,
+                    captured_at: new Date().toISOString(),
+                    capture_method: 'failed'
+                });
+            }
+            await sleep(3000);
+        } finally {
+            if (browser) {
+                try { await browser.close(); } catch (e) {}
+            }
         }
     }
 }
@@ -815,35 +775,12 @@ app.post('/api/search/:platform', async (req, res) => {
             success: true,
             platform,
             username,
-            count: results.length,
+            count: JSON.parse(results).length,
             results
         });
     } catch (error) {
         res.status(500).json({ 
             error: `${platform} search failed`, 
-            details: error.message 
-        });
-    }
-});
-
-app.post('/api/cross-platform-search', async (req, res) => {
-    const { username } = req.body;
-
-    if (!username) {
-        return res.status(400).json({ error: 'Username is required' });
-    }
-
-    try {
-        const results = await searchCrossPlatform(username);
-        res.json({
-            success: true,
-            username,
-            count: results.total_results,
-            results: results.results
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            error: 'Cross-platform search failed', 
             details: error.message 
         });
     }
@@ -863,7 +800,7 @@ app.post('/api/search-phone/:platform', async (req, res) => {
             success: true,
             platform,
             username,
-            count: results.length,
+            count: JSON.parse(results).length,
             results
         });
     } catch (error) {
@@ -885,25 +822,23 @@ app.post('/api/advanced-search', async (req, res) => {
         const results = [];
 
         if (sources.includes('bing')) {
-            const bingResults = await searchBingAdvanced(query, 3);
+            const bingResults = JSON.parse(await searchBingAdvanced(query, 3));
             results.push(...bingResults);
         }
 
         if (sources.includes('duckduckgo')) {
-            const ddgResults = await searchDuckDuckGoAdvanced(query, maxResults);
+            const ddgResults = JSON.parse(await searchDuckDuckGoAdvanced(query, maxResults));
             results.push(...ddgResults);
         }
 
-        const formattedResults = await formatWithGemini({
-            query,
-            sources_used: sources,
-            total: results.length,
-            results
-        });
+        const formattedResults = await formatWithGemini(results);
 
         res.json({
             success: true,
-            ...formattedResults
+            query,
+            sources_used: sources,
+            total: results.length,
+            results: formattedResults
         });
     } catch (error) {
         res.status(500).json({ 
@@ -948,23 +883,21 @@ app.post('/api/batch-investigate', async (req, res) => {
         for (let i = 0; i < usernames.length; i++) {
             const username = usernames[i];
             const investigation = await performComprehensiveSearch(username);
-            investigations.push(investigation);
+            investigations.push(JSON.parse(investigation));
             await sleep(5000);
         }
 
-        const formattedInvestigations = await formatWithGemini({
+        const formattedInvestigations = await formatWithGemini(investigations);
+
+        res.json({
+            success: true,
             batch_id: uuidv4(),
             total_investigated: investigations.length,
             summary: {
                 total_results: investigations.reduce((sum, inv) => sum + inv.total_results, 0),
                 avg_results_per_user: Math.round(investigations.reduce((sum, inv) => sum + inv.total_results, 0) / investigations.length)
             },
-            investigations
-        });
-
-        res.json({
-            success: true,
-            ...formattedInvestigations
+            investigations: formattedInvestigations
         });
 
     } catch (error) {
@@ -979,13 +912,12 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.4.0-railway',
+        version: '3.3.1-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
             'Advanced Multi-Engine Search',
             'Deep Social Media Investigation',
-            'Cross-Platform Account Discovery',
             'Comprehensive OSINT Framework',
             'Enhanced Web Capture',
             'Contact Extraction',
@@ -996,7 +928,7 @@ app.get('/health', (req, res) => {
             'Browser Fingerprinting',
             'Social Media Metadata Extraction',
             'Phone Number Search',
-            'Gemini AI Data Formatting'
+            'Gemini AI Formatting'
         ],
         supported_platforms: Object.keys(socialMediaPatterns)
     });
