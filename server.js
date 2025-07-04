@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const { v4: uuidv4 } = require('uuid');
 const tough = require('tough-cookie');
 const puppeteer = require('puppeteer');
+const { PromisePool } = require('@supercharge/promise-pool');
 
 const GEMINI_API_KEY = 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI'; // Replace with your actual Gemini API key
 
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-// Expanded User Agent Pool (20+ entries)
+// Expanded User Agent Pool (25 entries)
 const userAgentPool = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
@@ -37,7 +38,10 @@ const userAgentPool = [
     'Mozilla/5.0 (Android 14; Mobile; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.2739.42',
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    'Mozilla/5.0 (Android 13; Mobile; SM-A525F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 OPR/113.0.0.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1'
 ];
 
 // Enhanced Headers Configuration
@@ -63,7 +67,8 @@ const getAdvancedHeaders = (referer = null, isXHR = false) => {
 function generateRandomIP() {
     const ranges = [
         [8, 8, 8, 8], [1, 1, 1, 1], [208, 67, 222, 222],
-        [4, 2, 2, 1], [64, 6, 64, 6], [185, 228, 168, 9]
+        [4, 2, 2, 1], [64, 6, 64, 6], [185, 228, 168, 9],
+        [172, 217, 0, 0], [104, 16, 0, 0], [198, 51, 100, 0]
     ];
     const range = ranges[Math.floor(Math.random() * ranges.length)];
     return range.map(num => num + Math.floor(Math.random() * 10)).join('.');
@@ -88,6 +93,9 @@ async function enhanceWithGemini(content, context) {
                 }]
             })
         });
+        if (!response.ok) {
+            throw new Error(`Gemini API request failed: ${response.statusText}`);
+        }
         const data = await response.json();
         return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     } catch (error) {
@@ -119,51 +127,68 @@ async function scrapeSocialMediaProfile(url, platform) {
         await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
         await page.setViewport({ width: 1366, height: 768 });
 
+        // Add request interception for better resource control
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
         const profileData = await page.evaluate((platform) => {
-            const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
+            const getText = (selector) => {
+                const element = document.querySelector(selector);
+                return element ? element.textContent?.trim() || '' : '';
+            };
+            const getAllText = (selector) => {
+                const elements = document.querySelectorAll(selector);
+                return elements.length ? Array.from(elements).map(el => el.textContent?.trim() || '').join(' ') : '';
+            };
 
             const platformSelectors = {
                 tiktok: {
-                    bio: '[data-testid="user-bio"]',
-                    followers: '[data-testid="user-followers"] strong',
-                    posts: '[data-testid="user-videos"] strong'
+                    bio: '[data-testid="user-bio"], .tiktok-bio, .bio-text',
+                    followers: '[data-testid="user-followers"] strong, .follower-count, .tiktok-followers',
+                    posts: '[data-testid="user-videos"] strong, .video-count, .tiktok-posts'
                 },
                 instagram: {
-                    bio: '._aa_y div div span',
-                    followers: 'a[href*="/followers/"] span',
-                    posts: 'span._ac2a'
+                    bio: '._aa_y div div span, .bio, .profile-bio',
+                    followers: 'a[href*="/followers/"] span, .follower-count, .ig-followers',
+                    posts: 'span._ac2a, .post-count, .ig-posts'
                 },
                 twitter: {
-                    bio: '[data-testid="UserDescription"]',
-                    followers: '[data-testid="followers"] span',
-                    posts: '[data-testid="tweet"]'
+                    bio: '[data-testid="UserDescription"], .profile-bio, .twitter-bio',
+                    followers: '[data-testid="followers"] span, .follower-count, .twitter-followers',
+                    posts: '[data-testid="tweet"], .tweet-count, .twitter-posts'
                 },
                 facebook: {
-                    bio: 'div.x1heor9g div.x1iorvi4 span',
-                    followers: 'span.x1e558r4',
-                    posts: 'div.x1n2onr6 div.x1yztbdb'
+                    bio: 'div.x1heor9g div.x1iorvi4 span, .fb-bio, .profile-bio',
+                    followers: 'span.x1e558r4, .fb-followers, .follower-count',
+                    posts: 'div.x1n2onr6 div.x1yztbdb, .fb-posts, .post-count'
                 },
                 youtube: {
-                    bio: '#description.ytd-channel-about-metadata-renderer',
-                    followers: '#subscriber-count',
-                    posts: 'ytd-grid-video-renderer'
+                    bio: '#description.ytd-channel-about-metadata-renderer, .yt-bio, .channel-bio',
+                    followers: '#subscriber-count, .yt-subscribers, .subscriber-count',
+                    posts: 'ytd-grid-video-renderer, .yt-videos, .video-count'
                 },
                 linkedin: {
-                    bio: '.pv-about-section .pv-about__summary-text',
-                    followers: '.follower-count',
-                    posts: '.share-box-feed-entry'
+                    bio: '.pv-about-section .pv-about__summary-text, .linkedin-bio, .about-section',
+                    followers: '.follower-count, .linkedin-followers, .connections',
+                    posts: '.share-box-feed-entry, .linkedin-posts, .activity-count'
                 },
                 github: {
-                    bio: '.p-bio',
-                    followers: 'a[href*="/followers"] .text-bold',
-                    posts: '.js-repos-container'
+                    bio: '.p-bio, .github-bio, .user-bio',
+                    followers: 'a[href*="/followers"] .text-bold, .github-followers, .follower-count',
+                    posts: '.js-repos-container, .repo-count, .github-repos'
                 },
                 reddit: {
-                    bio: '.profile-bio',
-                    followers: '.profile-followers',
-                    posts: '.Post'
+                    bio: '.profile-bio, .reddit-bio, .user-bio',
+                    followers: '.profile-followers, .reddit-followers, .follower-count',
+                    posts: '.Post, .reddit-posts, .post-count'
                 }
             };
 
@@ -171,12 +196,12 @@ async function scrapeSocialMediaProfile(url, platform) {
             return {
                 bio: getText(selectors.bio),
                 followers: getText(selectors.followers),
-                postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts)
+                postCount: getAllText(selectors.posts) || document.querySelectorAll(selectors.posts)?.length || ''
             };
         }, platform);
 
         const pageContent = await page.evaluate(() => document.body.innerText);
-        const aiSummary = await enhanceWithGemini(pageContent, `Social media profile analysis for ${platform}`);
+        const aiSummary = await enhanceWithGemini(pageContent, `Social media profile analysis for ${platform} at ${url}`);
 
         const screenshot = await page.screenshot({ 
             encoding: 'base64',
@@ -204,26 +229,30 @@ async function scrapeSocialMediaProfile(url, platform) {
 // Find All Social Media Accounts
 async function findAllSocialMediaAccounts(username) {
     const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
-    const allAccounts = [];
+    
+    // Parallel processing with concurrency limit
+    const { results, errors } = await PromisePool
+        .withConcurrency(3)
+        .for(platforms)
+        .process(async (platform) => {
+            try {
+                const results = await searchSocialMediaAdvanced(username, platform);
+                return results.map(result => ({
+                    platform,
+                    url: result.url,
+                    bio: result.bio || '',
+                    followers: result.followers || '',
+                    postCount: result.postCount || '',
+                    aiSummary: result.aiSummary || '',
+                    screenshot: result.screenshot || ''
+                }));
+            } catch (error) {
+                console.error(`Error finding accounts on ${platform}:`, error.message);
+                return [];
+            }
+        });
 
-    for (const platform of platforms) {
-        try {
-            const results = await searchSocialMediaAdvanced(username, platform);
-            allAccounts.push(...results.map(result => ({
-                platform,
-                url: result.url,
-                bio: result.bio || '',
-                followers: result.followers || '',
-                postCount: result.postCount || '',
-                aiSummary: result.aiSummary || '',
-                screenshot: result.screenshot || ''
-            })));
-            await sleep(2000);
-        } catch (error) {
-            console.error(`Error finding accounts on ${platform}:`, error.message);
-        }
-    }
-
+    const allAccounts = results.flat();
     const uniqueAccounts = allAccounts.filter((account, index, self) => 
         index === self.findIndex(a => a.url === account.url)
     );
@@ -292,6 +321,7 @@ async function searchBingAdvanced(query, maxPages = 5) {
                 await sleep(10000);
                 continue;
             }
+            console.error('Bing search error:', error.message);
             break;
         }
     }
@@ -367,6 +397,7 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
             if (results.length > 0) return results;
 
         } catch (error) {
+            console.error('DuckDuckGo search error:', error.message);
             continue;
         }
     }
@@ -433,7 +464,7 @@ async function searchSocialMediaAdvanced(username, platform) {
 
 // Phone Number Search (+62 only)
 async function searchPhoneNumberAdvanced(phoneNumber, platform) {
-    if (!phoneNumber.startsWith('+62')) {
+    if (!phoneNumber.startsWith('+62') || !/^\+62\d{9,11}$/.test(phoneNumber)) {
         return [];
     }
 
@@ -499,16 +530,24 @@ async function performComprehensiveSearch(username) {
     };
 
     const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
-    for (const platform of platforms) {
-        try {
-            const platformResults = await searchSocialMediaAdvanced(username, platform);
-            results.social_media[platform] = platformResults;
-            results.total_results += platformResults.length;
-            await sleep(2000);
-        } catch (error) {
-            results.social_media[platform] = [];
-        }
-    }
+    
+    // Parallel processing for social media searches
+    const { results: platformResults } = await PromisePool
+        .withConcurrency(3)
+        .for(platforms)
+        .process(async (platform) => {
+            try {
+                const platformResults = await searchSocialMediaAdvanced(username, platform);
+                return { platform, results: platformResults };
+            } catch (error) {
+                return { platform, results: [] };
+            }
+        });
+
+    platformResults.forEach(({ platform, results }) => {
+        results.social_media[platform] = results;
+        results.total_results += results.length;
+    });
 
     const generalQueries = [
         `"${username}" profile`,
@@ -613,6 +652,9 @@ async function performComprehensiveSearch(username) {
                            results.leaked_data.length +
                            results.professional_info.length;
 
+    const aiSummary = await enhanceWithGemini(allText, `Comprehensive analysis for user ${username}`);
+    results.aiSummary = aiSummary;
+
     console.log(`Investigation complete for ${username}. Total results: ${results.total_results}`);
     return results;
 }
@@ -623,7 +665,7 @@ function extractAdvancedContactInfo(text) {
     const phoneRegex = /\+62\d{9,11}/g;
     const usernameRegex = /@([a-zA-Z0-9_]+)/g;
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
-    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube)\.com\/[\w.-]+/gi;
+    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube|github|reddit)\.com\/[\w.-]+/gi;
 
     return {
         emails: [...new Set(text.match(emailRegex) || [])],
@@ -675,8 +717,17 @@ async function captureAdvancedInfo(url) {
             });
 
             const page = await browser.newPage();
-            await page.setUserAgent(userAgentPool[0]);
+            await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
             await page.setViewport({ width: 1366, height: 768 });
+
+            await page.setRequestInterception(true);
+            page.on('request', (request) => {
+                if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+                    request.abort();
+                } else {
+                    request.continue();
+                }
+            });
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
@@ -847,11 +898,17 @@ app.post('/api/advanced-search', async (req, res) => {
             results.push(...ddgResults);
         }
 
+        const aiSummary = await enhanceWithGemini(
+            results.map(r => `${r.title}: ${r.snippet}`).join('\n'),
+            `Advanced search results for query: ${query}`
+        );
+
         res.json({
             success: true,
             query,
             sources_used: sources,
             total: results.length,
+            aiSummary,
             results: formatResults(results)
         });
     } catch (error) {
@@ -898,13 +955,19 @@ app.post('/api/batch-investigate', async (req, res) => {
             await sleep(5000);
         }
 
+        const aiSummary = await enhanceWithGemini(
+            JSON.stringify(investigations),
+            `Batch investigation summary for ${usernames.length} users`
+        );
+
         res.json({
             success: true,
             batch_id: uuidv4(),
             total_investigated: investigations.length,
             summary: {
                 total_results: investigations.reduce((sum, inv) => sum + inv.total_results, 0),
-                avg_results_per_user: Math.round(investigations.reduce((sum, inv) => sum + inv.total_results, 0) / investigations.length)
+                avg_results_per_user: Math.round(investigations.reduce((sum, inv) => sum + inv.total_results, 0) / investigations.length),
+                aiSummary
             },
             investigations
         });
@@ -920,12 +983,13 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.5.0-railway',
+        version: '3.6.0-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
             'AI-Powered Scraping',
             'Multi-Platform Account Discovery',
+            'Parallel Social Media Search',
             'Advanced Multi-Engine Search',
             'Deep Social Media Investigation',
             'Comprehensive OSINT Framework',
@@ -952,13 +1016,13 @@ function formatResults(data) {
     if (Array.isArray(data)) {
         return data.map(item => ({
             ...item,
-            title: item.title ? `<strong class="text-lg text-gray-800">${item.title}</strong>` : '',
-            snippet: item.snippet ? `<p class="text-gray-600 mt-1">${item.snippet}</p>` : '',
-            bio: item.bio ? `<div class="text-gray-700 italic mt-1">${item.bio}</div>` : '',
-            aiSummary: item.aiSummary ? `<div class="bg-gray-50 p-3 rounded-lg mt-2">AI Summary: ${item.aiSummary}</div>` : '',
-            url: item.url ? `<a href="${item.url}" class="text-blue-600 hover:underline">${item.url}</a>` : '',
-            phone: item.phone ? `<span class="text-green-600">${item.phone}</span>` : '',
-            platform: item.platform ? `<span class="text-purple-600">${item.platform}</span>` : ''
+            title: item.title ? `<strong class="text-lg text-gray-200">${item.title}</strong>` : '',
+            snippet: item.snippet ? `<p class="text-gray-400 mt-1">${item.snippet}</p>` : '',
+            bio: item.bio ? `<div class="text-gray-300 italic mt-1">${item.bio}</div>` : '',
+            aiSummary: item.aiSummary ? `<div class="bg-gray-800 p-3 rounded-lg mt-2 text-gray-300">AI Summary: ${item.aiSummary}</div>` : '',
+            url: item.url ? `<a href="${item.url}" class="text-gray-300 hover:underline">${item.url}</a>` : '',
+            phone: item.phone ? `<span class="text-green-400">${item.phone}</span>` : '',
+            platform: item.platform ? `<span class="text-purple-400">${item.platform}</span>` : ''
         }));
     } else if (typeof data === 'object' && data !== null) {
         const formatted = { ...data };
@@ -977,4 +1041,3 @@ function formatResults(data) {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`OSINT Investigation Platform running on port ${PORT}`);
 });
-
