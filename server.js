@@ -73,7 +73,7 @@ const sleep = (ms) => new Promise(resolve =>
     setTimeout(resolve, ms + Math.floor(Math.random() * 1000))
 );
 
-// Enhanced Social Media Scraping
+// Advanced Social Media Scraping
 async function scrapeSocialMediaProfile(url, platform) {
     let browser;
     try {
@@ -94,7 +94,7 @@ async function scrapeSocialMediaProfile(url, platform) {
 
         const page = await browser.newPage();
         await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
-        await page.setViewport({ width: 1366, height: 768 });
+        await page.setViewport({ width: 360, height: 640 }); // Mobile viewport
 
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
@@ -104,52 +104,52 @@ async function scrapeSocialMediaProfile(url, platform) {
 
             const platformSelectors = {
                 tiktok: {
-                    profilePic: 'img[data-testid="user-avatar"], img[alt*="profile"]',
-                    bio: '[data-testid="user-bio"], .tiktok-bio',
-                    followers: '[data-testid="user-followers"] strong, .follower-count',
-                    posts: '[data-testid="user-videos"] strong, .video-count'
+                    profilePic: 'img[data-testid="user-avatar"]',
+                    bio: '[data-testid="user-bio"]',
+                    followers: '[data-testid="user-followers"] strong',
+                    posts: '[data-testid="user-videos"] strong'
                 },
                 instagram: {
-                    profilePic: 'img[alt*="profile picture"], img.x1lliihq',
-                    bio: '._aa_y div div span, .x1q0g3np',
-                    followers: 'a[href*="/followers/"] span, span._ac2a',
-                    posts: 'span._ac2a, .g47sy2n'
+                    profilePic: 'img[alt*="profile picture"]',
+                    bio: '._aa_y div div span',
+                    followers: 'a[href*="/followers/"] span',
+                    posts: 'span._ac2a'
                 },
                 twitter: {
-                    profilePic: 'img[alt="Profile picture"], img[alt*="avatar"]',
-                    bio: '[data-testid="UserDescription"], .r-1f6r7vd',
-                    followers: '[data-testid="followers"] span, a[href*="/followers"] span',
-                    posts: '[data-testid="tweet"], article'
+                    profilePic: 'img[alt="Profile picture"]',
+                    bio: '[data-testid="UserDescription"]',
+                    followers: '[data-testid="followers"] span',
+                    posts: '[data-testid="tweet"]'
                 },
                 facebook: {
-                    profilePic: 'img.x1y9k2m, img[alt*="profile"]',
-                    bio: 'div.x1heor9g div.x1iorvi4 span, .x1yztbdb',
-                    followers: 'span.x1e558r4, .follower-count',
-                    posts: 'div.x1n2onr6 div.x1yztbdb, .x1gslohp'
+                    profilePic: 'img.x1y9k2m',
+                    bio: 'div.x1heor9g div.x1iorvi4 span',
+                    followers: 'span.x1e558r4',
+                    posts: 'div.x1n2onr6 div.x1yztbdb'
                 },
                 youtube: {
-                    profilePic: 'img#img, img[alt*="channel"]',
-                    bio: '#description.ytd-channel-about-metadata-renderer, .ytd-channel-about',
-                    followers: '#subscriber-count, .yt-subscriber-count',
-                    posts: 'ytd-grid-video-renderer, .ytd-video-renderer'
+                    profilePic: 'img#img',
+                    bio: '#description.ytd-channel-about-metadata-renderer',
+                    followers: '#subscriber-count',
+                    posts: 'ytd-grid-video-renderer'
                 },
                 linkedin: {
-                    profilePic: 'img.pv-top-card--photo, img[alt*="profile"]',
-                    bio: '.pv-about-section .pv-about__summary-text, .t-14.t-black',
-                    followers: '.follower-count, .pvs-profile-actions__action',
-                    posts: '.share-box-feed-entry, .feed-shared-update-v2'
+                    profilePic: 'img.pv-top-card--photo',
+                    bio: '.pv-about-section .pv-about__summary-text',
+                    followers: '.follower-count',
+                    posts: '.share-box-feed-entry'
                 },
                 github: {
-                    profilePic: 'img.avatar-user, img[alt*="avatar"]',
-                    bio: '.p-bio, .js-profile-editable-area',
-                    followers: 'a[href*="/followers"] .text-bold, .follower-count',
-                    posts: '.js-repos-container, .repository'
+                    profilePic: 'img.avatar-user',
+                    bio: '.p-bio',
+                    followers: 'a[href*="/followers"] .text-bold',
+                    posts: '.js-repos-container'
                 },
                 reddit: {
-                    profilePic: 'img[alt="User avatar"], img._2XMr7a1V0gNpn',
-                    bio: '.profile-bio, .user-profile-bio',
-                    followers: '.profile-followers, .karma',
-                    posts: '.Post, .user-feed-post'
+                    profilePic: 'img[alt="User avatar"]',
+                    bio: '.profile-bio',
+                    followers: '.profile-followers',
+                    posts: '.Post'
                 }
             };
 
@@ -158,15 +158,14 @@ async function scrapeSocialMediaProfile(url, platform) {
                 profilePic: getImage(selectors.profilePic),
                 bio: getText(selectors.bio),
                 followers: getText(selectors.followers),
-                postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts),
-                location: getText('[data-testid="UserLocation"], .location, .user-location')
+                postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts)
             };
         }, platform);
 
         const screenshot = await page.screenshot({ 
             encoding: 'base64',
             fullPage: false,
-            clip: { x: 0, y: 0, width: 1366, height: 768 }
+            clip: { x: 0, y: 0, width: 360, height: 640 }
         });
 
         await browser.close();
@@ -333,19 +332,7 @@ const socialMediaPatterns = {
     reddit: ['site:reddit.com/u "{username}"', 'reddit.com/u/{username}', '"{username}" reddit user']
 };
 
-// Location-Based Social Media Search Patterns
-const locationPatterns = {
-    tiktok: ['site:tiktok.com in:{location}', 'from:{location} tiktok', '"{location}" tiktok profile'],
-    facebook: ['site:facebook.com in:{location}', 'from:{location} facebook', '"{location}" facebook profile'],
-    instagram: ['site:instagram.com in:{location}', 'from:{location} instagram', '"{location}" instagram'],
-    youtube: ['site:youtube.com in:{location}', 'from:{location} youtube', '"{location}" youtube channel'],
-    twitter: ['site:twitter.com in:{location}', 'from:{location} twitter', '"{location}" twitter profile'],
-    linkedin: ['site:linkedin.com in:{location}', 'from:{location} linkedin', '"{location}" linkedin profile'],
-    github: ['site:github.com in:{location}', 'from:{location} github', '"{location}" github profile'],
-    reddit: ['site:reddit.com in:{location}', 'from:{location} reddit', '"{location}" reddit user']
-};
-
-// Advanced Social Media Search (Platform-Specific)
+// Advanced Social Media Search
 async function searchSocialMediaAdvanced(username, platform) {
     const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
     const allResults = [];
@@ -380,54 +367,6 @@ async function searchSocialMediaAdvanced(username, platform) {
             }
 
             await sleep(1500);
-
-        } catch (error) {
-            // Silent error handling
-        }
-    }
-
-    const uniqueResults = allResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.url === result.url)
-    );
-
-    return uniqueResults;
-}
-
-// Location-Based Social Media Search
-async function searchLocationBasedSocialMedia(location, platform) {
-    const patterns = locationPatterns[platform] || [`site:${platform}.com in:${location}`];
-    const allResults = [];
-
-    for (const pattern of patterns) {
-        const query = pattern.replace(/{location}/g, location);
-
-        try {
-            const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(query, 3),
-                searchDuckDuckGoAdvanced(query, 30)
-            ]);
-
-            const combinedResults = [...bingResults, ...ddgResults];
-
-            for (const result of combinedResults) {
-                const targetDomain = {
-                    tiktok: 'tiktok.com',
-                    facebook: 'facebook.com',
-                    instagram: 'instagram.com',
-                    youtube: 'youtube.com',
-                    twitter: 'twitter.com',
-                    linkedin: 'linkedin.com',
-                    github: 'github.com',
-                    reddit: 'reddit.com'
-                }[platform];
-
-                if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
-                    const profileData = await scrapeSocialMediaProfile(result.url, platform);
-                    allResults.push({ ...result, ...profileData, platform, query, location });
-                }
-            }
-
-            await sleep(2000);
 
         } catch (error) {
             // Silent error handling
@@ -687,14 +626,14 @@ async function captureAdvancedInfo(url) {
 
             const page = await browser.newPage();
             await page.setUserAgent(userAgentPool[0]);
-            await page.setViewport({ width: 1366, height: 768 });
+            await page.setViewport({ width: 360, height: 640 }); // Mobile viewport
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
             const screenshot = await page.screenshot({ 
                 encoding: 'base64',
                 fullPage: false,
-                clip: { x: 0, y: 0, width: 1366, height: 768 }
+                clip: { x: 0, y: 0, width: 360, height: 640 }
             });
 
             const advancedInfo = await page.evaluate(() => {
@@ -801,31 +740,6 @@ app.post('/api/search/:platform', async (req, res) => {
     } catch (error) {
         res.status(500).json({ 
             error: `${platform} search failed`, 
-            details: error.message 
-        });
-    }
-});
-
-app.post('/api/search-location/:platform', async (req, res) => {
-    const { platform } = req.params;
-    const { location } = req.body;
-
-    if (!location) {
-        return res.status(400).json({ error: 'Location is required' });
-    }
-
-    try {
-        const results = await searchLocationBasedSocialMedia(location, platform);
-        res.json({
-            success: true,
-            platform,
-            location,
-            count: results.length,
-            results
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            error: `${platform} location search failed`, 
             details: error.message 
         });
     }
@@ -953,13 +867,12 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.4.0-railway',
+        version: '3.3.0-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
             'Advanced Multi-Engine Search',
             'Deep Social Media Investigation',
-            'Location-Based Social Media Search',
             'Comprehensive OSINT Framework',
             'Enhanced Web Capture',
             'Contact Extraction',
@@ -969,8 +882,7 @@ app.get('/health', (req, res) => {
             'Rate Limiting & Evasion',
             'Browser Fingerprinting',
             'Social Media Metadata Extraction',
-            'Phone Number Search',
-            'AI-Powered Profile Analysis'
+            'Phone Number Search'
         ],
         supported_platforms: Object.keys(socialMediaPatterns)
     });
