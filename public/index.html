@@ -21,39 +21,81 @@
         }
 
         .container {
-            display: flex;
             flex: 1;
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
         }
 
-        .sidebar {
-            width: 300px;
-            background-color: #fff;
+        .chat-container {
+            flex: 1;
             padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            height: 100%;
             overflow-y: auto;
-            z-index: 100;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .sidebar h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #222;
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .user-message {
+            background-color: #007bff;
+            color: #fff;
+            margin-left: auto;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-right: auto;
+            border-bottom-left-radius: 2px;
+        }
+
+        .bot-message pre {
+            white-space: pre-wrap;
+            font-size: 13px;
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .bot-message h1, .bot-message h2, .bot-message h3 {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .bot-message ul, .bot-message ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .bot-message li {
+            margin-bottom: 5px;
         }
 
         .search-container {
             position: fixed;
             bottom: 20px;
-            left: 20px;
-            width: 280px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
             display: flex;
             align-items: center;
             background-color: #fff;
             border-radius: 25px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             padding: 10px;
+            z-index: 100;
         }
 
         .search-container input {
@@ -61,7 +103,7 @@
             border: none;
             outline: none;
             padding: 10px;
-            font-size: 16px;
+            font-size: 14px;
             background: transparent;
         }
 
@@ -73,16 +115,17 @@
         }
 
         .search-container button img {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             filter: invert(20%);
         }
 
         .settings-icon {
-            position: absolute;
+            position: fixed;
             top: 20px;
             right: 20px;
             cursor: pointer;
+            z-index: 100;
         }
 
         .settings-icon img {
@@ -93,7 +136,7 @@
 
         .settings-menu {
             display: none;
-            position: absolute;
+            position: fixed;
             top: 50px;
             right: 20px;
             background-color: #fff;
@@ -109,14 +152,14 @@
         }
 
         .settings-menu h3 {
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 10px;
         }
 
         .settings-menu label {
             display: block;
             margin: 5px 0;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .settings-menu input[type="checkbox"] {
@@ -129,36 +172,7 @@
             margin-top: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
-        }
-
-        .main-content {
-            margin-left: 320px;
-            padding: 20px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .results {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .results h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            color: #222;
-        }
-
-        .results pre {
-            background-color: #f8f8f8;
-            padding: 15px;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 12px;
         }
 
         .loader {
@@ -169,10 +183,10 @@
 
         .loader::after {
             content: '';
-            width: 24px;
-            height: 24px;
-            border: 4px solid #333;
-            border-top: 4px solid #666;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #333;
+            border-top: 3px solid #666;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             display: inline-block;
@@ -184,71 +198,109 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: static;
-                box-shadow: none;
-            }
-
             .search-container {
                 width: calc(100% - 40px);
-                left: 20px;
-                bottom: 20px;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 10px;
             }
 
             .settings-menu {
                 width: calc(100% - 40px);
                 right: 20px;
-                top: 60px;
+            }
+
+            .chat-container {
+                padding: 10px;
+            }
+
+            .message {
+                max-width: 90%;
+                font-size: 13px;
+            }
+
+            .bot-message pre {
+                font-size: 12px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="sidebar">
-            <h1>OSINT Platform</h1>
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Enter username...">
-                <button onclick="performSearch()">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M12 5l7 7-7 7'/%3E%3C/svg%3E" alt="Search">
-                </button>
-            </div>
-            <div class="settings-icon" onclick="toggleSettings()">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E" alt="Settings">
-            </div>
-            <div class="settings-menu" id="settingsMenu">
-                <h3>Search Options</h3>
-                <label><input type="checkbox" id="bingSource" checked> Bing</label>
-                <label><input type="checkbox" id="ddgSource" checked> DuckDuckGo</label>
-                <label><input type="checkbox" id="tiktokPlatform" checked> TikTok</label>
-                <label><input type="checkbox" id="facebookPlatform" checked> Facebook</label>
-                <label><input type="checkbox" id="instagramPlatform" checked> Instagram</label>
-                <label><input type="checkbox" id="youtubePlatform" checked> YouTube</label>
-                <label><input type="checkbox" id="twitterPlatform" checked> Twitter</label>
-                <label><input type="checkbox" id="linkedinPlatform" checked> LinkedIn</label>
-                <label><input type="checkbox" id="githubPlatform" checked> GitHub</label>
-                <label><input type="checkbox" id="redditPlatform" checked> Reddit</label>
-                <label>Max Results: <input type="number" id="maxResults" value="50" min="10" max="100"></label>
-            </div>
+        <div class="chat-container" id="chatContainer">
+            <!-- Messages will be appended here -->
         </div>
-        <div class="main-content">
-            <div class="loader" id="loader"></div>
-            <div class="results" id="results"></div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Enter username...">
+            <button onclick="performSearch()">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M12 5l7 7-7 7'/%3E%3C/svg%3E" alt="Search">
+            </button>
+        </div>
+        <div class="settings-icon" onclick="toggleSettings()">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E" alt="Settings">
+        </div>
+        <div class="settings-menu" id="settingsMenu">
+            <h3>Search Options</h3>
+            <label><input type="checkbox" id="bingSource" checked> Bing</label>
+            <label><input type="checkbox" id="ddgSource" checked> DuckDuckGo</label>
+            <label><input type="checkbox" id="tiktokPlatform" checked> TikTok</label>
+            <label><input type="checkbox" id="facebookPlatform" checked> Facebook</label>
+            <label><input type="checkbox" id="instagramPlatform" checked> Instagram</label>
+            <label><input type="checkbox" id="youtubePlatform" checked> YouTube</label>
+            <label><input type="checkbox" id="twitterPlatform" checked> Twitter (X)</label>
+            <label><input type="checkbox" id="pinterestPlatform" checked> Pinterest</label>
+            <label><input type="checkbox" id="githubPlatform" checked> GitHub</label>
+            <label><input type="checkbox" id="telegramPlatform" checked> Telegram</label>
+            <label><input type="checkbox" id="linkedinPlatform" checked> LinkedIn</label>
+            <label><input type="checkbox" id="redditPlatform" checked> Reddit</label>
+            <label><input type="checkbox" id="snapchatPlatform" checked> Snapchat</label>
+            <label><input type="checkbox" id="tumblrPlatform" checked> Tumblr</label>
+            <label><input type="checkbox" id="weiboPlatform" checked> Weibo</label>
+            <label><input type="checkbox" id="vkPlatform" checked> VK</label>
+            <label><input type="checkbox" id="discordPlatform" checked> Discord</label>
+            <label><input type="checkbox" id="twitchPlatform" checked> Twitch</label>
+            <label><input type="checkbox" id="mediumPlatform" checked> Medium</label>
+            <label><input type="checkbox" id="quoraPlatform" checked> Quora</label>
+            <label><input type="checkbox" id="flickrPlatform" checked> Flickr</label>
+            <label><input type="checkbox" id="behancePlatform" checked> Behance</label>
+            <label><input type="checkbox" id="dribbblePlatform" checked> Dribbble</label>
+            <label><input type="checkbox" id="soundcloudPlatform" checked> SoundCloud</label>
+            <label><input type="checkbox" id="mastodonPlatform" checked> Mastodon</label>
+            <label>Max Results: <input type="number" id="maxResults" value="2" min="1" max="50"></label>
         </div>
     </div>
     <script>
+        // Gemini AI API key (replace with your actual key)
+        const GEMINI_API_KEY = 'AIzaSyBy6dWTt2Ezq1_RJ9tK5pTmMYW3NWmUhrk';
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+        // Function to format data with Gemini AI
+        async function formatWithGemini(data) {
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Format the following scraped data into a clean, structured, and readable markdown format. Ensure the output is professional, concise, and well-organized with clear headings, bullet points, and a compact style suitable for a chat interface. Data: ${JSON.stringify(data, null, 2)}`
+                            }]
+                        }]
+                    })
+                });
+
+                const result = await response.json();
+                return result.candidates[0].content.parts[0].text;
+            } catch (error) {
+                console.error('Gemini API error:', error.message);
+                return '```json\n' + JSON.stringify(data, null, 2) + '\n```'; // Fallback to raw JSON
+            }
+        }
+
+        // Function to toggle settings menu
         function toggleSettings() {
             const settingsMenu = document.getElementById('settingsMenu');
             settingsMenu.classList.toggle('show');
         }
 
+        // Function to perform search
         async function performSearch() {
             const username = document.getElementById('searchInput').value.trim();
             if (!username) {
@@ -256,10 +308,17 @@
                 return;
             }
 
-            const loader = document.getElementById('loader');
-            const resultsDiv = document.getElementById('results');
-            loader.style.display = 'block';
-            resultsDiv.innerHTML = '';
+            const chatContainer = document.getElementById('chatContainer');
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            chatContainer.appendChild(loader);
+
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.textContent = username;
+            chatContainer.appendChild(userMessage);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
             const sources = [];
             if (document.getElementById('bingSource').checked) sources.push('bing');
@@ -271,37 +330,68 @@
             if (document.getElementById('instagramPlatform').checked) platforms.push('instagram');
             if (document.getElementById('youtubePlatform').checked) platforms.push('youtube');
             if (document.getElementById('twitterPlatform').checked) platforms.push('twitter');
-            if (document.getElementById('linkedinPlatform').checked) platforms.push('linkedin');
+            if (document.getElementById('pinterestPlatform').checked) platforms.push('pinterest');
             if (document.getElementById('githubPlatform').checked) platforms.push('github');
+            if (document.getElementById('telegramPlatform').checked) platforms.push('telegram');
+            if (document.getElementById('linkedinPlatform').checked) platforms.push('linkedin');
             if (document.getElementById('redditPlatform').checked) platforms.push('reddit');
+            if (document.getElementById('snapchatPlatform').checked) platforms.push('snapchat');
+            if (document.getElementById('tumblrPlatform').checked) platforms.push('tumblr');
+            if (document.getElementById('weiboPlatform').checked) platforms.push('weibo');
+            if (document.getElementById('vkPlatform').checked) platforms.push('vk');
+            if (document.getElementById('discordPlatform').checked) platforms.push('discord');
+            if (document.getElementById('twitchPlatform').checked) platforms.push('twitch');
+            if (document.getElementById('mediumPlatform').checked) platforms.push('medium');
+            if (document.getElementById('quoraPlatform').checked) platforms.push('quora');
+            if (document.getElementById('flickrPlatform').checked) platforms.push('flickr');
+            if (document.getElementById('behancePlatform').checked) platforms.push('behance');
+            if (document.getElementById('dribbblePlatform').checked) platforms.push('dribbble');
+            if (document.getElementById('soundcloudPlatform').checked) platforms.push('soundcloud');
+            if (document.getElementById('mastodonPlatform').checked) platforms.push('mastodon');
 
-            const maxResults = document.getElementById('maxResults').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value) || 2;
 
             try {
                 const response = await fetch('/api/investigate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, deep: true })
+                    body: JSON.stringify({ username, platforms, maxResults })
                 });
 
                 const data = await response.json();
+                loader.remove();
+
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot-message';
                 if (data.success) {
-                    resultsDiv.innerHTML = `<h2>Investigation Results for ${username}</h2><pre>${data.investigation}</pre>`;
+                    const formattedResults = await formatWithGemini(data.investigation);
+                    botMessage.innerHTML = marked.parse(formattedResults);
                 } else {
-                    resultsDiv.innerHTML = `<h2>Error</h2><p>${data.error}: ${data.details}</p>`;
+                    botMessage.textContent = `Error: ${data.error}: ${data.details}`;
                 }
+                chatContainer.appendChild(botMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
             } catch (error) {
-                resultsDiv.innerHTML = `<h2>Error</h2><p>Request failed: ${error.message}</p>`;
-            } finally {
-                loader.style.display = 'none';
+                loader.remove();
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot-message';
+                botMessage.textContent = `Error: Request failed: ${error.message}`;
+                chatContainer.appendChild(botMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         }
 
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
+        // Load marked.js for markdown rendering
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js';
+        script.onload = () => {
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        };
+        document.head.appendChild(script);
     </script>
 </body>
 </html>
