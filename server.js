@@ -5,6 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 const tough = require('tough-cookie');
 const puppeteer = require('puppeteer');
 
+const GEMINI_API_KEY = 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI'; // Replace with your actual Gemini API key
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -12,12 +14,30 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-// Expanded User Agent Pool
+// Expanded User Agent Pool (20+ entries)
 const userAgentPool = [
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
+    'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/128.0.2651.74 Safari/537.36',
+    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (Android 14; Tablet; rv:129.0) Gecko/129.0 Firefox/129.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.2651.74',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/128.0.6613.120 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (Android 14; Mobile; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.2739.42',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0'
 ];
 
 // Enhanced Headers Configuration
@@ -57,13 +77,13 @@ const sleep = (ms) => new Promise(resolve =>
 // Gemini AI Integration
 async function enhanceWithGemini(content, context) {
     try {
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `Analyze and summarize this social media content for relevant user information: ${content.substring(0, 4000)}`
+                        text: `Analyze and summarize this content for relevant user information: ${content.substring(0, 4000)}. Context: ${context}`
                     }]
                 }]
             })
@@ -179,6 +199,47 @@ async function scrapeSocialMediaProfile(url, platform) {
     } finally {
         if (browser) await browser.close();
     }
+}
+
+// Find All Social Media Accounts
+async function findAllSocialMediaAccounts(username) {
+    const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
+    const allAccounts = [];
+
+    for (const platform of platforms) {
+        try {
+            const results = await searchSocialMediaAdvanced(username, platform);
+            allAccounts.push(...results.map(result => ({
+                platform,
+                url: result.url,
+                bio: result.bio || '',
+                followers: result.followers || '',
+                postCount: result.postCount || '',
+                aiSummary: result.aiSummary || '',
+                screenshot: result.screenshot || ''
+            })));
+            await sleep(2000);
+        } catch (error) {
+            console.error(`Error finding accounts on ${platform}:`, error.message);
+        }
+    }
+
+    const uniqueAccounts = allAccounts.filter((account, index, self) => 
+        index === self.findIndex(a => a.url === account.url)
+    );
+
+    const aiAnalysis = await enhanceWithGemini(
+        JSON.stringify(uniqueAccounts),
+        `Summarize social media presence for user ${username} across multiple platforms`
+    );
+
+    return {
+        username,
+        accounts: uniqueAccounts,
+        aiSummary: aiAnalysis,
+        totalAccounts: uniqueAccounts.length,
+        timestamp: new Date().toISOString()
+    };
 }
 
 // Advanced Bing Search
@@ -745,6 +806,29 @@ app.post('/api/search-phone/:platform', async (req, res) => {
     }
 });
 
+app.post('/api/find-accounts', async (req, res) => {
+    const { username } = req.body;
+
+    if (!username) {
+        return res.status(400).json({ error: 'Username is required' });
+    }
+
+    try {
+        const accounts = await findAllSocialMediaAccounts(username);
+        res.json({
+            success: true,
+            username,
+            count: accounts.totalAccounts,
+            results: formatResults(accounts)
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: 'Account search failed', 
+            details: error.message 
+        });
+    }
+});
+
 app.post('/api/advanced-search', async (req, res) => {
     const { query, maxResults = 50, sources = ['bing', 'duckduckgo'] } = req.body;
 
@@ -836,11 +920,12 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.4.0-railway',
+        version: '3.5.0-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
             'AI-Powered Scraping',
+            'Multi-Platform Account Discovery',
             'Advanced Multi-Engine Search',
             'Deep Social Media Investigation',
             'Comprehensive OSINT Framework',
@@ -867,12 +952,13 @@ function formatResults(data) {
     if (Array.isArray(data)) {
         return data.map(item => ({
             ...item,
-            title: item.title ? `<strong>${item.title}</strong>` : '',
-            snippet: item.snippet ? `<p style="color: #666; margin: 5px 0;">${item.snippet}</p>` : '',
-            bio: item.bio ? `<div style="font-style: italic; color: #333;">${item.bio}</div>` : '',
-            aiSummary: item.aiSummary ? `<div style="background: #f5f5f5; padding: 10px; border-radius: 5px;">AI Summary: ${item.aiSummary}</div>` : '',
-            url: item.url ? `<a href="${item.url}" style="color: #0066cc; text-decoration: none;">${item.url}</a>` : '',
-            phone: item.phone ? `<span style="color: #2e7d32;">${item.phone}</span>` : ''
+            title: item.title ? `<strong class="text-lg text-gray-800">${item.title}</strong>` : '',
+            snippet: item.snippet ? `<p class="text-gray-600 mt-1">${item.snippet}</p>` : '',
+            bio: item.bio ? `<div class="text-gray-700 italic mt-1">${item.bio}</div>` : '',
+            aiSummary: item.aiSummary ? `<div class="bg-gray-50 p-3 rounded-lg mt-2">AI Summary: ${item.aiSummary}</div>` : '',
+            url: item.url ? `<a href="${item.url}" class="text-blue-600 hover:underline">${item.url}</a>` : '',
+            phone: item.phone ? `<span class="text-green-600">${item.phone}</span>` : '',
+            platform: item.platform ? `<span class="text-purple-600">${item.platform}</span>` : ''
         }));
     } else if (typeof data === 'object' && data !== null) {
         const formatted = { ...data };
@@ -891,3 +977,4 @@ function formatResults(data) {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`OSINT Investigation Platform running on port ${PORT}`);
 });
+
