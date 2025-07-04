@@ -4,60 +4,39 @@ const cheerio = require('cheerio');
 const { v4: uuidv4 } = require('uuid');
 const tough = require('tough-cookie');
 const puppeteer = require('puppeteer');
-const { PromisePool } = require('@supercharge/promise-pool');
-
-const GEMINI_API_KEY = 'AIzaSyBnAFtB1TcTzpkJ1CwxgjSurhhUSVOo9HI'; // Replace with your actual Gemini API key
+const userAgents = require('./useragents');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBy6dWTt2Ezq1_RJ9tK5pTmMYW3NWmUhrk'; // Set in environment variables
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-// Expanded User Agent Pool (25 entries)
-const userAgentPool = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/128.0.2651.74 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Android 14; Tablet; rv:129.0) Gecko/129.0 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.2651.74',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/128.0.6613.120 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Android 14; Mobile; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.2739.42',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-    'Mozilla/5.0 (Android 13; Mobile; SM-A525F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 OPR/113.0.0.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1'
-];
-
 // Enhanced Headers Configuration
 const getAdvancedHeaders = (referer = null, isXHR = false) => {
-    const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
+    const userAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
     return {
         'User-Agent': userAgent,
-        'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
+        'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9,en-GB;q=0.8,es;q=0.7',
         'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
         'Sec-Fetch-Dest': isXHR ? 'empty' : 'document',
         'Sec-Fetch-Mode': isXHR ? 'cors' : 'navigate',
         'Sec-Fetch-Site': referer ? 'same-origin' : 'none',
+        'Sec-Fetch-User': isXHR ? undefined : '?1',
         'Cache-Control': 'max-age=0',
+        'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="130", "Google Chrome";v="130"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'X-Forwarded-For': generateRandomIP(),
+        'X-Real-IP': generateRandomIP(),
+        'Pragma': 'no-cache',
         'Referer': referer || 'https://www.google.com/',
         'Origin': referer ? new URL(referer).origin : 'https://www.google.com'
     };
@@ -68,44 +47,47 @@ function generateRandomIP() {
     const ranges = [
         [8, 8, 8, 8], [1, 1, 1, 1], [208, 67, 222, 222],
         [4, 2, 2, 1], [64, 6, 64, 6], [185, 228, 168, 9],
-        [172, 217, 0, 0], [104, 16, 0, 0], [198, 51, 100, 0]
+        [172, 217, 0, 0], [104, 244, 222, 1], [198, 51, 100, 1]
     ];
     const range = ranges[Math.floor(Math.random() * ranges.length)];
     return range.map(num => num + Math.floor(Math.random() * 10)).join('.');
 }
 
-// Sleep function
+// Sleep function with randomization
 const sleep = (ms) => new Promise(resolve => 
     setTimeout(resolve, ms + Math.floor(Math.random() * 1000))
 );
 
-// Gemini AI Integration
-async function enhanceWithGemini(content, context) {
+// Format data with Gemini AI
+async function formatWithGemini(data) {
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        const response = await axios.post(
+            `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+            {
                 contents: [{
                     parts: [{
-                        text: `Analyze and summarize this content for relevant user information: ${content.substring(0, 4000)}. Context: ${context}`
+                        text: `Format the following scraped data into a clean, professional, and readable JSON structure. Ensure the output is concise, well-organized, and includes only relevant information. Data: ${JSON.stringify(data, null, 2)}`
                     }]
                 }]
-            })
-        });
-        if (!response.ok) {
-            throw new Error(`Gemini API request failed: ${response.statusText}`);
-        }
-        const data = await response.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAdvancedHeaders()
+                },
+                timeout: 30000
+            }
+        );
+
+        return JSON.parse(response.data.candidates[0].content.parts[0].text);
     } catch (error) {
-        console.error('Gemini AI Error:', error.message);
-        return '';
+        console.error('Gemini API error:', error.message);
+        return data; // Fallback to original data if Gemini fails
     }
 }
 
-// Advanced Social Media Scraping
-async function scrapeSocialMediaProfile(url, platform) {
+// Enhanced Social Media Scraping
+async function scrapeSocialMediaProfile(url, platform, retries = 2) {
     let browser;
     try {
         browser = await puppeteer.launch({
@@ -124,84 +106,94 @@ async function scrapeSocialMediaProfile(url, platform) {
         });
 
         const page = await browser.newPage();
-        await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
+        await page.setUserAgent(userAgents[Math.floor(Math.random() * userAgents.length)]);
         await page.setViewport({ width: 1366, height: 768 });
-
-        // Add request interception for better resource control
-        await page.setRequestInterception(true);
-        page.on('request', (request) => {
-            if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
-                request.abort();
-            } else {
-                request.continue();
-            }
-        });
 
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
         const profileData = await page.evaluate((platform) => {
-            const getText = (selector) => {
-                const element = document.querySelector(selector);
-                return element ? element.textContent?.trim() || '' : '';
-            };
-            const getAllText = (selector) => {
-                const elements = document.querySelectorAll(selector);
-                return elements.length ? Array.from(elements).map(el => el.textContent?.trim() || '').join(' ') : '';
-            };
+            const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
+            const getImage = (selector) => document.querySelector(selector)?.src || '';
+            const getAttribute = (selector, attr) => document.querySelector(selector)?.getAttribute(attr) || '';
 
             const platformSelectors = {
                 tiktok: {
-                    bio: '[data-testid="user-bio"], .tiktok-bio, .bio-text',
-                    followers: '[data-testid="user-followers"] strong, .follower-count, .tiktok-followers',
-                    posts: '[data-testid="user-videos"] strong, .video-count, .tiktok-posts'
+                    profilePic: 'img[data-testid="user-avatar"], img[alt*="profile photo"]',
+                    username: '[data-testid="user-username"], h1',
+                    bio: '[data-testid="user-bio"], .user-bio',
+                    followers: '[data-testid="user-followers"] strong, .follower-count',
+                    posts: '[data-testid="user-videos"] strong, .video-count',
+                    verified: '[data-testid="verified-badge"]'
                 },
                 instagram: {
-                    bio: '._aa_y div div span, .bio, .profile-bio',
-                    followers: 'a[href*="/followers/"] span, .follower-count, .ig-followers',
-                    posts: 'span._ac2a, .post-count, .ig-posts'
+                    profilePic: 'img[alt*="profile picture"], img[src*="profile"]',
+                    username: 'h2, ._aacl',
+                    bio: '._aa_y div div span, .bio-text',
+                    followers: 'a[href*="/followers/"] span, .follower-count',
+                    posts: 'span._ac2a, .post-count',
+                    verified: 'span[aria-label="Verified"]'
                 },
                 twitter: {
-                    bio: '[data-testid="UserDescription"], .profile-bio, .twitter-bio',
-                    followers: '[data-testid="followers"] span, .follower-count, .twitter-followers',
-                    posts: '[data-testid="tweet"], .tweet-count, .twitter-posts'
+                    profilePic: 'img[alt="Profile picture"], img[src*="profile_images"]',
+                    username: '[data-testid="UserName"], h1',
+                    bio: '[data-testid="UserDescription"], .user-bio',
+                    followers: '[data-testid="followers"] span, .followers-count',
+                    posts: '[data-testid="tweet"], .tweet-count',
+                    verified: '[data-testid="verified"]'
                 },
                 facebook: {
-                    bio: 'div.x1heor9g div.x1iorvi4 span, .fb-bio, .profile-bio',
-                    followers: 'span.x1e558r4, .fb-followers, .follower-count',
-                    posts: 'div.x1n2onr6 div.x1yztbdb, .fb-posts, .post-count'
+                    profilePic: 'img.x1y9k2m, img[alt*="profile"]',
+                    username: 'h1, .profile-name',
+                    bio: 'div.x1heor9g div.x1iorvi4 span, .bio-text',
+                    followers: 'span.x1e558r4, .follower-count',
+                    posts: 'div.x1n2onr6 div.x1yztbdb, .post-count',
+                    verified: 'span[aria-label="Verified"]'
                 },
                 youtube: {
-                    bio: '#description.ytd-channel-about-metadata-renderer, .yt-bio, .channel-bio',
-                    followers: '#subscriber-count, .yt-subscribers, .subscriber-count',
-                    posts: 'ytd-grid-video-renderer, .yt-videos, .video-count'
+                    profilePic: 'img#img, img[src*="ytimg"]',
+                    username: '#channel-name, h1',
+                    bio: '#description.ytd-channel-about-metadata-renderer, .channel-bio',
+                    followers: '#subscriber-count, .subscriber-count',
+                    posts: 'ytd-grid-video-renderer, .video-count',
+                    verified: '#badges .badge'
                 },
                 linkedin: {
-                    bio: '.pv-about-section .pv-about__summary-text, .linkedin-bio, .about-section',
-                    followers: '.follower-count, .linkedin-followers, .connections',
-                    posts: '.share-box-feed-entry, .linkedin-posts, .activity-count'
+                    profilePic: 'img.pv-top-card--photo, img.profile-photo',
+                    username: 'h1, .profile-name',
+                    bio: '.pv-about-section .pv-about__summary-text, .about-text',
+                    followers: '.follower-count, .followers',
+                    posts: '.share-box-feed-entry, .post-count',
+                    verified: '.verified-badge'
                 },
                 github: {
-                    bio: '.p-bio, .github-bio, .user-bio',
-                    followers: 'a[href*="/followers"] .text-bold, .github-followers, .follower-count',
-                    posts: '.js-repos-container, .repo-count, .github-repos'
+                    profilePic: 'img.avatar-user, img[src*="avatar"]',
+                    username: 'h1, .user-name',
+                    bio: '.p-bio, .bio-text',
+                    followers: 'a[href*="/followers"] .text-bold, .follower-count',
+                    posts: '.js-repos-container, .repo-count',
+                    verified: '.verified-badge'
                 },
                 reddit: {
-                    bio: '.profile-bio, .reddit-bio, .user-bio',
-                    followers: '.profile-followers, .reddit-followers, .follower-count',
-                    posts: '.Post, .reddit-posts, .post-count'
+                    profilePic: 'img[alt="User avatar"], img[src*="avatar"]',
+                    username: 'h1, .user-name',
+                    bio: '.profile-bio, .bio-text',
+                    followers: '.profile-followers, .followers',
+                    posts: '.Post, .post-count',
+                    verified: '.verified-icon'
                 }
             };
 
             const selectors = platformSelectors[platform] || {};
             return {
+                profilePic: getImage(selectors.profilePic),
+                username: getText(selectors.username),
                 bio: getText(selectors.bio),
                 followers: getText(selectors.followers),
-                postCount: getAllText(selectors.posts) || document.querySelectorAll(selectors.posts)?.length || ''
+                postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts),
+                verified: !!document.querySelector(selectors.verified),
+                creationDate: getText('[data-testid="creation-date"], .join-date, .created-date')
             };
         }, platform);
-
-        const pageContent = await page.evaluate(() => document.body.innerText);
-        const aiSummary = await enhanceWithGemini(pageContent, `Social media profile analysis for ${platform} at ${url}`);
 
         const screenshot = await page.screenshot({ 
             encoding: 'base64',
@@ -211,68 +203,31 @@ async function scrapeSocialMediaProfile(url, platform) {
 
         await browser.close();
 
-        return {
+        const formattedData = await formatWithGemini({
             url,
             ...profileData,
-            aiSummary,
             screenshot: `data:image/png;base64,${screenshot}`,
             scraped_at: new Date().toISOString(),
             platform
-        };
+        });
+
+        return formattedData;
     } catch (error) {
+        if (retries > 0) {
+            await sleep(5000);
+            return scrapeSocialMediaProfile(url, platform, retries - 1);
+        }
+        console.error(`Failed to scrape ${platform} profile: ${error.message}`);
         return { url, error: error.message, scraped_at: new Date().toISOString(), platform };
     } finally {
-        if (browser) await browser.close();
+        if (browser) {
+            try { await browser.close(); } catch (e) {}
+        }
     }
 }
 
-// Find All Social Media Accounts
-async function findAllSocialMediaAccounts(username) {
-    const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
-    
-    // Parallel processing with concurrency limit
-    const { results, errors } = await PromisePool
-        .withConcurrency(3)
-        .for(platforms)
-        .process(async (platform) => {
-            try {
-                const results = await searchSocialMediaAdvanced(username, platform);
-                return results.map(result => ({
-                    platform,
-                    url: result.url,
-                    bio: result.bio || '',
-                    followers: result.followers || '',
-                    postCount: result.postCount || '',
-                    aiSummary: result.aiSummary || '',
-                    screenshot: result.screenshot || ''
-                }));
-            } catch (error) {
-                console.error(`Error finding accounts on ${platform}:`, error.message);
-                return [];
-            }
-        });
-
-    const allAccounts = results.flat();
-    const uniqueAccounts = allAccounts.filter((account, index, self) => 
-        index === self.findIndex(a => a.url === account.url)
-    );
-
-    const aiAnalysis = await enhanceWithGemini(
-        JSON.stringify(uniqueAccounts),
-        `Summarize social media presence for user ${username} across multiple platforms`
-    );
-
-    return {
-        username,
-        accounts: uniqueAccounts,
-        aiSummary: aiAnalysis,
-        totalAccounts: uniqueAccounts.length,
-        timestamp: new Date().toISOString()
-    };
-}
-
 // Advanced Bing Search
-async function searchBingAdvanced(query, maxPages = 5) {
+async function searchBingAdvanced(query, maxPages = 5, retries = 2) {
     const allResults = [];
     const cookieJar = new tough.CookieJar();
 
@@ -314,14 +269,16 @@ async function searchBingAdvanced(query, maxPages = 5) {
             });
 
             allResults.push(...pageResults);
+
             if (pageResults.length === 0) break;
             await sleep(2000);
+
         } catch (error) {
-            if (error.response?.status === 429) {
+            if (error.response?.status === 429 && retries > 0) {
                 await sleep(10000);
-                continue;
+                return searchBingAdvanced(query, maxPages, retries - 1);
             }
-            console.error('Bing search error:', error.message);
+            console.error(`Bing search error: ${error.message}`);
             break;
         }
     }
@@ -330,7 +287,7 @@ async function searchBingAdvanced(query, maxPages = 5) {
 }
 
 // Enhanced DuckDuckGo Search
-async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
+async function searchDuckDuckGoAdvanced(query, maxResults = 50, retries = 2) {
     const strategies = [
         { url: 'https://html.duckduckgo.com/html/', method: 'POST' },
         { url: 'https://duckduckgo.com/html/', method: 'GET' },
@@ -342,7 +299,7 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
             let response;
             if (strategy.method === 'POST') {
                 response = await axios.post(strategy.url, 
-                    `q=${encodeURIComponent(query)}&b=&kl=id-id&df=`,
+                    `q=${encodeURIComponent(query)}&b=&kl=us-en&df=`,
                     {
                         headers: {
                             ...getAdvancedHeaders('https://duckduckgo.com/'),
@@ -354,7 +311,7 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
                 );
             } else {
                 response = await axios.get(strategy.url, {
-                    params: { q: query, kl: 'id-id' },
+                    params: { q: query, kl: 'us-en' },
                     headers: getAdvancedHeaders('https://duckduckgo.com/'),
                     timeout: 20000
                 });
@@ -397,8 +354,11 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
             if (results.length > 0) return results;
 
         } catch (error) {
-            console.error('DuckDuckGo search error:', error.message);
-            continue;
+            if (retries > 0) {
+                await sleep(5000);
+                continue;
+            }
+            console.error(`DuckDuckGo search error: ${error.message}`);
         }
     }
 
@@ -417,7 +377,7 @@ const socialMediaPatterns = {
     reddit: ['site:reddit.com/u "{username}"', 'reddit.com/u/{username}', '"{username}" reddit user']
 };
 
-// Advanced Social Media Search
+// Advanced Social Media Search (Platform-Specific)
 async function searchSocialMediaAdvanced(username, platform) {
     const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
     const allResults = [];
@@ -452,32 +412,58 @@ async function searchSocialMediaAdvanced(username, platform) {
             }
 
             await sleep(1500);
+
         } catch (error) {
-            console.error(`Error searching ${platform}:`, error.message);
+            console.error(`Social media search error for ${platform}: ${error.message}`);
         }
     }
 
-    return allResults.filter((result, index, self) => 
+    const uniqueResults = allResults.filter((result, index, self) => 
         index === self.findIndex(r => r.url === result.url)
     );
+
+    return await formatWithGemini(uniqueResults);
 }
 
-// Phone Number Search (+62 only)
-async function searchPhoneNumberAdvanced(phoneNumber, platform) {
-    if (!phoneNumber.startsWith('+62') || !/^\+62\d{9,11}$/.test(phoneNumber)) {
-        return [];
-    }
+// Cross-Platform Social Media Search
+async function searchCrossPlatform(username) {
+    const platforms = Object.keys(socialMediaPatterns);
+    const allResults = [];
 
-    const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${phoneNumber}"`];
+    await Promise.all(platforms.map(async (platform) => {
+        try {
+            const platformResults = await searchSocialMediaAdvanced(username, platform);
+            allResults.push(...platformResults);
+            await sleep(2000);
+        } catch (error) {
+            console.error(`Cross-platform search error for ${platform}: ${error.message}`);
+        }
+    }));
+
+    const uniqueResults = allResults.filter((result, index, self) => 
+        index === self.findIndex(r => r.url === result.url)
+    );
+
+    return await formatWithGemini({
+        username,
+        platforms_searched: platforms,
+        total_results: uniqueResults.length,
+        results: uniqueResults
+    });
+}
+
+// Phone Number Search
+async function searchPhoneNumberAdvanced(username, platform) {
+    const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
     const allResults = [];
 
     for (const pattern of patterns) {
-        const query = pattern.replace(/{username}/g, phoneNumber);
+        const query = pattern.replace(/{username}/g, username);
 
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(query, 2),
-                searchDuckDuckGoAdvanced(query, 20)
+                searchBingAdvanced(`${query} phone number`, 2),
+                searchDuckDuckGoAdvanced(`${query} phone number`, 20)
             ]);
 
             const combinedResults = [...bingResults, ...ddgResults];
@@ -496,7 +482,7 @@ async function searchPhoneNumberAdvanced(phoneNumber, platform) {
 
                 if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
-                    const phoneRegex = /\+62\d{9,11}/g;
+                    const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
                     const textContent = profileData.bio || result.snippet || '';
                     const phoneMatch = textContent.match(phoneRegex);
                     const phone = phoneMatch ? phoneMatch[0] : null;
@@ -505,14 +491,17 @@ async function searchPhoneNumberAdvanced(phoneNumber, platform) {
             }
 
             await sleep(1500);
+
         } catch (error) {
-            console.error(`Error searching phone on ${platform}:`, error.message);
+            console.error(`Phone search error for ${platform}: ${error.message}`);
         }
     }
 
-    return allResults.filter((result, index, self) => 
+    const uniqueResults = allResults.filter((result, index, self) => 
         index === self.findIndex(r => r.url === result.url)
     );
+
+    return await formatWithGemini(uniqueResults);
 }
 
 // Comprehensive Deep Search Function
@@ -529,31 +518,26 @@ async function performComprehensiveSearch(username) {
         total_results: 0
     };
 
-    const platforms = ['tiktok', 'facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'github', 'reddit'];
-    
-    // Parallel processing for social media searches
-    const { results: platformResults } = await PromisePool
-        .withConcurrency(3)
-        .for(platforms)
-        .process(async (platform) => {
-            try {
-                const platformResults = await searchSocialMediaAdvanced(username, platform);
-                return { platform, results: platformResults };
-            } catch (error) {
-                return { platform, results: [] };
-            }
-        });
-
-    platformResults.forEach(({ platform, results }) => {
-        results.social_media[platform] = results;
-        results.total_results += results.length;
-    });
+    const platforms = Object.keys(socialMediaPatterns);
+    for (const platform of platforms) {
+        try {
+            const platformResults = await searchSocialMediaAdvanced(username, platform);
+            results.social_media[platform] = platformResults;
+            results.total_results += platformResults.length;
+            await sleep(2000);
+        } catch (error) {
+            results.social_media[platform] = [];
+            console.error(`Comprehensive search error for ${platform}: ${error.message}`);
+        }
+    }
 
     const generalQueries = [
         `"${username}" profile`,
         `"${username}" account`,
         `"${username}" user`,
-        `${username} contact information`
+        `${username} contact information`,
+        `${username} email address`,
+        `${username} phone number`
     ];
 
     for (const query of generalQueries) {
@@ -566,7 +550,7 @@ async function performComprehensiveSearch(username) {
             results.general_search.push(...bingResults, ...ddgResults);
             await sleep(1500);
         } catch (error) {
-            console.error('General search error:', error.message);
+            console.error(`General search error: ${error.message}`);
         }
     }
 
@@ -584,7 +568,7 @@ async function performComprehensiveSearch(username) {
             results.email_search.push(...emailResults);
             await sleep(1000);
         } catch (error) {
-            console.error('Email search error:', error.message);
+            console.error(`Email search error: ${error.message}`);
         }
     }
 
@@ -601,7 +585,7 @@ async function performComprehensiveSearch(username) {
             results.leaked_data.push(...breachResults);
             await sleep(1500);
         } catch (error) {
-            console.error('Breach search error:', error.message);
+            console.error(`Breach search error: ${error.message}`);
         }
     }
 
@@ -618,7 +602,7 @@ async function performComprehensiveSearch(username) {
             results.professional_info.push(...profResults);
             await sleep(1500);
         } catch (error) {
-            console.error('Professional search error:', error.message);
+            console.error(`Professional search error: ${error.message}`);
         }
     }
 
@@ -629,7 +613,6 @@ async function performComprehensiveSearch(username) {
                 if (item.title) allText += ` ${item.title}`;
                 if (item.snippet) allText += ` ${item.snippet}`;
                 if (item.bio) allText += ` ${item.bio}`;
-                if (item.aiSummary) allText += ` ${item.aiSummary}`;
             });
         } else if (typeof section === 'object' && section !== null) {
             Object.values(section).forEach(items => {
@@ -638,7 +621,6 @@ async function performComprehensiveSearch(username) {
                         if (item.title) allText += ` ${item.title}`;
                         if (item.snippet) allText += ` ${item.snippet}`;
                         if (item.bio) allText += ` ${item.bio}`;
-                        if (item.aiSummary) allText += ` ${item.aiSummary}`;
                     });
                 }
             });
@@ -652,20 +634,17 @@ async function performComprehensiveSearch(username) {
                            results.leaked_data.length +
                            results.professional_info.length;
 
-    const aiSummary = await enhanceWithGemini(allText, `Comprehensive analysis for user ${username}`);
-    results.aiSummary = aiSummary;
-
     console.log(`Investigation complete for ${username}. Total results: ${results.total_results}`);
-    return results;
+    return await formatWithGemini(results);
 }
 
 // Advanced Contact Info Extraction
 function extractAdvancedContactInfo(text) {
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-    const phoneRegex = /\+62\d{9,11}/g;
+    const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
     const usernameRegex = /@([a-zA-Z0-9_]+)/g;
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
-    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube|github|reddit)\.com\/[\w.-]+/gi;
+    const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube)\.com\/[\w.-]+/gi;
 
     return {
         emails: [...new Set(text.match(emailRegex) || [])],
@@ -677,7 +656,7 @@ function extractAdvancedContactInfo(text) {
 }
 
 // Enhanced Website Capture
-async function captureAdvancedInfo(url) {
+async function captureAdvancedInfo(url, retries = 2) {
     let browser;
     try {
         const axiosResponse = await axios.get(url, {
@@ -687,15 +666,17 @@ async function captureAdvancedInfo(url) {
         });
 
         const $ = cheerio.load(axiosResponse.data);
-        const pageContent = $('body').text();
-        const aiSummary = await enhanceWithGemini(pageContent, `Website content analysis for ${url}`);
-
         const basicInfo = {
             url,
             title: $('title').text().trim(),
             description: $('meta[name="description"]').attr('content') || '',
             keywords: $('meta[name="keywords"]').attr('content') || '',
-            aiSummary,
+            ogTitle: $('meta[property="og:title"]').attr('content') || '',
+            ogDescription: $('meta[property="og:description"]').attr('content') || '',
+            ogImage: $('meta[property="og:image"]').attr('content') || '',
+            twitterCard: $('meta[name="twitter:card"]').attr('content') || '',
+            canonical: $('link[rel="canonical"]').attr('href') || '',
+            robots: $('meta[name="robots"]').attr('content') || '',
             headers: axiosResponse.headers,
             status: axiosResponse.status
         };
@@ -717,17 +698,8 @@ async function captureAdvancedInfo(url) {
             });
 
             const page = await browser.newPage();
-            await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
+            await page.setUserAgent(userAgents[0]);
             await page.setViewport({ width: 1366, height: 768 });
-
-            await page.setRequestInterception(true);
-            page.on('request', (request) => {
-                if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
-                    request.abort();
-                } else {
-                    request.continue();
-                }
-            });
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
@@ -741,10 +713,20 @@ async function captureAdvancedInfo(url) {
                 return {
                     finalUrl: window.location.href,
                     pageText: document.body.innerText.substring(0, 2000),
+                    forms: Array.from(document.forms).map(form => ({
+                        action: form.action,
+                        method: form.method,
+                        inputs: Array.from(form.elements).map(el => ({
+                            type: el.type,
+                            name: el.name,
+                            id: el.id
+                        }))
+                    })),
                     links: Array.from(document.links).slice(0, 50).map(link => ({
                         href: link.href,
                         text: link.textContent.trim()
                     })),
+                    scripts: Array.from(document.scripts).map(script => script.src).filter(Boolean),
                     technologies: {
                         hasJquery: typeof window.jQuery !== 'undefined',
                         hasReact: typeof window.React !== 'undefined',
@@ -756,31 +738,41 @@ async function captureAdvancedInfo(url) {
 
             await browser.close();
 
-            return {
+            const formattedData = await formatWithGemini({
                 ...basicInfo,
                 ...advancedInfo,
                 screenshot: `data:image/png;base64,${screenshot}`,
                 captured_at: new Date().toISOString(),
                 capture_method: 'advanced'
-            };
+            });
+
+            return formattedData;
 
         } catch (puppeteerError) {
-            return {
+            console.error(`Puppeteer error during capture: ${puppeteerError.message}`);
+            return await formatWithGemini({
                 ...basicInfo,
                 captured_at: new Date().toISOString(),
                 capture_method: 'basic'
-            };
+            });
         }
 
     } catch (error) {
-        return {
+        if (retries > 0) {
+            await sleep(5000);
+            return captureAdvancedInfo(url, retries - 1);
+        }
+        console.error(`Capture error: ${error.message}`);
+        return await formatWithGemini({
             url,
             error: error.message,
             captured_at: new Date().toISOString(),
             capture_method: 'failed'
-        };
+        });
     } finally {
-        if (browser) await browser.close();
+        if (browser) {
+            try { await browser.close(); } catch (e) {}
+        }
     }
 }
 
@@ -794,11 +786,13 @@ app.post('/api/investigate', async (req, res) => {
 
     try {
         const investigation = await performComprehensiveSearch(username);
+
         res.json({
             success: true,
             investigation_id: uuidv4(),
-            investigation: formatResults(investigation)
+            investigation
         });
+
     } catch (error) {
         res.status(500).json({ 
             error: 'Investigation failed', 
@@ -822,7 +816,7 @@ app.post('/api/search/:platform', async (req, res) => {
             platform,
             username,
             count: results.length,
-            results: formatResults(results)
+            results
         });
     } catch (error) {
         res.status(500).json({ 
@@ -832,32 +826,7 @@ app.post('/api/search/:platform', async (req, res) => {
     }
 });
 
-app.post('/api/search-phone/:platform', async (req, res) => {
-    const { platform } = req.params;
-    const { phoneNumber } = req.body;
-
-    if (!phoneNumber) {
-        return res.status(400).json({ error: 'Phone number is required' });
-    }
-
-    try {
-        const results = await searchPhoneNumberAdvanced(phoneNumber, platform);
-        res.json({
-            success: true,
-            platform,
-            phoneNumber,
-            count: results.length,
-            results: formatResults(results)
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            error: `${platform} phone search failed`, 
-            details: error.message 
-        });
-    }
-});
-
-app.post('/api/find-accounts', async (req, res) => {
+app.post('/api/cross-platform-search', async (req, res) => {
     const { username } = req.body;
 
     if (!username) {
@@ -865,16 +834,41 @@ app.post('/api/find-accounts', async (req, res) => {
     }
 
     try {
-        const accounts = await findAllSocialMediaAccounts(username);
+        const results = await searchCrossPlatform(username);
         res.json({
             success: true,
             username,
-            count: accounts.totalAccounts,
-            results: formatResults(accounts)
+            count: results.total_results,
+            results: results.results
         });
     } catch (error) {
         res.status(500).json({ 
-            error: 'Account search failed', 
+            error: 'Cross-platform search failed', 
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/search-phone/:platform', async (req, res) => {
+    const { platform } = req.params;
+    const { username } = req.body;
+
+    if (!username) {
+        return res.status(400).json({ error: 'Username is required' });
+    }
+
+    try {
+        const results = await searchPhoneNumberAdvanced(username, platform);
+        res.json({
+            success: true,
+            platform,
+            username,
+            count: results.length,
+            results
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: `${platform} phone search failed`, 
             details: error.message 
         });
     }
@@ -889,27 +883,27 @@ app.post('/api/advanced-search', async (req, res) => {
 
     try {
         const results = [];
+
         if (sources.includes('bing')) {
             const bingResults = await searchBingAdvanced(query, 3);
             results.push(...bingResults);
         }
+
         if (sources.includes('duckduckgo')) {
             const ddgResults = await searchDuckDuckGoAdvanced(query, maxResults);
             results.push(...ddgResults);
         }
 
-        const aiSummary = await enhanceWithGemini(
-            results.map(r => `${r.title}: ${r.snippet}`).join('\n'),
-            `Advanced search results for query: ${query}`
-        );
-
-        res.json({
-            success: true,
+        const formattedResults = await formatWithGemini({
             query,
             sources_used: sources,
             total: results.length,
-            aiSummary,
-            results: formatResults(results)
+            results
+        });
+
+        res.json({
+            success: true,
+            ...formattedResults
         });
     } catch (error) {
         res.status(500).json({ 
@@ -930,7 +924,7 @@ app.post('/api/capture', async (req, res) => {
         const capture = await captureAdvancedInfo(url);
         res.json({
             success: true,
-            capture: formatResults(capture)
+            capture
         });
     } catch (error) {
         res.status(500).json({ 
@@ -949,28 +943,30 @@ app.post('/api/batch-investigate', async (req, res) => {
 
     try {
         const investigations = [];
-        for (const username of usernames) {
+        const total = usernames.length;
+
+        for (let i = 0; i < usernames.length; i++) {
+            const username = usernames[i];
             const investigation = await performComprehensiveSearch(username);
-            investigations.push(formatResults(investigation));
+            investigations.push(investigation);
             await sleep(5000);
         }
 
-        const aiSummary = await enhanceWithGemini(
-            JSON.stringify(investigations),
-            `Batch investigation summary for ${usernames.length} users`
-        );
-
-        res.json({
-            success: true,
+        const formattedInvestigations = await formatWithGemini({
             batch_id: uuidv4(),
             total_investigated: investigations.length,
             summary: {
                 total_results: investigations.reduce((sum, inv) => sum + inv.total_results, 0),
-                avg_results_per_user: Math.round(investigations.reduce((sum, inv) => sum + inv.total_results, 0) / investigations.length),
-                aiSummary
+                avg_results_per_user: Math.round(investigations.reduce((sum, inv) => sum + inv.total_results, 0) / investigations.length)
             },
             investigations
         });
+
+        res.json({
+            success: true,
+            ...formattedInvestigations
+        });
+
     } catch (error) {
         res.status(500).json({ 
             error: 'Batch investigation failed', 
@@ -983,15 +979,13 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.6.0-railway',
+        version: '3.4.0-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
-            'AI-Powered Scraping',
-            'Multi-Platform Account Discovery',
-            'Parallel Social Media Search',
             'Advanced Multi-Engine Search',
             'Deep Social Media Investigation',
+            'Cross-Platform Account Discovery',
             'Comprehensive OSINT Framework',
             'Enhanced Web Capture',
             'Contact Extraction',
@@ -1001,7 +995,8 @@ app.get('/health', (req, res) => {
             'Rate Limiting & Evasion',
             'Browser Fingerprinting',
             'Social Media Metadata Extraction',
-            'Phone Number Search (+62)'
+            'Phone Number Search',
+            'Gemini AI Data Formatting'
         ],
         supported_platforms: Object.keys(socialMediaPatterns)
     });
@@ -1010,33 +1005,6 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: './public' });
 });
-
-// Format Results for Better Display
-function formatResults(data) {
-    if (Array.isArray(data)) {
-        return data.map(item => ({
-            ...item,
-            title: item.title ? `<strong class="text-lg text-gray-200">${item.title}</strong>` : '',
-            snippet: item.snippet ? `<p class="text-gray-400 mt-1">${item.snippet}</p>` : '',
-            bio: item.bio ? `<div class="text-gray-300 italic mt-1">${item.bio}</div>` : '',
-            aiSummary: item.aiSummary ? `<div class="bg-gray-800 p-3 rounded-lg mt-2 text-gray-300">AI Summary: ${item.aiSummary}</div>` : '',
-            url: item.url ? `<a href="${item.url}" class="text-gray-300 hover:underline">${item.url}</a>` : '',
-            phone: item.phone ? `<span class="text-green-400">${item.phone}</span>` : '',
-            platform: item.platform ? `<span class="text-purple-400">${item.platform}</span>` : ''
-        }));
-    } else if (typeof data === 'object' && data !== null) {
-        const formatted = { ...data };
-        Object.keys(formatted).forEach(key => {
-            if (Array.isArray(formatted[key])) {
-                formatted[key] = formatResults(formatted[key]);
-            } else if (typeof formatted[key] === 'object' && formatted[key] !== null) {
-                formatted[key] = formatResults(formatted[key]);
-            }
-        });
-        return formatted;
-    }
-    return data;
-}
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`OSINT Investigation Platform running on port ${PORT}`);
