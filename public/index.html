@@ -7,197 +7,219 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .card { transition: all 0.3s ease; }
-        .card:hover { transform: translateY(-5px); }
+        body { font-family: 'Inter', sans-serif; background: #ffffff; }
+        .sidebar { position: fixed; width: 250px; height: 100vh; background: #f8fafc; border-right: 1px solid #e5e7eb; }
+        .sidebar a { display: flex; align-items: center; padding: 12px 20px; color: #4b5563; }
+        .sidebar a:hover { background: #e5e7eb; color: #1f2937; }
+        .sidebar a.active { background: #dbeafe; color: #1e40af; }
+        .main-content { margin-left: 250px; padding: 20px; }
+        .card { background: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-2px); }
         .result-box { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .btn-primary { background: #1e40af; color: white; }
+        .btn-primary:hover { background: #1e3a8a; }
     </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-12">
-            <h1 class="text-5xl font-bold text-gray-800">OSINT</h1>
-            <p class="text-xl text-gray-600 mt-2">Open-Source Intelligence Investigation Platform</p>
-        </header>
-
-        <nav class="mb-12">
-            <ul class="flex justify-center space-x-6">
-                <li><a href="#overview" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Overview</a></li>
-                <li><a href="#deep" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Deep Investigation</a></li>
-                <li><a href="#social" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Social Media</a></li>
-                <li><a href="#advanced" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Advanced Search</a></li>
-                <li><a href="#capture" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Website Capture</a></li>
-                <li><a href="#batch" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Batch Investigation</a></li>
-                <li><a href="#phone" class="text-lg font-semibold text-blue-600 hover:text-blue-800">Phone Search</a></li>
-                <li><a href="#health" class="text-lg font-semibold text-blue-600 hover:text-blue-800">System Health</a></li>
-            </ul>
-        </nav>
-
-        <main>
-            <section id="overview" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
-                    <p class="text-gray-600 mb-6">Monitor your investigation activities and system performance</p>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="bg-blue-100 p-4 rounded-lg">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
-                                <span class="text-sm font-semibold">Total Projects</span>
+<body>
+    <div class="flex">
+        <div class="sidebar">
+            <div class="p-4">
+                <h1 class="text-2xl font-bold text-gray-800">OSINT</h1>
+                <p class="text-sm text-gray-600">Investigation Platform</p>
+            </div>
+            <nav>
+                <a href="#overview" class="active"><i class="fas fa-home mr-2"></i> Overview</a>
+                <a href="#deep"><i class="fas fa-search mr-2"></i> Deep Investigation</a>
+                <a href="#social"><i class="fas fa-users mr-2"></i> Social Media</a>
+                <a href="#accounts"><i class="fas fa-user-check mr-2"></i> Find Accounts</a>
+                <a href="#advanced"><i class="fas fa-magnifying-glass mr-2"></i> Advanced Search</a>
+                <a href="#capture"><i class="fas fa-camera mr-2"></i> Website Capture</a>
+                <a href="#batch"><i class="fas fa-list mr-2"></i> Batch Investigation</a>
+                <a href="#phone"><i class="fas fa-phone mr-2"></i> Phone Search</a>
+                <a href="#health"><i class="fas fa-heartbeat mr-2"></i> System Health</a>
+            </nav>
+        </div>
+        <div class="main-content">
+            <main>
+                <section id="overview" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Dashboard</h2>
+                        <p class="text-gray-600 mb-6">Monitor your investigation activities and system performance</p>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
+                                    <span class="text-sm font-semibold">Total Projects</span>
+                                </div>
+                                <p class="text-2xl font-bold">0</p>
                             </div>
-                            <p class="text-2xl font-bold">0</p>
-                        </div>
-                        <div class="bg-green-100 p-4 rounded-lg">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-chart-line text-green-600 mr-2"></i>
-                                <span class="text-sm font-semibold">Active Analyses</span>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-chart-line text-green-600 mr-2"></i>
+                                    <span class="text-sm font-semibold">Active Analyses</span>
+                                </div>
+                                <p class="text-2xl font-bold">5</p>
+                                <span class="text-sm text-green-600">Live</span>
                             </div>
-                            <p class="text-2xl font-bold">5</p>
-                            <span class="text-sm text-green-600">Live</span>
-                        </div>
-                        <div class="bg-yellow-100 p-4 rounded-lg">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-database text-yellow-600 mr-2"></i>
-                                <span class="text-sm font-semibold">Data Processed</span>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-database text-yellow-600 mr-2"></i>
+                                    <span class="text-sm font-semibold">Data Processed</span>
+                                </div>
+                                <p class="text-2xl font-bold">0.0GB</p>
                             </div>
-                            <p class="text-2xl font-bold">0.0GB</p>
-                        </div>
-                        <div class="bg-purple-100 p-4 rounded-lg">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-check-circle text-purple-600 mr-2"></i>
-                                <span class="text-sm font-semibold">Accuracy Rate</span>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-check-circle text-purple-600 mr-2"></i>
+                                    <span class="text-sm font-semibold">Accuracy Rate</span>
+                                </div>
+                                <p class="text-2xl font-bold">88.7%</p>
+                                <span class="text-sm text-purple-600">High</span>
                             </div>
-                            <p class="text-2xl font-bold">88.7%</p>
-                            <span class="text-sm text-purple-600">High</span>
+                        </div>
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold mb-2 text-gray-800">Recent Activity</h3>
+                            <p class="text-gray-600">No recent activity</p>
                         </div>
                     </div>
-                    <div class="mt-6">
-                        <h3 class="text-lg font-semibold mb-2">Recent Activity</h3>
-                        <p class="text-gray-600">No recent activity</p>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <section id="deep" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">Deep Investigation</h2>
-                    <p class="text-gray-600 mb-6">Comprehensive username investigation across multiple platforms</p>
-                    <div class="flex space-x-4">
-                        <input id="deep-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button onclick="startDeepInvestigation()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Start Investigation
+                <section id="deep" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Deep Investigation</h2>
+                        <p class="text-gray-600 mb-6">Comprehensive username investigation across multiple platforms</p>
+                        <div class="flex space-x-4">
+                            <input id="deep-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="startDeepInvestigation()" class="btn-primary p-3 rounded-lg flex items-center">
+                                <i class="fas fa-paper-plane mr-2"></i> Start Investigation
+                            </button>
+                        </div>
+                        <div id="deep-results" class="mt-6 result-box hidden"></div>
+                    </div>
+                </section>
+
+                <section id="social" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Social Media Search</h2>
+                        <p class="text-gray-600 mb-6">Search for profiles on specific social media platforms</p>
+                        <div class="flex space-x-4">
+                            <input id="social-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="social-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="tiktok">TikTok</option>
+                                <option value="facebook">Facebook</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="youtube">YouTube</option>
+                                <option value="twitter">Twitter</option>
+                                <option value="linkedin">LinkedIn</option>
+                                <option value="github">GitHub</option>
+                                <option value="reddit">Reddit</option>
+                            </select>
+                            <button onclick="startSocialSearch()" class="btn-primary p-3 rounded-lg flex items-center">
+                                <i class="fas fa-paper-plane mr-2"></i> Search Platform
+                            </button>
+                        </div>
+                        <div id="social-results" class="mt-6 result-box hidden"></div>
+                    </div>
+                </section>
+
+                <section id="accounts" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Find All Accounts</h2>
+                        <p class="text-gray-600 mb-6">Discover all social media accounts associated with a username</p>
+                        <div class="flex space-x-4">
+                            <input id="accounts-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="findAllAccounts()" class="btn-primary p-3 rounded-lg flex items-center">
+                                <i class="fas fa-paper-plane mr-2"></i> Find Accounts
+                            </button>
+                        </div>
+                        <div id="accounts-results" class="mt-6 result-box hidden"></div>
+                    </div>
+                </section>
+
+                <section id="advanced" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Advanced Search</h2>
+                        <p class="text-gray-600 mb-6">Search across multiple search engines with custom queries</p>
+                        <input id="advanced-query" type="text" placeholder="Search Query" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="flex space-x-4 mb-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="bing-source" checked class="mr-2">
+                                <span>Bing</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="ddg-source" checked class="mr-2">
+                                <span>DuckDuckGo</span>
+                            </label>
+                        </div>
+                        <button onclick="startAdvancedSearch()" class="btn-primary p-3 rounded-lg flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Execute Search
                         </button>
+                        <div id="advanced-results" class="mt-6 result-box hidden"></div>
                     </div>
-                    <div id="deep-results" class="mt-6 result-box hidden"></div>
-                </div>
-            </section>
+                </section>
 
-            <section id="social" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">Social Media Search</h2>
-                    <p class="text-gray-600 mb-6">Search for profiles on specific social media platforms</p>
-                    <div class="flex space-x-4">
-                        <input id="social-username" type="text" placeholder="Username" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <select id="social-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="tiktok">TikTok</option>
-                            <option value="facebook">Facebook</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="youtube">YouTube</option>
-                            <option value="twitter">Twitter</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="github">GitHub</option>
-                            <option value="reddit">Reddit</option>
-                        </select>
-                        <button onclick="startSocialSearch()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Search Platform
+                <section id="capture" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Website Capture</h2>
+                        <p class="text-gray-600 mb-6">Capture and analyze website screenshots and metadata</p>
+                        <div class="flex space-x-4">
+                            <input id="capture-url" type="text" placeholder="Website URL" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="startCapture()" class="btn-primary p-3 rounded-lg flex items-center">
+                                <i class="fas fa-paper-plane mr-2"></i> Capture & Analyze
+                            </button>
+                        </div>
+                        <div id="capture-results" class="mt-6 result-box hidden"></div>
+                    </div>
+                </section>
+
+                <section id="batch" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Batch Investigation</h2>
+                        <p class="text-gray-600 mb-6">Investigate multiple usernames simultaneously</p>
+                        <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <button onclick="startBatchInvestigation()" class="btn-primary p-3 rounded-lg flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Start Batch Analysis
                         </button>
+                        <div id="batch-results" class="mt-6 result-box hidden"></div>
                     </div>
-                    <div id="social-results" class="mt-6 result-box hidden"></div>
-                </div>
-            </section>
+                </section>
 
-            <section id="advanced" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">Advanced Search</h2>
-                    <p class="text-gray-600 mb-6">Search across multiple search engines with custom queries</p>
-                    <input id="advanced-query" type="text" placeholder="Search Query" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <div class="flex space-x-4 mb-4">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="bing-source" checked class="mr-2">
-                            <span>Bing</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" id="ddg-source" checked class="mr-2">
-                            <span>DuckDuckGo</span>
-                        </label>
+                <section id="phone" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">Phone Number Search</h2>
+                        <p class="text-gray-600 mb-6">Search for phone numbers associated with usernames (+62 only)</p>
+                        <div class="flex space-x-4">
+                            <input id="phone-number" type="text" placeholder="+62 Phone Number" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="phone-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="tiktok">TikTok</option>
+                                <option value="facebook">Facebook</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="youtube">YouTube</option>
+                                <option value="twitter">Twitter</option>
+                                <option value="linkedin">LinkedIn</option>
+                                <option value="github">GitHub</option>
+                                <option value="reddit">Reddit</option>
+                            </select>
+                            <button onclick="startPhoneSearch()" class="btn-primary p-3 rounded-lg flex items-center">
+                                <i class="fas fa-paper-plane mr-2"></i> Search Phone Number
+                            </button>
+                        </div>
+                        <div id="phone-results" class="mt-6 result-box hidden"></div>
                     </div>
-                    <button onclick="startAdvancedSearch()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
-                        <i class="fas fa-paper-plane mr-2"></i> Execute Search
-                    </button>
-                    <div id="advanced-results" class="mt-6 result-box hidden"></div>
-                </div>
-            </section>
+                </section>
 
-            <section id="capture" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">Website Capture</h2>
-                    <p class="text-gray-600 mb-6">Capture and analyze website screenshots and metadata</p>
-                    <div class="flex space-x-4">
-                        <input id="capture-url" type="text" placeholder="Website URL" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button onclick="startCapture()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Capture & Analyze
+                <section id="health" class="mb-12">
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800">System Health</h2>
+                        <p class="text-gray-600 mb-6">Monitor system status and performance metrics</p>
+                        <button onclick="checkSystemHealth()" class="btn-primary p-3 rounded-lg flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Check System Health
                         </button>
+                        <div id="health-results" class="mt-6 result-box hidden"></div>
                     </div>
-                    <div id="capture-results" class="mt-6 result-box hidden"></div>
-                </div>
-            </section>
-
-            <section id="batch" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">Batch Investigation</h2>
-                    <p class="text-gray-600 mb-6">Investigate multiple usernames simultaneously</p>
-                    <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    <button onclick="startBatchInvestigation()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
-                        <i class="fas fa-paper-plane mr-2"></i> Start Batch Analysis
-                    </button>
-                    <div id="batch-results" class="mt-6 result-box hidden"></div>
-                </div>
-            </section>
-
-            <section id="phone" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">Phone Number Search</h2>
-                    <p class="text-gray-600 mb-6">Search for phone numbers associated with usernames (+62 only)</p>
-                    <div class="flex space-x-4">
-                        <input id="phone-number" type="text" placeholder="+62 Phone Number" class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <select id="phone-platform" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="tiktok">TikTok</option>
-                            <option value="facebook">Facebook</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="youtube">YouTube</option>
-                            <option value="twitter">Twitter</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="github">GitHub</option>
-                            <option value="reddit">Reddit</option>
-                        </select>
-                        <button onclick="startPhoneSearch()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
-                            <i class="fas fa-paper-plane mr-2"></i> Search Phone Number
-                        </button>
-                    </div>
-                    <div id="phone-results" class="mt-6 result-box hidden"></div>
-                </div>
-            </section>
-
-            <section id="health" class="mb-12">
-                <div class="card bg-white p-8 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-bold mb-4">System Health</h2>
-                    <p class="text-gray-600 mb-6">Monitor system status and performance metrics</p>
-                    <button onclick="checkSystemHealth()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 flex items-center">
-                        <i class="fas fa-paper-plane mr-2"></i> Check System Health
-                    </button>
-                    <div id="health-results" class="mt-6 result-box hidden"></div>
-                </div>
-            </section>
-        </main>
+                </section>
+            </main>
+        </div>
     </div>
 
     <script>
@@ -206,7 +228,7 @@
             if (!username) return alert('Please enter a username');
             const resultsDiv = document.getElementById('deep-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
 
             try {
                 const response = await fetch('/api/investigate', {
@@ -227,10 +249,30 @@
             if (!username) return alert('Please enter a username');
             const resultsDiv = document.getElementById('social-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
 
             try {
                 const response = await fetch(`/api/search/${platform}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                resultsDiv.innerHTML = formatResults(data.results);
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function findAllAccounts() {
+            const username = document.getElementById('accounts-username').value;
+            if (!username) return alert('Please enter a username');
+            const resultsDiv = document.getElementById('accounts-results');
+            resultsDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
+
+            try {
+                const response = await fetch('/api/find-accounts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username })
@@ -248,7 +290,7 @@
             if (!phoneNumber || !phoneNumber.startsWith('+62')) return alert('Please enter a valid +62 phone number');
             const resultsDiv = document.getElementById('phone-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
 
             try {
                 const response = await fetch(`/api/search-phone/${platform}`, {
@@ -271,7 +313,7 @@
             if (!query) return alert('Please enter a search query');
             const resultsDiv = document.getElementById('advanced-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
 
             try {
                 const response = await fetch('/api/advanced-search', {
@@ -291,7 +333,7 @@
             if (!url) return alert('Please enter a URL');
             const resultsDiv = document.getElementById('capture-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
 
             try {
                 const response = await fetch('/api/capture', {
@@ -311,7 +353,7 @@
             if (!usernames.length) return alert('Please enter at least one username');
             const resultsDiv = document.getElementById('batch-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
 
             try {
                 const response = await fetch('/api/batch-investigate', {
@@ -329,7 +371,7 @@
         async function checkSystemHealth() {
             const resultsDiv = document.getElementById('health-results');
             resultsDiv.classList.remove('hidden');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+            resultsDiv.innerHTML = '<p class="text-gray-600">Loading...</p>';
 
             try {
                 const response = await fetch('/health');
@@ -344,14 +386,15 @@
             if (Array.isArray(data)) {
                 return data.map(item => `
                     <div class="result-box">
-                        ${item.title ? `<h3 class="text-lg font-semibold">${item.title}</h3>` : ''}
+                        ${item.title ? `<h3 class="text-lg font-semibold text-gray-800">${item.title}</h3>` : ''}
                         ${item.url ? `<p><a href="${item.url}" class="text-blue-600 hover:underline">${item.url}</a></p>` : ''}
-                        ${item.snippet ? `<p class="text-gray-600">${item.snippet}</p>` : ''}
-                        ${item.bio ? `<p class="text-gray-700 italic">${item.bio}</p>` : ''}
-                        ${item.aiSummary ? `<div class="bg-gray-100 p-3 rounded-lg">AI Summary: ${item.aiSummary}</div>` : ''}
-                        ${item.phone ? `<p class="text-green-600">Phone: ${item.phone}</p>` : ''}
-                        ${item.followers ? `<p class="text-gray-600">Followers: ${item.followers}</p>` : ''}
-                        ${item.postCount ? `<p class="text-gray-600">Posts: ${item.postCount}</p>` : ''}
+                        ${item.snippet ? `<p class="text-gray-600 mt-1">${item.snippet}</p>` : ''}
+                        ${item.bio ? `<p class="text-gray-700 italic mt-1">${item.bio}</p>` : ''}
+                        ${item.aiSummary ? `<div class="bg-gray-50 p-3 rounded-lg mt-2">AI Summary: ${item.aiSummary}</div>` : ''}
+                        ${item.phone ? `<p class="text-green-600 mt-1">Phone: ${item.phone}</p>` : ''}
+                        ${item.platform ? `<p class="text-purple-600 mt-1">Platform: ${item.platform}</p>` : ''}
+                        ${item.followers ? `<p class="text-gray-600 mt-1">Followers: ${item.followers}</p>` : ''}
+                        ${item.postCount ? `<p class="text-gray-600 mt-1">Posts: ${item.postCount}</p>` : ''}
                         ${item.screenshot ? `<img src="${item.screenshot}" alt="Screenshot" class="mt-2 max-w-full rounded-lg">` : ''}
                     </div>
                 `).join('');
@@ -360,18 +403,25 @@
                     <div class="result-box">
                         ${Object.entries(data).map(([key, value]) => {
                             if (Array.isArray(value)) {
-                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
+                                return `<h3 class="text-lg font-semibold text-gray-800 capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
                             } else if (typeof value === 'object' && value !== null) {
-                                return `<h3 class="text-lg font-semibold capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
+                                return `<h3 class="text-lg font-semibold text-gray-800 capitalize">${key.replace('_', ' ')}</h3>${formatResults(value)}`;
                             }
                             return `<p class="text-gray-600"><strong>${key.replace('_', ' ')}:</strong> ${value}</p>`;
                         }).join('')}
                     </div>
                 `;
             }
-            return `<p>${data}</p>`;
+            return `<p class="text-gray-600">${data}</p>`;
         }
+
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
     </script>
 </body>
 </html>
-
