@@ -3,391 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSINT Investigation Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>OSINT Mobile</title>
     <style>
         body {
-            background: linear-gradient(135deg, #1a202c, #2d3748);
-            font-family: 'Inter', sans-serif;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .container {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        .btn-primary {
-            background: linear-gradient(to right, #3b82f6, #60a5fa);
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(to right, #2563eb, #3b82f6);
-            transform: scale(1.05);
-        }
-        .nav-link {
-            transition: color 0.2s ease;
-        }
-        .nav-link:hover {
-            color: #60a5fa;
-        }
-        .profile-card {
-            background: rgba(255, 255, 255, 0.08);
+        .section {
+            background-color: #f9f9f9;
+            margin-bottom: 15px;
+            padding: 10px;
             border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .profile-link {
-            color: #60a5fa;
-            text-decoration: none;
-            transition: color 0.2s ease;
+        .section h2 {
+            font-size: 1.2em;
+            margin: 0 0 10px 0;
+            color: #333;
         }
-        .profile-link:hover {
-            color: #3b82f6;
-            text-decoration: underline;
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .input-group label {
+            font-size: 0.9em;
+            color: #555;
+        }
+        .input-group input, .input-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .input-group button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .input-group button:hover {
+            background-color: #0056b3;
+        }
+        #search-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #222;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
+        }
+        #search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            background-color: #333;
+            color: white;
+            font-size: 1em;
+        }
+        #search-bar button {
+            padding: 10px 15px;
+            background-color: #fff;
+            color: #222;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #options {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            z-index: 10;
+        }
+        #options button {
+            padding: 8px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+        }
+        #options button:hover {
+            background-color: #f0f0f0;
+        }
+        #response {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .platform-options {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
     </style>
 </head>
-<body class="min-h-screen text-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-12">
-            <h1 class="text-5xl font-bold mb-4">
-                <span class="text-blue-400">O</span>SINT
-            </h1>
-            <p class="text-gray-400 text-lg">Advanced Open-Source Intelligence Platform</p>
-        </header>
-
-        <nav class="mb-12">
-            <ul class="flex justify-center space-x-6 text-lg font-medium">
-                <li><a href="#overview" class="nav-link">Overview</a></li>
-                <li><a href="#investigation" class="nav-link">Deep Investigation</a></li>
-                <li><a href="#social" class="nav-link">Social Media</a></li>
-                <li><a href="#advanced" class="nav-link">Advanced Search</a></li>
-                <li><a href="#capture" class="nav-link">Website Capture</a></li>
-                <li><a href="#batch" class="nav-link">Batch Investigation</a></li>
-                <li><a href="#phone" class="nav-link">Phone Search</a></li>
-                <li><a href="#location" class="nav-link">Location Search</a></li>
-                <li><a href="#health" class="nav-link">System Health</a></li>
-            </ul>
-        </nav>
-
-        <main>
-            <section id="overview" class="mb-12">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="card p-6 rounded-lg">
-                        <h2 class="text-2xl font-semibold mb-4">Dashboard</h2>
-                        <p class="text-gray-400 mb-6">Monitor your investigation activities and system performance</p>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <p class="text-gray-400">Total Projects</p>
-                                <p class="text-2xl font-bold">0</p>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <p class="text-gray-400">Active Analyses</p>
-                                <p class="text-2xl font-bold">5</p>
-                                <p class="text-green-400 text-sm">Live</p>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <p class="text-gray-400">Data Processed</p>
-                                <p class="text-2xl font-bold">0.0GB</p>
-                            </div>
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <p class="text-gray-400">Accuracy Rate</p>
-                                <p class="text-2xl font-bold">88.7%</p>
-                                <p class="text-blue-400 text-sm">High</p>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            <h3 class="text-lg font-semibold">Recent Activity</h3>
-                            <p class="text-gray-400">No recent activity</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="investigation" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">Deep Investigation</h2>
-                    <p class="text-gray-400 mb-6">Comprehensive username investigation across multiple platforms</p>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input id="investigate-username" type="text" placeholder="Username" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                        <button onclick="investigate()" class="btn-primary text-white px-6 py-3 rounded-lg">Start Investigation</button>
-                    </div>
-                    <div id="investigation-results" class="mt-6"></div>
-                </div>
-            </section>
-
-            <section id="social" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">Social Media Search</h2>
-                    <p class="text-gray-400 mb-6">Search for profiles on specific social media platforms</p>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input id="social-username" type="text" placeholder="Username" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                        <select id="social-platform" class="bg-gray-800 text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="tiktok">TikTok</option>
-                            <option value="facebook">Facebook</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="youtube">YouTube</option>
-                            <option value="twitter">Twitter</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="github">GitHub</option>
-                            <option value="reddit">Reddit</option>
-                        </select>
-                        <button onclick="searchSocial()" class="btn-primary text-white px-6 py-3 rounded-lg">Search Platform</button>
-                    </div>
-                    <div id="social-results" class="mt-6"></div>
-                </div>
-            </section>
-
-            <section id="location" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">Location-Based Social Media Search</h2>
-                    <p class="text-gray-400 mb-6">Search for social media profiles in a specific location</p>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input id="location-query" type="text" placeholder="Location (e.g., Jatijajar)" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                        <select id="location-platform" class="bg-gray-800 text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="tiktok">TikTok</option>
-                            <option value="facebook">Facebook</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="youtube">YouTube</option>
-                            <option value="twitter">Twitter</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="github">GitHub</option>
-                            <option value="reddit">Reddit</option>
-                        </select>
-                        <button onclick="searchLocation()" class="btn-primary text-white px-6 py-3 rounded-lg">Search Location</button>
-                    </div>
-                    <div id="location-results" class="mt-6"></div>
-                </div>
-            </section>
-
-            <section id="advanced" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">Advanced Search</h2>
-                    <p class="text-gray-400 mb-6">Search across multiple search engines with custom queries</p>
-                    <input id="advanced-query" type="text" placeholder="Search Query" class="bg-gray-800 text-gray-100 p-3 rounded-lg w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                    <div class="flex gap-4 mb-4">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="source-bing" checked class="mr-2">
-                            <span>Bing</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" id="source-ddg" checked class="mr-2">
-                            <span>DuckDuckGo</span>
-                        </label>
-                    </div>
-                    <button onclick="advancedSearch()" class="btn-primary text-white px-6 py-3 rounded-lg">Execute Search</button>
-                    <div id="advanced-results" class="mt-6"></div>
-                </div>
-            </section>
-
-            <section id="capture" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">Website Capture</h2>
-                    <p class="text-gray-400 mb-6">Capture and analyze website screenshots and metadata</p>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input id="capture-url" type="text" placeholder="Website URL" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                        <button onclick="captureWebsite()" class="btn-primary text-white px-6 py-3 rounded-lg">Capture & Analyze</button>
-                    </div>
-                    <div id="capture-results" class="mt-6"></div>
-                </div>
-            </section>
-
-            <section id="batch" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">Batch Investigation</h2>
-                    <p class="text-gray-400 mb-6">Investigate multiple usernames simultaneously</p>
-                    <textarea id="batch-usernames" placeholder="Enter usernames (one per line)" class="bg-gray-800 text-gray-100 p-3 rounded-lg w-full h-32 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
-                    <button onclick="batchInvestigate()" class="btn-primary text-white px-6 py-3 rounded-lg mt-4">Start Batch Analysis</button>
-                    <div id="batch-results" class="mt-6"></div>
-                </div>
-            </section>
-
-            <section id="phone" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">Phone Number Search</h2>
-                    <p class="text-gray-400 mb-6">Search for phone numbers associated with usernames</p>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input id="phone-username" type="text" placeholder="Username" class="bg-gray-800 text-gray-100 p-3 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                        <select id="phone-platform" class="bg-gray-800 text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="tiktok">TikTok</option>
-                            <option value="facebook">Facebook</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="youtube">YouTube</option>
-                            <option value="twitter">Twitter</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="github">GitHub</option>
-                            <option value="reddit">Reddit</option>
-                        </select>
-                        <button onclick="searchPhone()" class="btn-primary text-white px-6 py-3 rounded-lg">Search Phone Number</button>
-                    </div>
-                    <div id="phone-results" class="mt-6"></div>
-                </div>
-            </section>
-
-            <section id="health" class="mb-12">
-                <div class="card p-6 rounded-lg">
-                    <h2 class="text-2xl font-semibold mb-4">System Health</h2>
-                    <p class="text-gray-400 mb-6">Monitor system status and performance metrics</p>
-                    <button onclick="checkHealth()" class="btn-primary text-white px-6 py-3 rounded-lg">Check System Health</button>
-                    <div id="health-results" class="mt-6"></div>
-                </div>
-            </section>
-        </main>
+<body>
+    <div class="container">
+        <div id="response"></div>
+    </div>
+    <div id="search-bar">
+        <button id="option-toggle">+</button>
+        <input type="text" id="search-input" placeholder="Tanya FlowAI tentang keuangan ata...">
+        <button id="search-button">➔</button>
+        <div id="options">
+            <button data-section="deep">Deep Investigation</button>
+            <button data-section="social">Social Media</button>
+            <button data-section="advanced">Advanced Search</button>
+            <button data-section="capture">Website Capture</button>
+            <button data-section="batch">Batch Investigation</button>
+            <button data-section="phone">Phone Search</button>
+            <button data-section="health">System Health</button>
+        </div>
     </div>
 
     <script>
-        const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with actual Gemini API key
+        const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY'; // Replace with actual key
+        const BASE_URL = 'http://localhost:3000';
 
-        async function fetchAIProfileAnalysis(profileData) {
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        document.getElementById('option-toggle').addEventListener('click', () => {
+            const options = document.getElementById('options');
+            options.style.display = options.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        document.getElementById('options').addEventListener('click', async (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const section = e.target.getAttribute('data-section');
+                const input = document.getElementById('search-input').value;
+                document.getElementById('options').style.display = 'none';
+
+                let endpoint = '';
+                let body = { username: input };
+
+                switch (section) {
+                    case 'deep':
+                        endpoint = '/api/investigate';
+                        break;
+                    case 'social':
+                        body.platform = prompt('Enter platform (e.g., tiktok, facebook):') || 'tiktok';
+                        endpoint = `/api/search/${body.platform}`;
+                        break;
+                    case 'advanced':
+                        body.query = input;
+                        body.sources = ['bing', 'duckduckgo'];
+                        endpoint = '/api/advanced-search';
+                        break;
+                    case 'capture':
+                        body.url = input;
+                        endpoint = '/api/capture';
+                        break;
+                    case 'batch':
+                        body.usernames = input.split(',').map(u => u.trim());
+                        endpoint = '/api/batch-investigate';
+                        break;
+                    case 'phone':
+                        body.platform = prompt('Enter platform (e.g., tiktok, facebook):') || 'tiktok';
+                        endpoint = `/api/search-phone/${body.platform}`;
+                        break;
+                    case 'health':
+                        endpoint = '/health';
+                        body = {};
+                        break;
+                }
+
+                if (endpoint) {
+                    try {
+                        const response = await fetch(`${BASE_URL}${endpoint}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                        const data = await response.json();
+                        let aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [{ text: JSON.stringify(data) }]
+                                }]
+                            })
+                        });
+                        aiResponse = await aiResponse.json();
+                        document.getElementById('response').innerText = aiResponse.candidates[0].content.parts[0].text || 'No response from AI.';
+                    } catch (error) {
+                        document.getElementById('response').innerText = `Error: ${error.message}`;
+                    }
+                }
+            }
+        });
+
+        document.getElementById('search-button').addEventListener('click', () => {
+            const input = document.getElementById('search-input').value;
+            if (input) {
+                document.getElementById('response').innerText = 'Processing...';
+                fetch(`${BASE_URL}/api/investigate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `Analyze this social media profile data and provide a formatted summary:
-                                Platform: ${profileData.platform}
-                                URL: ${profileData.url}
-                                Bio: ${profileData.bio || 'N/A'}
-                                Followers: ${profileData.followers || 'N/A'}
-                                Posts: ${profileData.postCount || 'N/A'}`
+                    body: JSON.stringify({ username: input })
+                })
+                .then(res => res.json())
+                .then(async data => {
+                    const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{ text: JSON.stringify(data) }]
                             }]
-                        }]
-                    })
+                        })
+                    });
+                    const aiData = await aiResponse.json();
+                    document.getElementById('response').innerText = aiData.candidates[0].content.parts[0].text || 'No AI response.';
+                })
+                .catch(error => {
+                    document.getElementById('response').innerText = `Error: ${error.message}`;
                 });
-                const data = await response.json();
-                return data.candidates[0].content.parts[0].text;
-            } catch (error) {
-                return `AI Analysis Error: ${error.message}`;
             }
-        }
-
-        async function displayResults(elementId, data) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = '';
-            if (data.success && data.results && data.results.length > 0) {
-                for (const result of data.results) {
-                    const aiAnalysis = await fetchAIProfileAnalysis(result);
-                    const profileCard = document.createElement('div');
-                    profileCard.className = 'profile-card';
-                    profileCard.innerHTML = `
-                        <h3 class="text-lg font-semibold text-blue-400">${result.platform.charAt(0).toUpperCase() + result.platform.slice(1)} Profile</h3>
-                        <p><strong>URL:</strong> <a href="${result.url}" target="_blank" class="profile-link">${result.url}</a></p>
-                        <p><strong>Bio:</strong> ${result.bio || 'N/A'}</p>
-                        <p><strong>Followers:</strong> ${result.followers || 'N/A'}</p>
-                        <p><strong>Posts:</strong> ${result.postCount || 'N/A'}</p>
-                        ${result.profilePic ? `<img src="${result.profilePic}" alt="Profile Picture" class="w-24 h-24 rounded-full my-2" />` : ''}
-                        <p><strong>AI Analysis:</strong> ${aiAnalysis.replace(/\n/g, '<br>')}</p>
-                    `;
-                    container.appendChild(profileCard);
-                }
-            } else {
-                container.innerHTML = '<p class="text-gray-400">No results found or an error occurred.</p>';
-            }
-        }
-
-        async function investigate() {
-            const username = document.getElementById('investigate-username').value;
-            if (!username) return alert('Please enter a username');
-            const response = await fetch('/api/investigate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            const data = await response.json();
-            document.getElementById('investigation-results').innerHTML = JSON.stringify(data, null, 2);
-        }
-
-        async function searchSocial() {
-            const username = document.getElementById('social-username').value;
-            const platform = document.getElementById('social-platform').value;
-            if (!username) return alert('Please enter a username');
-            const response = await fetch(`/api/search/${platform}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            const data = await response.json();
-            await displayResults('social-results', data);
-        }
-
-        async function searchLocation() {
-            const location = document.getElementById('location-query').value;
-            const platform = document.getElementById('location-platform').value;
-            if (!location) return alert('Please enter a location');
-            const response = await fetch(`/api/search-location/${platform}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ location })
-            });
-            const data = await response.json();
-            await displayResults('location-results', data);
-        }
-
-        async function advancedSearch() {
-            const query = document.getElementById('advanced-query').value;
-            const sources = [];
-            if (document.getElementById('source-bing').checked) sources.push('bing');
-            if (document.getElementById('source-ddg').checked) sources.push('duckduckgo');
-            if (!query) return alert('Please enter a search query');
-            const response = await fetch('/api/advanced-search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, sources })
-            });
-            const data = await response.json();
-            document.getElementById('advanced-results').innerHTML = JSON.stringify(data, null, 2);
-        }
-
-        async function captureWebsite() {
-            const url = document.getElementById('capture-url').value;
-            if (!url) return alert('Please enter a URL');
-            const response = await fetch('/api/capture', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-            const data = await response.json();
-            document.getElementById('capture-results').innerHTML = JSON.stringify(data, null, 2);
-        }
-
-        async function batchInvestigate() {
-            const usernames = document.getElementById('batch-usernames').value.split('\n').filter(u => u.trim());
-            if (!usernames.length) return alert('Please enter at least one username');
-            const response = await fetch('/api/batch-investigate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usernames })
-            });
-            const data = await response.json();
-            document.getElementById('batch-results').innerHTML = JSON.stringify(data, null, 2);
-        }
-
-        async function searchPhone() {
-            const username = document.getElementById('phone-username').value;
-            const platform = document.getElementById('phone-platform').value;
-            if (!username) return alert('Please enter a username');
-            const response = await fetch(`/api/search-phone/${platform}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            const data = await response.json();
-            document.getElementById('phone-results').innerHTML = JSON.stringify(data, null, 2);
-        }
-
-        async function checkHealth() {
-            const response = await fetch('/health');
-            const data = await response.json();
-            document.getElementById('health-results').innerHTML = JSON.stringify(data, null, 2);
-        }
+        });
     </script>
 </body>
 </html>
-
 
