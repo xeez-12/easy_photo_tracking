@@ -90,8 +90,8 @@ async function scrapeSocialMediaProfile(url, platform, retries = 2) {
             }
 
             const profileData = await page.evaluate((platform) => {
-                const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
-                const getImage = (selector) => document.querySelector(selector)?.src || '';
+                const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || null;
+                const getImage = (selector) => document.querySelector(selector)?.src || null;
 
                 const platformSelectors = {
                     tiktok: {
@@ -108,7 +108,7 @@ async function scrapeSocialMediaProfile(url, platform, retries = 2) {
                     },
                     twitter: {
                         profilePic: 'img[alt="Profile picture"]',
- hensiv                bio: '[data-testid="UserDescription"]',
+                        bio: '[data-testid="UserDescription"]',
                         followers: '[data-testid="followers"] span',
                         posts: '[data-testid="tweet"]'
                     },
@@ -143,9 +143,13 @@ async function scrapeSocialMediaProfile(url, platform, retries = 2) {
                     profilePic: getImage(selectors.profilePic),
                     bio: getText(selectors.bio),
                     followers: getText(selectors.followers),
-                    postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts)
+                    postCount: document.querySelectorAll(selectors.posts).length > 0 ? document.querySelectorAll(selectors.posts).length : getText(selectors.posts)
                 };
             }, platform);
+
+            if (!profileData.profilePic && !profileData.bio && !profileData.followers && !profileData.postCount) {
+                throw new Error('No data extracted from page');
+            }
 
             const screenshot = await page.screenshot({ 
                 encoding: 'base64',
@@ -163,6 +167,7 @@ async function scrapeSocialMediaProfile(url, platform, retries = 2) {
                 platform
             };
         } catch (error) {
+            console.error(`Scraping error for ${url}: ${error.message}`);
             if (attempt === retries) {
                 return {
                     url,
@@ -174,10 +179,11 @@ async function scrapeSocialMediaProfile(url, platform, retries = 2) {
             await sleep(500);
         } finally {
             if (browser) {
-                try { await browser.close(); } catch (e) {}
+                try { await browser.close(); } catch (e) { console.error('Browser close error:', e.message); }
             }
         }
     }
+    return { url, error: 'Max retries reached', scraped_at: new Date().toISOString(), platform };
 }
 
 // Advanced Bing Search
@@ -230,6 +236,7 @@ async function searchBingAdvanced(query, maxPages = 1, retries = 2) {
                 break;
 
             } catch (error) {
+                console.error(`Bing search error for ${query}: ${error.message}`);
                 if (error.response?.status === 429 && attempt < retries) {
                     await sleep(3000 * attempt);
                     continue;
@@ -239,7 +246,7 @@ async function searchBingAdvanced(query, maxPages = 1, retries = 2) {
         }
     }
 
-    return allResults;
+    return allResults.length > 0 ? allResults : [];
 }
 
 // Advanced DuckDuckGo Search
@@ -305,13 +312,14 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 10, retries = 2) {
                         }
                     });
 
-                    if (results.length > 0) return results;
+                    if (results.length > 0) break;
                 }
 
-                if (results.length > 0) return results;
+                if (results.length > 0) return results.slice(0, maxResults);
                 await sleep(300);
 
             } catch (error) {
+                console.error(`DuckDuckGo search error for ${query}: ${error.message}`);
                 if (attempt === retries) continue;
                 await sleep(1000 * attempt);
             }
@@ -334,10 +342,10 @@ const socialMediaPatterns = {
 
 // Advanced Social Media Search
 async function searchSocialMediaAdvanced(username, platform, maxResults = 2) {
-    if (!username || !platform) {
-        throw new Error('Username and platform are required');
+    if (!username || !platform || !socialMediaPatterns[platform]) {
+        throw new Error('Invalid username or unsupported platform');
     }
-    const patterns = socialMediaPatterns[platform] || [];
+    const patterns = socialMediaPatterns[platform];
     const allResults = [];
 
     for (const pattern of patterns) {
@@ -364,14 +372,16 @@ async function searchSocialMediaAdvanced(username, platform, maxResults = 2) {
 
                 if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
-                    allResults.push({ ...result, ...profileData, platform, query });
+                    if (!profileData.error) {
+                        allResults.push({ ...result, ...profileData, platform, query });
+                    }
                 }
             }
 
             await sleep(300);
 
         } catch (error) {
-            console.error(`Error searching ${platform}: ${error.message}`);
+            console.error(`Search error for ${platform}: ${error.message}`);
         }
     }
 
@@ -399,11 +409,12 @@ async function performComprehensiveSearch(username, platforms = [], maxResults =
         }
         try {
             const platformResults = await searchSocialMediaAdvanced(username, platform, maxResults);
-            results.social_media[platform] = platformResults;
+            results.social_media[platform] = platformResults.length > 0 ? platformResults : [{ url: null, error: 'No results found', platform }];
             results.total_results += platformResults.length;
             await sleep(300);
         } catch (error) {
-            results.social_media[platform] = { error: error.message };
+            results.social_media[platform] = [{ url: null, error: error.message, platform }];
+            console.error(`Comprehensive search error for ${platform}: ${error.message}`);
         }
     }
 
@@ -420,13 +431,18 @@ app.post('/api/investigate', async (req, res) => {
 
     try {
         const investigation = await performComprehensiveSearch(username, platforms, maxResults);
+        if (investigation.total_results === 0 && Object.values(investigation.social_media).every(item => item.error)) {
+            return res.status(404).json({ success: false, error: 'No data found for the username', investigation });
+        }
         res.json({
             success: true,
             investigation_id: uuidv4(),
             investigation
         });
     } catch (error) {
+        console.error('Investigation error:', error.message);
         res.status(500).json({ 
+            success: false,
             error: 'Investigation failed', 
             details: error.message 
         });
@@ -437,7 +453,7 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.4.0-railway',
+        version: '3.4.1-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         supported_platforms: Object.keys(socialMediaPatterns)
