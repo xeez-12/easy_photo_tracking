@@ -15,20 +15,9 @@ app.use(express.static('public'));
 // Expanded User Agent Pool
 const userAgentPool = [
     'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/128.0.2651.74 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Android 14; Tablet; rv:129.0) Gecko/129.0 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
 ];
 
 // Enhanced Headers Configuration
@@ -36,23 +25,15 @@ const getAdvancedHeaders = (referer = null, isXHR = false) => {
     const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
     return {
         'User-Agent': userAgent,
-        'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9,en-GB;q=0.8,es;q=0.7',
+        'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
         'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
         'Sec-Fetch-Dest': isXHR ? 'empty' : 'document',
         'Sec-Fetch-Mode': isXHR ? 'cors' : 'navigate',
         'Sec-Fetch-Site': referer ? 'same-origin' : 'none',
-        'Sec-Fetch-User': isXHR ? undefined : '?1',
         'Cache-Control': 'max-age=0',
-        'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="128", "Google Chrome";v="128"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"iOS"',
-        'X-Forwarded-For': generateRandomIP(),
-        'X-Real-IP': generateRandomIP(),
-        'Pragma': 'no-cache',
         'Referer': referer || 'https://www.google.com/',
         'Origin': referer ? new URL(referer).origin : 'https://www.google.com'
     };
@@ -72,6 +53,28 @@ function generateRandomIP() {
 const sleep = (ms) => new Promise(resolve => 
     setTimeout(resolve, ms + Math.floor(Math.random() * 1000))
 );
+
+// Gemini AI Integration
+async function enhanceWithGemini(content, context) {
+    try {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `Analyze and summarize this social media content for relevant user information: ${content.substring(0, 4000)}`
+                    }]
+                }]
+            })
+        });
+        const data = await response.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    } catch (error) {
+        console.error('Gemini AI Error:', error.message);
+        return '';
+    }
+}
 
 // Advanced Social Media Scraping
 async function scrapeSocialMediaProfile(url, platform) {
@@ -94,59 +97,50 @@ async function scrapeSocialMediaProfile(url, platform) {
 
         const page = await browser.newPage();
         await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
-        await page.setViewport({ width: 360, height: 640 }); // Mobile viewport
+        await page.setViewport({ width: 1366, height: 768 });
 
         await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
         const profileData = await page.evaluate((platform) => {
             const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
-            const getImage = (selector) => document.querySelector(selector)?.src || '';
 
             const platformSelectors = {
                 tiktok: {
-                    profilePic: 'img[data-testid="user-avatar"]',
                     bio: '[data-testid="user-bio"]',
                     followers: '[data-testid="user-followers"] strong',
                     posts: '[data-testid="user-videos"] strong'
                 },
                 instagram: {
-                    profilePic: 'img[alt*="profile picture"]',
                     bio: '._aa_y div div span',
                     followers: 'a[href*="/followers/"] span',
                     posts: 'span._ac2a'
                 },
                 twitter: {
-                    profilePic: 'img[alt="Profile picture"]',
                     bio: '[data-testid="UserDescription"]',
                     followers: '[data-testid="followers"] span',
                     posts: '[data-testid="tweet"]'
                 },
                 facebook: {
-                    profilePic: 'img.x1y9k2m',
                     bio: 'div.x1heor9g div.x1iorvi4 span',
                     followers: 'span.x1e558r4',
                     posts: 'div.x1n2onr6 div.x1yztbdb'
                 },
                 youtube: {
-                    profilePic: 'img#img',
                     bio: '#description.ytd-channel-about-metadata-renderer',
                     followers: '#subscriber-count',
                     posts: 'ytd-grid-video-renderer'
                 },
                 linkedin: {
-                    profilePic: 'img.pv-top-card--photo',
                     bio: '.pv-about-section .pv-about__summary-text',
                     followers: '.follower-count',
                     posts: '.share-box-feed-entry'
                 },
                 github: {
-                    profilePic: 'img.avatar-user',
                     bio: '.p-bio',
                     followers: 'a[href*="/followers"] .text-bold',
                     posts: '.js-repos-container'
                 },
                 reddit: {
-                    profilePic: 'img[alt="User avatar"]',
                     bio: '.profile-bio',
                     followers: '.profile-followers',
                     posts: '.Post'
@@ -155,17 +149,19 @@ async function scrapeSocialMediaProfile(url, platform) {
 
             const selectors = platformSelectors[platform] || {};
             return {
-                profilePic: getImage(selectors.profilePic),
                 bio: getText(selectors.bio),
                 followers: getText(selectors.followers),
                 postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts)
             };
         }, platform);
 
+        const pageContent = await page.evaluate(() => document.body.innerText);
+        const aiSummary = await enhanceWithGemini(pageContent, `Social media profile analysis for ${platform}`);
+
         const screenshot = await page.screenshot({ 
             encoding: 'base64',
             fullPage: false,
-            clip: { x: 0, y: 0, width: 360, height: 640 }
+            clip: { x: 0, y: 0, width: 1366, height: 768 }
         });
 
         await browser.close();
@@ -173,6 +169,7 @@ async function scrapeSocialMediaProfile(url, platform) {
         return {
             url,
             ...profileData,
+            aiSummary,
             screenshot: `data:image/png;base64,${screenshot}`,
             scraped_at: new Date().toISOString(),
             platform
@@ -180,9 +177,7 @@ async function scrapeSocialMediaProfile(url, platform) {
     } catch (error) {
         return { url, error: error.message, scraped_at: new Date().toISOString(), platform };
     } finally {
-        if (browser) {
-            try { await browser.close(); } catch (e) {}
-        }
+        if (browser) await browser.close();
     }
 }
 
@@ -229,10 +224,8 @@ async function searchBingAdvanced(query, maxPages = 5) {
             });
 
             allResults.push(...pageResults);
-
             if (pageResults.length === 0) break;
             await sleep(2000);
-
         } catch (error) {
             if (error.response?.status === 429) {
                 await sleep(10000);
@@ -258,7 +251,7 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
             let response;
             if (strategy.method === 'POST') {
                 response = await axios.post(strategy.url, 
-                    `q=${encodeURIComponent(query)}&b=&kl=us-en&df=`,
+                    `q=${encodeURIComponent(query)}&b=&kl=id-id&df=`,
                     {
                         headers: {
                             ...getAdvancedHeaders('https://duckduckgo.com/'),
@@ -270,7 +263,7 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
                 );
             } else {
                 response = await axios.get(strategy.url, {
-                    params: { q: query, kl: 'us-en' },
+                    params: { q: query, kl: 'id-id' },
                     headers: getAdvancedHeaders('https://duckduckgo.com/'),
                     timeout: 20000
                 });
@@ -367,31 +360,32 @@ async function searchSocialMediaAdvanced(username, platform) {
             }
 
             await sleep(1500);
-
         } catch (error) {
-            // Silent error handling
+            console.error(`Error searching ${platform}:`, error.message);
         }
     }
 
-    const uniqueResults = allResults.filter((result, index, self) => 
+    return allResults.filter((result, index, self) => 
         index === self.findIndex(r => r.url === result.url)
     );
-
-    return uniqueResults;
 }
 
-// Phone Number Search
-async function searchPhoneNumberAdvanced(username, platform) {
-    const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${username}"`];
+// Phone Number Search (+62 only)
+async function searchPhoneNumberAdvanced(phoneNumber, platform) {
+    if (!phoneNumber.startsWith('+62')) {
+        return [];
+    }
+
+    const patterns = socialMediaPatterns[platform] || [`site:${platform}.com "${phoneNumber}"`];
     const allResults = [];
 
     for (const pattern of patterns) {
-        const query = pattern.replace(/{username}/g, username);
+        const query = pattern.replace(/{username}/g, phoneNumber);
 
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(`${query} phone number`, 2),
-                searchDuckDuckGoAdvanced(`${query} phone number`, 20)
+                searchBingAdvanced(query, 2),
+                searchDuckDuckGoAdvanced(query, 20)
             ]);
 
             const combinedResults = [...bingResults, ...ddgResults];
@@ -410,7 +404,7 @@ async function searchPhoneNumberAdvanced(username, platform) {
 
                 if (result.url && result.url.includes(targetDomain) && !result.url.includes('duckduckgo.com') && !result.url.includes('bing.com')) {
                     const profileData = await scrapeSocialMediaProfile(result.url, platform);
-                    const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
+                    const phoneRegex = /\+62\d{9,11}/g;
                     const textContent = profileData.bio || result.snippet || '';
                     const phoneMatch = textContent.match(phoneRegex);
                     const phone = phoneMatch ? phoneMatch[0] : null;
@@ -419,17 +413,14 @@ async function searchPhoneNumberAdvanced(username, platform) {
             }
 
             await sleep(1500);
-
         } catch (error) {
-            // Silent error handling
+            console.error(`Error searching phone on ${platform}:`, error.message);
         }
     }
 
-    const uniqueResults = allResults.filter((result, index, self) => 
+    return allResults.filter((result, index, self) => 
         index === self.findIndex(r => r.url === result.url)
     );
-
-    return uniqueResults;
 }
 
 // Comprehensive Deep Search Function
@@ -462,9 +453,7 @@ async function performComprehensiveSearch(username) {
         `"${username}" profile`,
         `"${username}" account`,
         `"${username}" user`,
-        `${username} contact information`,
-        `${username} email address`,
-        `${username} phone number`
+        `${username} contact information`
     ];
 
     for (const query of generalQueries) {
@@ -477,7 +466,7 @@ async function performComprehensiveSearch(username) {
             results.general_search.push(...bingResults, ...ddgResults);
             await sleep(1500);
         } catch (error) {
-            // Silent error handling
+            console.error('General search error:', error.message);
         }
     }
 
@@ -495,7 +484,7 @@ async function performComprehensiveSearch(username) {
             results.email_search.push(...emailResults);
             await sleep(1000);
         } catch (error) {
-            // Silent error handling
+            console.error('Email search error:', error.message);
         }
     }
 
@@ -512,7 +501,7 @@ async function performComprehensiveSearch(username) {
             results.leaked_data.push(...breachResults);
             await sleep(1500);
         } catch (error) {
-            // Silent error handling
+            console.error('Breach search error:', error.message);
         }
     }
 
@@ -529,7 +518,7 @@ async function performComprehensiveSearch(username) {
             results.professional_info.push(...profResults);
             await sleep(1500);
         } catch (error) {
-            // Silent error handling
+            console.error('Professional search error:', error.message);
         }
     }
 
@@ -540,6 +529,7 @@ async function performComprehensiveSearch(username) {
                 if (item.title) allText += ` ${item.title}`;
                 if (item.snippet) allText += ` ${item.snippet}`;
                 if (item.bio) allText += ` ${item.bio}`;
+                if (item.aiSummary) allText += ` ${item.aiSummary}`;
             });
         } else if (typeof section === 'object' && section !== null) {
             Object.values(section).forEach(items => {
@@ -548,6 +538,7 @@ async function performComprehensiveSearch(username) {
                         if (item.title) allText += ` ${item.title}`;
                         if (item.snippet) allText += ` ${item.snippet}`;
                         if (item.bio) allText += ` ${item.bio}`;
+                        if (item.aiSummary) allText += ` ${item.aiSummary}`;
                     });
                 }
             });
@@ -568,7 +559,7 @@ async function performComprehensiveSearch(username) {
 // Advanced Contact Info Extraction
 function extractAdvancedContactInfo(text) {
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-    const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
+    const phoneRegex = /\+62\d{9,11}/g;
     const usernameRegex = /@([a-zA-Z0-9_]+)/g;
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
     const socialRegex = /(facebook|twitter|instagram|linkedin|tiktok|youtube)\.com\/[\w.-]+/gi;
@@ -593,17 +584,15 @@ async function captureAdvancedInfo(url) {
         });
 
         const $ = cheerio.load(axiosResponse.data);
+        const pageContent = $('body').text();
+        const aiSummary = await enhanceWithGemini(pageContent, `Website content analysis for ${url}`);
+
         const basicInfo = {
             url,
             title: $('title').text().trim(),
             description: $('meta[name="description"]').attr('content') || '',
             keywords: $('meta[name="keywords"]').attr('content') || '',
-            ogTitle: $('meta[property="og:title"]').attr('content') || '',
-            ogDescription: $('meta[property="og:description"]').attr('content') || '',
-            ogImage: $('meta[property="og:image"]').attr('content') || '',
-            twitterCard: $('meta[name="twitter:card"]').attr('content') || '',
-            canonical: $('link[rel="canonical"]').attr('href') || '',
-            robots: $('meta[name="robots"]').attr('content') || '',
+            aiSummary,
             headers: axiosResponse.headers,
             status: axiosResponse.status
         };
@@ -626,34 +615,24 @@ async function captureAdvancedInfo(url) {
 
             const page = await browser.newPage();
             await page.setUserAgent(userAgentPool[0]);
-            await page.setViewport({ width: 360, height: 640 }); // Mobile viewport
+            await page.setViewport({ width: 1366, height: 768 });
 
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
             const screenshot = await page.screenshot({ 
                 encoding: 'base64',
                 fullPage: false,
-                clip: { x: 0, y: 0, width: 360, height: 640 }
+                clip: { x: 0, y: 0, width: 1366, height: 768 }
             });
 
             const advancedInfo = await page.evaluate(() => {
                 return {
                     finalUrl: window.location.href,
                     pageText: document.body.innerText.substring(0, 2000),
-                    forms: Array.from(document.forms).map(form => ({
-                        action: form.action,
-                        method: form.method,
-                        inputs: Array.from(form.elements).map(el => ({
-                            type: el.type,
-                            name: el.name,
-                            id: el.id
-                        }))
-                    })),
                     links: Array.from(document.links).slice(0, 50).map(link => ({
                         href: link.href,
                         text: link.textContent.trim()
                     })),
-                    scripts: Array.from(document.scripts).map(script => script.src).filter(Boolean),
                     technologies: {
                         hasJquery: typeof window.jQuery !== 'undefined',
                         hasReact: typeof window.React !== 'undefined',
@@ -689,9 +668,7 @@ async function captureAdvancedInfo(url) {
             capture_method: 'failed'
         };
     } finally {
-        if (browser) {
-            try { await browser.close(); } catch (e) {}
-        }
+        if (browser) await browser.close();
     }
 }
 
@@ -705,13 +682,11 @@ app.post('/api/investigate', async (req, res) => {
 
     try {
         const investigation = await performComprehensiveSearch(username);
-
         res.json({
             success: true,
             investigation_id: uuidv4(),
-            investigation
+            investigation: formatResults(investigation)
         });
-
     } catch (error) {
         res.status(500).json({ 
             error: 'Investigation failed', 
@@ -735,7 +710,7 @@ app.post('/api/search/:platform', async (req, res) => {
             platform,
             username,
             count: results.length,
-            results
+            results: formatResults(results)
         });
     } catch (error) {
         res.status(500).json({ 
@@ -747,20 +722,20 @@ app.post('/api/search/:platform', async (req, res) => {
 
 app.post('/api/search-phone/:platform', async (req, res) => {
     const { platform } = req.params;
-    const { username } = req.body;
+    const { phoneNumber } = req.body;
 
-    if (!username) {
-        return res.status(400).json({ error: 'Username is required' });
+    if (!phoneNumber) {
+        return res.status(400).json({ error: 'Phone number is required' });
     }
 
     try {
-        const results = await searchPhoneNumberAdvanced(username, platform);
+        const results = await searchPhoneNumberAdvanced(phoneNumber, platform);
         res.json({
             success: true,
             platform,
-            username,
+            phoneNumber,
             count: results.length,
-            results
+            results: formatResults(results)
         });
     } catch (error) {
         res.status(500).json({ 
@@ -779,12 +754,10 @@ app.post('/api/advanced-search', async (req, res) => {
 
     try {
         const results = [];
-
         if (sources.includes('bing')) {
             const bingResults = await searchBingAdvanced(query, 3);
             results.push(...bingResults);
         }
-
         if (sources.includes('duckduckgo')) {
             const ddgResults = await searchDuckDuckGoAdvanced(query, maxResults);
             results.push(...ddgResults);
@@ -795,7 +768,7 @@ app.post('/api/advanced-search', async (req, res) => {
             query,
             sources_used: sources,
             total: results.length,
-            results
+            results: formatResults(results)
         });
     } catch (error) {
         res.status(500).json({ 
@@ -816,7 +789,7 @@ app.post('/api/capture', async (req, res) => {
         const capture = await captureAdvancedInfo(url);
         res.json({
             success: true,
-            capture
+            capture: formatResults(capture)
         });
     } catch (error) {
         res.status(500).json({ 
@@ -835,12 +808,9 @@ app.post('/api/batch-investigate', async (req, res) => {
 
     try {
         const investigations = [];
-        const total = usernames.length;
-
-        for (let i = 0; i < usernames.length; i++) {
-            const username = usernames[i];
+        for (const username of usernames) {
             const investigation = await performComprehensiveSearch(username);
-            investigations.push(investigation);
+            investigations.push(formatResults(investigation));
             await sleep(5000);
         }
 
@@ -854,7 +824,6 @@ app.post('/api/batch-investigate', async (req, res) => {
             },
             investigations
         });
-
     } catch (error) {
         res.status(500).json({ 
             error: 'Batch investigation failed', 
@@ -867,10 +836,11 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.3.0-railway',
+        version: '3.4.0-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
+            'AI-Powered Scraping',
             'Advanced Multi-Engine Search',
             'Deep Social Media Investigation',
             'Comprehensive OSINT Framework',
@@ -882,7 +852,7 @@ app.get('/health', (req, res) => {
             'Rate Limiting & Evasion',
             'Browser Fingerprinting',
             'Social Media Metadata Extraction',
-            'Phone Number Search'
+            'Phone Number Search (+62)'
         ],
         supported_platforms: Object.keys(socialMediaPatterns)
     });
@@ -891,6 +861,32 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: './public' });
 });
+
+// Format Results for Better Display
+function formatResults(data) {
+    if (Array.isArray(data)) {
+        return data.map(item => ({
+            ...item,
+            title: item.title ? `<strong>${item.title}</strong>` : '',
+            snippet: item.snippet ? `<p style="color: #666; margin: 5px 0;">${item.snippet}</p>` : '',
+            bio: item.bio ? `<div style="font-style: italic; color: #333;">${item.bio}</div>` : '',
+            aiSummary: item.aiSummary ? `<div style="background: #f5f5f5; padding: 10px; border-radius: 5px;">AI Summary: ${item.aiSummary}</div>` : '',
+            url: item.url ? `<a href="${item.url}" style="color: #0066cc; text-decoration: none;">${item.url}</a>` : '',
+            phone: item.phone ? `<span style="color: #2e7d32;">${item.phone}</span>` : ''
+        }));
+    } else if (typeof data === 'object' && data !== null) {
+        const formatted = { ...data };
+        Object.keys(formatted).forEach(key => {
+            if (Array.isArray(formatted[key])) {
+                formatted[key] = formatResults(formatted[key]);
+            } else if (typeof formatted[key] === 'object' && formatted[key] !== null) {
+                formatted[key] = formatResults(formatted[key]);
+            }
+        });
+        return formatted;
+    }
+    return data;
+}
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`OSINT Investigation Platform running on port ${PORT}`);
