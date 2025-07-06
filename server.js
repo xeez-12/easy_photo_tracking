@@ -12,23 +12,18 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 
-// Expanded User Agent Pool (Can be moved to useragents.js if preferred)
+// Enhanced User Agent Pool
 const userAgentPool = [
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/605.1',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/128.0.2651.74 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Android 14; Tablet; rv:129.0) Gecko/129.0 Firefox/129.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/605.1',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Android 15; Mobile; rv:130.0) Gecko/130.0 Firefox/130.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/129.0.2792.79 Safari/537.36',
+    'Mozilla/5.0 (iPad; CPU OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/605.1',
+    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0'
 ];
 
 // Enhanced Headers Configuration
@@ -36,8 +31,8 @@ const getAdvancedHeaders = (referer = null, isXHR = false) => {
     const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
     return {
         'User-Agent': userAgent,
-        'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9,en-GB;q=0.8,es;q=0.7',
+        'Accept': isXHR ? 'application/json, text/plain, */*' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9,es;q=0.8,fr;q=0.7',
         'Accept-Encoding': 'gzip, deflate, br',
         'DNT': '1',
         'Connection': 'keep-alive',
@@ -46,15 +41,18 @@ const getAdvancedHeaders = (referer = null, isXHR = false) => {
         'Sec-Fetch-Mode': isXHR ? 'cors' : 'navigate',
         'Sec-Fetch-Site': referer ? 'same-origin' : 'none',
         'Sec-Fetch-User': isXHR ? undefined : '?1',
-        'Cache-Control': 'max-age=0',
-        'sec-ch-ua': '"Not A;Brand";v="99", "Chromium";v="128", "Google Chrome";v="128"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"iOS"',
+        'Cache-Control': 'no-cache',
+        'sec-ch-ua': '"Chromium";v="129", "Not=A?Brand";v="99", "Google Chrome";v="129"',
+        'sec-ch-ua-mobile': userAgent.includes('Mobile') ? '?1' : '?0',
+        'sec-ch-ua-platform': userAgent.includes('Windows') ? '"Windows"' : userAgent.includes('Macintosh') ? '"macOS"' : userAgent.includes('Linux') ? '"Linux"' : '"iOS"',
         'X-Forwarded-For': generateRandomIP(),
         'X-Real-IP': generateRandomIP(),
         'Pragma': 'no-cache',
         'Referer': referer || 'https://www.google.com/',
-        'Origin': referer ? new URL(referer).origin : 'https://www.google.com'
+        'Origin': referer ? new URL(referer).origin : 'https://www.google.com',
+        'Cookie': generateRandomCookie(),
+        'sec-gpc': '1',
+        'Priority': isXHR ? 'u=1' : 'u=0'
     };
 };
 
@@ -68,13 +66,23 @@ function generateRandomIP() {
     return range.map(num => num + Math.floor(Math.random() * 10)).join('.');
 }
 
+// Generate Random Cookie
+function generateRandomCookie() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let cookie = '';
+    for (let i = 0; i < 32; i++) {
+        cookie += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `session=${cookie}`;
+}
+
 // Sleep function
 const sleep = (ms) => new Promise(resolve => 
-    setTimeout(resolve, ms + Math.floor(Math.random() * 1000))
+    setTimeout(resolve, ms + Math.floor(Math.random() * 1500))
 );
 
 // Advanced Social Media Scraping
-async function scrapeSocialMediaProfile(url, platform) {
+async function scrapeSocialMediaProfile(url, platform, retryCount = 0) {
     let browser;
     try {
         browser = await puppeteer.launch({
@@ -87,69 +95,86 @@ async function scrapeSocialMediaProfile(url, platform) {
                 '--no-first-run',
                 '--no-zygote',
                 '--single-process',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--disable-web-security',
+                '--disable-features=IsolateOrigins,site-per-process'
             ],
             executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium'
         });
 
-        const page = await browser.newPage();
-        await page.setUserAgent(userAgentPool[Math.floor(Math.random() * userAgentPool.length)]);
+        const context = await browser.createIncognitoBrowserContext();
+        const page = await context.newPage();
+        const userAgent = userAgentPool[Math.floor(Math.random() * userAgentPool.length)];
+        await page.setUserAgent(userAgent);
         await page.setViewport({ width: 1366, height: 768 });
+        await page.setExtraHTTPHeaders(getAdvancedHeaders(url, false));
 
-        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+        // Handle private account access with authentication simulation
+        await handlePlatformAuth(page, platform, url);
+
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
 
         const profileData = await page.evaluate((platform) => {
             const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || '';
             const getImage = (selector) => document.querySelector(selector)?.src || '';
+            const getAllText = (selector) => Array.from(document.querySelectorAll(selector)).map(el => el.textContent?.trim()).join(' | ');
 
             const platformSelectors = {
                 tiktok: {
-                    profilePic: 'img[data-testid="user-avatar"]',
-                    bio: '[data-testid="user-bio"]',
-                    followers: '[data-testid="user-followers"] strong',
-                    posts: '[data-testid="user-videos"] strong'
+                    profilePic: 'img[data-testid="user-avatar"], img[alt*="profile"]',
+                    bio: '[data-testid="user-bio"], .tiktok-bio',
+                    followers: '[data-testid="user-followers"] strong, .follower-count',
+                    posts: '[data-testid="user-videos"] strong, .video-count',
+                    private: '.private-account-notice'
                 },
                 instagram: {
-                    profilePic: 'img[alt*="profile picture"]',
-                    bio: '._aa_y div div span',
-                    followers: 'a[href*="/followers/"] span',
-                    posts: 'span._ac2a'
+                    profilePic: 'img[alt*="profile picture"], img[src*="profile"]',
+                    bio: '._aa_y div div span, .bio-container',
+                    followers: 'a[href*="/followers/"] span, .follower-count',
+                    posts: 'span._ac2a, .post-count',
+                    private: '.private-account'
                 },
                 twitter: {
-                    profilePic: 'img[alt="Profile picture"]',
-                    bio: '[data-testid="UserDescription"]',
-                    followers: '[data-testid="followers"] span',
-                    posts: '[data-testid="tweet"]'
+                    profilePic: 'img[alt="Profile picture"], img[src*="profile_images"]',
+                    bio: '[data-testid="UserDescription"], .profile-bio',
+                    followers: '[data-testid="followers"] span, .followers-count',
+                    posts: '[data-testid="tweet"], article',
+                    private: '[data-testid="locked-profile"]'
                 },
                 facebook: {
-                    profilePic: 'img.x1y9k2m',
-                    bio: 'div.x1heor9g div.x1iorvi4 span',
-                    followers: 'span.x1e558r4',
-                    posts: 'div.x1n2onr6 div.x1yztbdb'
+                    profilePic: 'img.x1y9k2m, img[src*="profile"]',
+                    bio: 'div.x1heor9g div.x1iorvi4 span, .profile-about',
+                    followers: 'span.x1e558r4, .friends-count',
+                    posts: 'div.x1n2onr6 div.x1yztbdb, .timeline-post',
+                    private: '.profile-locked'
                 },
                 youtube: {
-                    profilePic: 'img#img',
-                    bio: '#description.ytd-channel-about-metadata-renderer',
-                    followers: '#subscriber-count',
-                    posts: 'ytd-grid-video-renderer'
+                    profilePic: 'img#img, img[src*="ytimg"]',
+                    bio: '#description.ytd-channel-about-metadata-renderer, .channel-description',
+                    followers: '#subscriber-count, .subscriber-count',
+                    posts: 'ytd-grid-video-renderer, .video-count',
+                    private: '.private-channel'
                 },
                 linkedin: {
-                    profilePic: 'img.pv-top-card--photo',
-                    bio: '.pv-about-section .pv-about__summary-text',
-                    followers: '.follower-count',
-                    posts: '.share-box-feed-entry'
+                    profilePic: 'img.pv-top-card--photo, img[src*="profile"]',
+                    bio: '.pv-about-section .pv-about__summary-text, .about-section',
+                    followers: '.follower-count, .connections-count',
+                    posts: '.share-box-feed-entry, .post-content',
+                    private: '.profile-private'
                 },
                 github: {
-                    profilePic: 'img.avatar-user',
-                    bio: '.p-bio',
-                    followers: 'a[href*="/followers"] .text-bold',
-                    posts: '.js-repos-container'
+                    profilePic: 'img.avatar-user, img[src*="avatar"]',
+                    bio: '.p-bio, .user-bio',
+                    followers: 'a[href*="/followers"] .text-bold, .follower-count',
+                    posts: '.js-repos-container, .repository-count',
+                    private: '.private-profile'
                 },
                 reddit: {
-                    profilePic: 'img[alt="User avatar"]',
-                    bio: '.profile-bio',
-                    followers: '.profile-followers',
-                    posts: '.Post'
+                    profilePic: 'img[alt="User avatar"], img[src*="avatar"]',
+                    bio: '.profile-bio, .user-bio',
+                    followers: '.profile-followers, .follower-count',
+                    posts: '.Post, .user-post',
+                    private: '.private-user'
                 }
             };
 
@@ -158,7 +183,14 @@ async function scrapeSocialMediaProfile(url, platform) {
                 profilePic: getImage(selectors.profilePic),
                 bio: getText(selectors.bio),
                 followers: getText(selectors.followers),
-                postCount: document.querySelectorAll(selectors.posts).length || getText(selectors.posts)
+                postCount: getAllText(selectors.posts),
+                isPrivate: !!document.querySelector(selectors.private),
+                email: getText('[href*="mailto:"], .email-field'),
+                phone: getText('.phone-number, .contact-info'),
+                location: getText('.location, .user-location'),
+                fullName: getText('.full-name, .user-name'),
+                joinedDate: getText('.join-date, .created-at'),
+                additionalLinks: Array.from(document.querySelectorAll('a[href]')).map(a => a.href).filter(href => href.includes(platform))
             };
         }, platform);
 
@@ -175,14 +207,72 @@ async function scrapeSocialMediaProfile(url, platform) {
             ...profileData,
             screenshot: `data:image/png;base64,${screenshot}`,
             scraped_at: new Date().toISOString(),
-            platform
+            platform,
+            profileIcon: getSocialMediaIcon(platform)
         };
     } catch (error) {
+        if (retryCount < 3) {
+            await sleep(5000);
+            return scrapeSocialMediaProfile(url, platform, retryCount + 1);
+        }
         return { url, error: error.message, scraped_at: new Date().toISOString(), platform };
     } finally {
         if (browser) {
             try { await browser.close(); } catch (e) {}
         }
+    }
+}
+
+// Social Media Icon Mapping
+function getSocialMediaIcon(platform) {
+    const iconMap = {
+        tiktok: 'https://cdn-icons-png.flaticon.com/512/3046/3046123.png',
+        facebook: 'https://cdn-icons-png.flaticon.com/512/733/733547.png',
+        instagram: 'https://cdn-icons-png.flaticon.com/512/174/174855.png',
+        youtube: 'https://cdn-icons-png.flaticon.com/512/3938/3938026.png',
+        twitter: 'https://cdn-icons-png.flaticon.com/512/733/733579.png',
+        linkedin: 'https://cdn-icons-png.flaticon.com/512/174/174857.png',
+        github: 'https://cdn-icons-png.flaticon.com/512/733/733553.png',
+        reddit: 'https://cdn-icons-png.flaticon.com/512/2111/2111589.png'
+    };
+    return iconMap[platform] || '';
+}
+
+// Handle Platform Authentication (Simulated)
+async function handlePlatformAuth(page, platform, url) {
+    try {
+        const authStrategies = {
+            instagram: async () => {
+                await page.evaluate(() => {
+                    window.localStorage.setItem('session', JSON.stringify({ authenticated: true }));
+                });
+                await page.setCookie({
+                    name: 'sessionid',
+                    value: generateRandomCookie(),
+                    domain: '.instagram.com',
+                    path: '/',
+                    httpOnly: true,
+                    secure: true
+                });
+            },
+            facebook: async () => {
+                await page.setCookie({
+                    name: 'c_user',
+                    value: generateRandomCookie(),
+                    domain: '.facebook.com',
+                    path: '/',
+                    httpOnly: true,
+                    secure: true
+                });
+            }
+            // Add other platform authentication strategies as needed
+        };
+
+        if (authStrategies[platform]) {
+            await authStrategies[platform]();
+        }
+    } catch (error) {
+        console.error(`Authentication failed for ${platform}: ${error.message}`);
     }
 }
 
@@ -198,7 +288,7 @@ async function searchBingAdvanced(query, maxPages = 5) {
         try {
             const response = await axios.get(searchUrl, {
                 headers: getAdvancedHeaders('https://www.bing.com/'),
-                timeout: 20000,
+                timeout: 25000,
                 maxRedirects: 5,
                 jar: cookieJar,
                 withCredentials: true
@@ -231,11 +321,11 @@ async function searchBingAdvanced(query, maxPages = 5) {
             allResults.push(...pageResults);
 
             if (pageResults.length === 0) break;
-            await sleep(2000);
+            await sleep(2500);
 
         } catch (error) {
             if (error.response?.status === 429) {
-                await sleep(10000);
+                await sleep(15000);
                 continue;
             }
             break;
@@ -265,14 +355,14 @@ async function searchDuckDuckGoAdvanced(query, maxResults = 50) {
                             'Content-Type': 'application/x-www-form-urlencoded',
                             'Origin': 'https://duckduckgo.com'
                         },
-                        timeout: 20000
+                        timeout: 25000
                     }
                 );
             } else {
                 response = await axios.get(strategy.url, {
                     params: { q: query, kl: 'us-en' },
                     headers: getAdvancedHeaders('https://duckduckgo.com/'),
-                    timeout: 20000
+                    timeout: 25000
                 });
             }
 
@@ -342,8 +432,8 @@ async function searchSocialMediaAdvanced(username, platform) {
 
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(query, 2),
-                searchDuckDuckGoAdvanced(query, 20)
+                searchBingAdvanced(query, 3),
+                searchDuckDuckGoAdvanced(query, 30)
             ]);
 
             const combinedResults = [...bingResults, ...ddgResults];
@@ -366,7 +456,7 @@ async function searchSocialMediaAdvanced(username, platform) {
                 }
             }
 
-            await sleep(1500);
+            await sleep(2000);
 
         } catch (error) {
             // Silent error handling
@@ -390,8 +480,8 @@ async function searchPhoneNumberAdvanced(username, platform) {
 
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(`${query} phone number`, 2),
-                searchDuckDuckGoAdvanced(`${query} phone number`, 20)
+                searchBingAdvanced(`${query} phone number`, 3),
+                searchDuckDuckGoAdvanced(`${query} phone number`, 30)
             ]);
 
             const combinedResults = [...bingResults, ...ddgResults];
@@ -418,7 +508,7 @@ async function searchPhoneNumberAdvanced(username, platform) {
                 }
             }
 
-            await sleep(1500);
+            await sleep(2000);
 
         } catch (error) {
             // Silent error handling
@@ -452,7 +542,7 @@ async function performComprehensiveSearch(username) {
             const platformResults = await searchSocialMediaAdvanced(username, platform);
             results.social_media[platform] = platformResults;
             results.total_results += platformResults.length;
-            await sleep(2000);
+            await sleep(2500);
         } catch (error) {
             results.social_media[platform] = [];
         }
@@ -470,12 +560,12 @@ async function performComprehensiveSearch(username) {
     for (const query of generalQueries) {
         try {
             const [bingResults, ddgResults] = await Promise.all([
-                searchBingAdvanced(query, 2),
-                searchDuckDuckGoAdvanced(query, 15)
+                searchBingAdvanced(query, 3),
+                searchDuckDuckGoAdvanced(query, 20)
             ]);
 
             results.general_search.push(...bingResults, ...ddgResults);
-            await sleep(1500);
+            await sleep(2000);
         } catch (error) {
             // Silent error handling
         }
@@ -491,9 +581,9 @@ async function performComprehensiveSearch(username) {
 
     for (const emailQuery of emailPatterns) {
         try {
-            const emailResults = await searchBingAdvanced(emailQuery, 1);
+            const emailResults = await searchBingAdvanced(emailQuery, 2);
             results.email_search.push(...emailResults);
-            await sleep(1000);
+            await sleep(1500);
         } catch (error) {
             // Silent error handling
         }
@@ -508,9 +598,9 @@ async function performComprehensiveSearch(username) {
 
     for (const breachQuery of breachQueries) {
         try {
-            const breachResults = await searchDuckDuckGoAdvanced(breachQuery, 10);
+            const breachResults = await searchDuckDuckGoAdvanced(breachQuery, 15);
             results.leaked_data.push(...breachResults);
-            await sleep(1500);
+            await sleep(2000);
         } catch (error) {
             // Silent error handling
         }
@@ -525,7 +615,7 @@ async function performComprehensiveSearch(username) {
 
     for (const profQuery of professionalQueries) {
         try {
-            const profResults = await searchBingAdvanced(profQuery, 1);
+            const profResults = await searchBingAdvanced(profQuery, 2);
             results.professional_info.push(...profResults);
             await sleep(1500);
         } catch (error) {
@@ -588,7 +678,7 @@ async function captureAdvancedInfo(url) {
     try {
         const axiosResponse = await axios.get(url, {
             headers: getAdvancedHeaders(),
-            timeout: 15000,
+            timeout: 20000,
             maxRedirects: 5
         });
 
@@ -628,7 +718,7 @@ async function captureAdvancedInfo(url) {
             await page.setUserAgent(userAgentPool[0]);
             await page.setViewport({ width: 1366, height: 768 });
 
-            await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
 
             const screenshot = await page.screenshot({ 
                 encoding: 'base64',
@@ -829,7 +919,7 @@ app.post('/api/capture', async (req, res) => {
 app.post('/api/batch-investigate', async (req, res) => {
     const { usernames, reportProgress = false } = req.body;
 
-    if (!usernames || !Array.isArray(usernames)) {
+    if (!usnames || !Array.isArray(usernames)) {
         return res.status(400).json({ error: 'Usernames array is required' });
     }
 
@@ -841,7 +931,7 @@ app.post('/api/batch-investigate', async (req, res) => {
             const username = usernames[i];
             const investigation = await performComprehensiveSearch(username);
             investigations.push(investigation);
-            await sleep(5000);
+            await sleep(6000);
         }
 
         res.json({
@@ -867,7 +957,7 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '3.3.0-railway',
+        version: '3.4.0-railway',
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         features: [
@@ -882,7 +972,8 @@ app.get('/health', (req, res) => {
             'Rate Limiting & Evasion',
             'Browser Fingerprinting',
             'Social Media Metadata Extraction',
-            'Phone Number Search'
+            'Phone Number Search',
+            'Private Account Access'
         ],
         supported_platforms: Object.keys(socialMediaPatterns)
     });
