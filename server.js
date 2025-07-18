@@ -3,22 +3,17 @@ const axios = require('axios');
 const path = require('path');
 const app = express();
 
-// Load configuration
-const config = require('./config.json');
+const settings = require('./setting.js');
 
-// Middleware to parse JSON bodies
 app.use(express.json({ limit: '10mb' }));
-
-// Serve static files from 'public' and 'dataset' folders
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/dataset', express.static(path.join(__dirname, 'dataset')));
 
-// Gemini API endpoint
 app.post('/api/gemini', async (req, res) => {
     const { imageData, prompt } = req.body;
     try {
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/${config.geminiModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${settings.model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 contents: [{
                     parts: [
@@ -30,7 +25,9 @@ app.post('/api/gemini', async (req, res) => {
                         },
                         { text: prompt }
                     ]
-                }]
+                }],
+                generationConfig: settings.generationConfig,
+                tools: settings.tools
             },
             {
                 headers: { 'Content-Type': 'application/json' }
@@ -45,9 +42,7 @@ app.post('/api/gemini', async (req, res) => {
     }
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
