@@ -1,6 +1,6 @@
 # Geolocation AI with Gemini 
 
-![San Francisco](https://images.pexels.com/photos/1114896/pexels-photo-1114896.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)
+![San Francisco](https://images.pexels.com/photos/208745/pexels-photo-208745.jpeg)
 
 A sleek web app that uses **Gemini AI** to extract geographic coordinates from photos and pins them on an interactive **Mapbox** map. Upload an image, and watch it come to life with precise location tracking! 🚀
 
