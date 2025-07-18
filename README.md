@@ -1,6 +1,6 @@
 #  Mapbox Photo Tracking with Gemini 
 
-![San Francisco](https://images.unsplash.com/photo-1501594907352-04f637171b69?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80)
+![San Francisco](https://www.istockphoto.com/photo/view-of-golden-gate-bridge-gm1571494714-527976113?utm_campaign=srp_photos_top&utm_content=https%3A%2F%2Funsplash.com%2Fid%2Fs%2Ffoto%2Fsan-francisco&utm_medium=affiliate&utm_source=unsplash&utm_term=san+francisco%3A%3A%3A)
 
 A **simple** and **powerful** web app to track photo locations using **Gemini AI** and **Mapbox**. Upload an image, and the app analyzes it to find geographic coordinates, then pins the location on an interactive map. Perfect for mobile users! 🚀
 
