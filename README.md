@@ -1,23 +1,23 @@
-#  Mapbox Photo Tracking with Gemini 
+# Geolocation AI with Gemini 
 
-![San Francisco](https://www.istockphoto.com/photo/view-of-golden-gate-bridge-gm1571494714-527976113?utm_campaign=srp_photos_top&utm_content=https%3A%2F%2Funsplash.com%2Fid%2Fs%2Ffoto%2Fsan-francisco&utm_medium=affiliate&utm_source=unsplash&utm_term=san+francisco%3A%3A%3A)
+![San Francisco](https://images.pexels.com/photos/1114896/pexels-photo-1114896.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)
 
-A **simple** and **powerful** web app to track photo locations using **Gemini AI** and **Mapbox**. Upload an image, and the app analyzes it to find geographic coordinates, then pins the location on an interactive map. Perfect for mobile users! 🚀
+A sleek web app that uses **Gemini AI** to extract geographic coordinates from photos and pins them on an interactive **Mapbox** map. Upload an image, and watch it come to life with precise location tracking! 🚀
 
 ---
 
 ## ✨ Features
 
-- 📸 **Photo Analysis**: Uses Gemini AI to extract latitude and longitude from images.
-- 🗺️ **Interactive Map**: Displays locations on a Mapbox map with custom markers.
-- 📍 **Coordinate Clustering**: Matches detected coordinates to a dataset for accuracy.
-- 📱 **Mobile-Friendly**: Responsive design for seamless use on phones and tablets.
+- 📸 **AI-Powered Geolocation**: Gemini AI analyzes images to detect latitude and longitude.
+- 🗺️ **Dynamic Mapping**: Mapbox displays locations with custom photo markers.
+- 📍 **Smart Clustering**: Matches coordinates to a dataset for enhanced accuracy.
+- 📱 **Mobile-Optimized**: Smooth, responsive design for all devices.
 
 ---
 
-## 🛠️ Getting Started
+## 🛠️ Setup
 
-1. **Clone the Repository**:
+1. **Clone the Repo**:
    ```bash
-   git clone https://github.com/your-username/mapbox-photo-tracking.git
-   cd mapbox-photo-tracking
+   git clone https://github.com/your-username/geolocation-ai.git
+   cd geolocation-ai
