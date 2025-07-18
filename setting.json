@@ -1,23 +1,14 @@
 module.exports = {
-  model: 'gemini-1.5-flash',
-  generationConfig: {
-    thinkingConfig: {
-      thinkingBudget: 0
+    model: 'gemini-2.5-flash',
+    generationConfig: {
+        thinkingConfig: {
+            thinkingBudget: 0
+        },
+        responseMimeType: 'text/plain'
     },
-    responseMimeType: 'text/plain'
-  },
-  tools: [
-    {
-      functionDeclarations: [
+    tools: [
         {
-          name: 'googleSearch',
-          description: 'Perform a Google search for additional context',
-          parameters: {
-            type: 'object',
-            properties: {}
-          }
+            googleSearch: {}
         }
-      ]
-    }
-  ]
+    ]
 };
