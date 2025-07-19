@@ -37,7 +37,7 @@ app.post('/api/gemini', async (req, res) => {
                 }
               },
               {
-                text: `${prompt}\n\nDataset Context:\n${settings.datasetContext}`
+                text: `${settings.analysisPrompt}\nUser Prompt: ${prompt}\n\nDataset Context:\n${settings.datasetContext}`
               }
             ]
           }
@@ -47,10 +47,9 @@ app.post('/api/gemini', async (req, res) => {
       },
       {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 10000 // 10-second timeout for faster response
+        timeout: 15000 // Increased timeout for complex analysis
       }
     ).catch(async (error) => {
-      // Retry logic
       if (error.code === 'ECONNABORTED') {
         console.warn('Retrying Gemini API request due to timeout...');
         return await axios.post(
@@ -66,7 +65,7 @@ app.post('/api/gemini', async (req, res) => {
                     }
                   },
                   {
-                    text: `${prompt}\n\nDataset Context:\n${settings.datasetContext}`
+                    text: `${settings.analysisPrompt}\nUser Prompt: ${prompt}\n\nDataset Context:\n${settings.datasetContext}`
                   }
                 ]
               }
@@ -76,7 +75,7 @@ app.post('/api/gemini', async (req, res) => {
           },
           {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 15000 // Longer timeout for retry
+            timeout: 20000 // Longer timeout for retry
           }
         );
       }
