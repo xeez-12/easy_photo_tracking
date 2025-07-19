@@ -3,6 +3,7 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const NodeCache = require('node-cache');
+const crypto = require('crypto'); // Added for generating unique hash
 
 const settings = require('./setting.js');
 
@@ -15,7 +16,9 @@ app.use('/dataset', express.static(path.join(__dirname, 'dataset')));
 
 app.post('/api/gemini', async (req, res) => {
   const { imageData, prompt } = req.body;
-  const cacheKey = `${imageData.slice(0, 100)}:${prompt}`; // Simple cache key
+
+  // Generate a unique cache key using a hash of the entire imageData
+  const cacheKey = crypto.createHash('sha256').update(imageData).digest('hex');
 
   // Check cache
   const cachedResult = cache.get(cacheKey);
