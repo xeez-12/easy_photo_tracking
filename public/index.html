@@ -15,36 +15,49 @@
             overflow-x: hidden;
         }
         #map {
-            width: 100%;
+            width: calc(100% - 50px);
             height: 100vh;
             position: absolute;
             top: 0;
-            left: 0;
+            right: 0;
             z-index: 1;
         }
-        .file-input-container {
+        .menu-container {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 100vh;
             background: rgba(0, 0, 0, 0.8);
-            padding: 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            z-index: 1000;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.3);
         }
-        #fileInput { display: none; }
-        .file-label {
-            cursor: pointer;
+        .menu-item {
             color: #ffffff;
             font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .menu-item:hover {
+            transform: scale(1.2);
+        }
+        .menu-item input { display: none; }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         #result {
             position: absolute;
             top: 60px;
-            left: 10px;
+            left: 60px;
             right: 10px;
             background: rgba(0, 0, 0, 0.8);
             color: #ffffff;
@@ -63,31 +76,104 @@
         #result.show {
             opacity: 1;
         }
+        .popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            color: #ffffff;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        .popup.show {
+            display: flex;
+        }
+        .popup button {
+            background: #4285F4;
+            color: #ffffff;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .popup button:hover {
+            background: #3578e5;
+        }
+        .popup input {
+            background: #333;
+            color: #ffffff;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .settings-popup {
+            width: 200px;
+        }
+        .settings-popup label {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        .settings-popup select, .settings-popup input[type="checkbox"] {
+            margin-bottom: 10px;
+        }
         @media (max-width: 600px) {
-            .file-label {
+            .menu-item {
                 font-size: 1.2rem;
             }
             #result {
                 font-size: 0.8rem;
                 padding: 8px;
                 top: 50px;
+                left: 50px;
+            }
+            .popup {
+                width: 80%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="file-input-container">
-        <label for="fileInput" class="file-label">
+    <div class="menu-container">
+        <label for="fileInput" class="menu-item" id="uploadIcon">
             <i class="bi bi-plus-circle"></i>
         </label>
         <input type="file" id="fileInput" accept="image/*">
+        <div class="menu-item" id="agentIcon">
+            <i class="bi bi-robot"></i>
+        </div>
+        <div class="menu-item" id="settingsIcon">
+            <i class="bi bi-gear"></i>
+        </div>
     </div>
     <div id="result"></div>
     <div id="map"></div>
+    <div id="agentPopup" class="popup">
+        <button onclick="setMode('Global')">Global</button>
+        <button onclick="setMode('San Francisco')">San Francisco</button>
+        <button onclick="showCustomInput()">Custom</button>
+        <input type="text" id="customCoords" placeholder="Enter lat,lon" style="display: none;">
+        <button id="customSubmit" style="display: none;" onclick="setCustomCoords()">Submit</button>
+    </div>
+    <div id="settingsPopup" class="popup settings-popup">
+        <label for="geminiModel">Gemini Model:</label>
+        <select id="geminiModel">
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+        </select>
+        <label for="googleSearchTool">Google Search Tool:</label>
+        <input type="checkbox" id="googleSearchTool" checked>
+        <button onclick="saveSettings()">Save</button>
+    </div>
 
     <script>
         const MAPBOX_TOKEN = 'pk.eyJ1IjoiYXZpb3BvcnRvbGFubyIsImEiOiJja212cmRrd2QwN3dzMnZuMXV2d25xbWsxIn0.x3y36v9arY9wmBOCZlCXUA';
-
         mapboxgl.accessToken = MAPBOX_TOKEN;
         const map = new mapboxgl.Map({
             container: 'map',
@@ -100,6 +186,8 @@
 
         let markers = [];
         let coordinatesData = [];
+        let mode = 'Global';
+        let customCoords = null;
 
         function haversineDistance(coord1, coord2) {
             const R = 6371e3;
@@ -107,7 +195,6 @@
             const φ2 = coord2.lat * Math.PI / 180;
             const Δφ = (coord2.lat - coord1.lat) * Math.PI / 180;
             const Δλ = (coord2.lon - coord1.lon) * Math.PI / 180;
-
             const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
                       Math.cos(φ1) * Math.cos(φ2) *
                       Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
@@ -144,7 +231,6 @@
                     const MAX_HEIGHT = 600;
                     let width = img.width;
                     let height = img.height;
-
                     if (width > height) {
                         if (width > MAX_WIDTH) {
                             height *= MAX_WIDTH / width;
@@ -156,7 +242,6 @@
                             height = MAX_HEIGHT;
                         }
                     }
-
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
@@ -181,8 +266,11 @@
             let closest = null;
             let minDistance = Infinity;
             const CLUSTER_THRESHOLD = 100;
+            const dataset = mode === 'San Francisco' ? coordinatesData.filter(c => 
+                c.lat >= 37.7 && c.lat <= 37.8 && c.lon >= -122.5 && c.lon <= -122.3
+            ) : mode === 'Custom' && customCoords ? [customCoords] : coordinatesData;
 
-            coordinatesData.forEach(coord => {
+            dataset.forEach(coord => {
                 const distance = haversineDistance({ lat, lon }, coord);
                 if (distance < minDistance) {
                     minDistance = distance;
@@ -191,7 +279,7 @@
             });
 
             if (closest) {
-                const nearbyCoords = coordinatesData.filter(coord => 
+                const nearbyCoords = dataset.filter(coord => 
                     haversineDistance(closest, coord) < CLUSTER_THRESHOLD
                 );
                 if (nearbyCoords.length > 1) {
@@ -200,7 +288,6 @@
                     return { lat: avgLat, lon: avgLon };
                 }
             }
-
             return closest;
         }
 
@@ -208,9 +295,8 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Analyzing...';
-            resultDiv.classList.add('show');
+            const uploadIcon = document.getElementById('uploadIcon');
+            uploadIcon.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i>';
 
             try {
                 const resizedBlob = await resizeImage(file);
@@ -225,6 +311,8 @@
                     })
                 });
 
+                uploadIcon.innerHTML = '<i class="bi bi-plus-circle"></i>';
+
                 if (!response.ok) throw new Error(`Gemini API error: ${response.statusText}`);
 
                 const data = await response.json();
@@ -236,8 +324,8 @@
 
                 let lat, lon;
                 if (result.includes('No coordinates found')) {
-                    resultDiv.innerHTML = result;
-                    resultDiv.classList.add('show');
+                    document.getElementById('result').innerHTML = result;
+                    document.getElementById('result').classList.add('show');
                     return;
                 }
 
@@ -248,10 +336,12 @@
                     throw new Error('Invalid coordinate format');
                 }
 
-                const closestCoord = findClosestCoordinate(lat, lon);
-                if (closestCoord) {
-                    lat = closestCoord.lat;
-                    lon = closestCoord.lon;
+                if (mode !== 'Global') {
+                    const closestCoord = findClosestCoordinate(lat, lon);
+                    if (closestCoord) {
+                        lat = closestCoord.lat;
+                        lon = closestCoord.lon;
+                    }
                 }
 
                 markers.forEach(marker => marker.remove());
@@ -270,13 +360,14 @@
 
                     map.flyTo({ center: [lon, lat], zoom: 15 });
 
-                    resultDiv.innerHTML = `Location found: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-                    resultDiv.classList.add('show');
+                    document.getElementById('result').innerHTML = `Location found: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    document.getElementById('result').classList.add('show');
                 };
             } catch (error) {
                 console.error('Error:', error);
-                resultDiv.innerHTML = 'Error processing image. Try a clearer image with visible landmarks.';
-                resultDiv.classList.add('show');
+                document.getElementById('result').innerHTML = 'Error processing image. Try a clearer image with visible landmarks.';
+                document.getElementById('result').classList.add('show');
+                uploadIcon.innerHTML = '<i class="bi bi-plus-circle"></i>';
             } finally {
                 document.getElementById('fileInput').value = '';
             }
@@ -292,7 +383,70 @@
             markerElement.style.backgroundImage = `url(${img.src})`;
             return markerElement;
         }
+
+        document.getElementById('agentIcon').addEventListener('click', () => {
+            document.getElementById('agentPopup').classList.toggle('show');
+            document.getElementById('settingsPopup').classList.remove('show');
+        });
+
+        document.getElementById('settingsIcon').addEventListener('click', () => {
+            document.getElementById('settingsPopup').classList.toggle('show');
+            document.getElementById('agentPopup').classList.remove('show');
+        });
+
+        function setMode(selectedMode) {
+            mode = selectedMode;
+            document.getElementById('agentPopup').classList.remove('show');
+            document.getElementById('customCoords').style.display = 'none';
+            document.getElementById('customSubmit').style.display = 'none';
+        }
+
+        function showCustomInput() {
+            document.getElementById('customCoords').style.display = 'block';
+            document.getElementById('customSubmit').style.display = 'block';
+        }
+
+        function setCustomCoords() {
+            const input = document.getElementById('customCoords').value;
+            const [lat, lon] = input.split(',').map(Number);
+            if (!isNaN(lat) && !isNaN(lon)) {
+                customCoords = { lat, lon };
+                mode = 'Custom';
+                document.getElementById('agentPopup').classList.remove('show');
+                document.getElementById('customCoords').style.display = 'none';
+                document.getElementById('customSubmit').style.display = 'none';
+            } else {
+                alert('Invalid coordinates. Use format: lat,lon');
+            }
+        }
+
+        async function saveSettings() {
+            const model = document.getElementById('geminiModel').value;
+            const googleSearchEnabled = document.getElementById('googleSearchTool').checked;
+
+            try {
+                const response = await fetch('/api/update-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model,
+                        tools: googleSearchEnabled ? [{ googleSearch: {} }] : []
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('settingsPopup').classList.remove('show');
+                    document.getElementById('result').innerHTML = 'Settings updated successfully.';
+                    document.getElementById('result').classList.add('show');
+                } else {
+                    throw new Error('Failed to update settings');
+                }
+            } catch (error) {
+                console.error('Error updating settings:', error);
+                document.getElementById('result').innerHTML = 'Error updating settings.';
+                document.getElementById('result').classList.add('show');
+            }
+        }
     </script>
 </body>
 </html>
-
