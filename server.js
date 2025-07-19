@@ -3,12 +3,24 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const NodeCache = require('node-cache');
-const crypto = require('crypto'); // Added for generating unique hash
+const crypto = require('crypto');
 
 const settings = require('./setting.js');
 
+// Function to calculate Euclidean distance between two coordinates (approximate)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the Earth in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in kilometers
+}
+
 const app = express();
-const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 }); // Cache for 10 minutes
+const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -17,10 +29,8 @@ app.use('/dataset', express.static(path.join(__dirname, 'dataset')));
 app.post('/api/gemini', async (req, res) => {
   const { imageData, prompt } = req.body;
 
-  // Generate a unique cache key using a hash of the entire imageData
   const cacheKey = crypto.createHash('sha256').update(imageData).digest('hex');
 
-  // Check cache
   const cachedResult = cache.get(cacheKey);
   if (cachedResult) {
     return res.json({ result: cachedResult });
@@ -40,7 +50,7 @@ app.post('/api/gemini', async (req, res) => {
                 }
               },
               {
-                text: `${settings.analysisPrompt}\nUser Prompt: ${prompt}\n\nDataset Context:\n${settings.datasetContext}`
+                text: `${settings.analysisPrompt}\nUser Prompt: ${prompt}\n\nDataset Context:\n${settings.datasetEntries.map(e => e.description).join('\n')}`
               }
             ]
           }
@@ -50,7 +60,7 @@ app.post('/api/gemini', async (req, res) => {
       },
       {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 30000 // Increased to 30 seconds for initial call
+        timeout: 30000
       }
     ).catch(async (error) => {
       if (error.code === 'ECONNABORTED') {
@@ -68,7 +78,7 @@ app.post('/api/gemini', async (req, res) => {
                     }
                   },
                   {
-                    text: `${settings.analysisPrompt}\nUser Prompt: ${prompt}\n\nDataset Context:\n${settings.datasetContext}`
+                    text: `${settings.analysisPrompt}\nUser Prompt: ${prompt}\n\nDataset Context:\n${settings.datasetEntries.map(e => e.description).join('\n')}`
                   }
                 ]
               }
@@ -78,18 +88,37 @@ app.post('/api/gemini', async (req, res) => {
           },
           {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 45000 // Increased to 45 seconds for retry
+            timeout: 45000
           }
         );
       }
       throw error;
     });
 
-    const result = response.data.candidates?.[0]?.content?.parts?.[0]?.text || 'No valid response from Gemini API';
-    
-    // Store in cache
+    let result = response.data.candidates?.[0]?.content?.parts?.[0]?.text || 'No valid response from Gemini API';
+
+    // Parse the AI response to extract coordinates
+    const coordMatch = result.match(/Coordinates:\s*\[(-?\d+\.\d+),\s*(-?\d+\.\d+)\]/);
+    if (coordMatch && settings.datasetEntries.length > 0) {
+      const [_, lat, lon] = coordMatch;
+      const estimatedCoords = [parseFloat(lat), parseFloat(lon)];
+
+      // Find the nearest dataset entry
+      let nearestMatch = settings.datasetEntries[0];
+      let minDistance = Infinity;
+      for (const entry of settings.datasetEntries) {
+        const distance = calculateDistance(estimatedCoords[0], estimatedCoords[1], entry.coords[0], entry.coords[1]);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestMatch = entry;
+        }
+      }
+
+      // Append nearest match information to the result
+      result += `\nNearest Dataset Match: [${nearestMatch.coords[0]}, ${nearestMatch.coords[1]}], Distance: ${minDistance.toFixed(2)} km`;
+    }
+
     cache.set(cacheKey, result);
-    
     res.json({ result });
   } catch (error) {
     console.error('Gemini API error:', error.message);
