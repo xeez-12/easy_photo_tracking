@@ -11,14 +11,14 @@ const datasetContext = fs.existsSync(datasetPath)
   : '';
 
 module.exports = {
-  model: 'gemini-2.5-pro', // Upgraded to a more advanced model for enhanced analysis
+  model: 'gemini-2.5-pro',
   generationConfig: {
     thinkingConfig: {
-      thinkingBudget: 1000 // Increased for deeper analysis and verification
+      thinkingBudget: 1000
     },
     responseMimeType: 'text/plain',
-    temperature: 0.4, // Lowered for higher precision
-    maxOutputTokens: 4096 // Increased for detailed output
+    temperature: 0.4,
+    maxOutputTokens: 4096
   },
   tools: [
     {
@@ -28,9 +28,10 @@ module.exports = {
   datasetContext,
   analysisPrompt: `
     Analyze the provided image to identify key visual elements, including buildings and landmarks.
-    Search for accurate geographic coordinates based on visual cues and dataset context.
-    Verify the coordinates by cross-checking with known building patterns and dataset information.
+    Search for initial geographic coordinates based on visual cues and dataset context.
+    Compare these coordinates with the dataset to find the nearest matching location by calculating the smallest Euclidean distance to known coordinates in the dataset.
+    Verify the coordinates by cross-checking with known building patterns, dataset information, and the nearest match.
     Detect similarities with known buildings and confirm the most accurate coordinates.
-    Return the result in the format: 'Coordinates: [latitude, longitude], Verification: [confidence level], Building Similarity: [similarity description]'.
+    Return the result in the format: 'Coordinates: [latitude, longitude], Nearest Dataset Match: [nearest latitude, longitude], Distance: [distance in km], Verification: [confidence level], Building Similarity: [similarity description]'.
   `
 };
