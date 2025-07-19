@@ -11,19 +11,26 @@ const datasetContext = fs.existsSync(datasetPath)
   : '';
 
 module.exports = {
-  model: 'gemini-2.5-pro', // Hypothetical advanced model for better photo analysis
+  model: 'gemini-2.5-pro', // Upgraded to a more advanced model for enhanced analysis
   generationConfig: {
     thinkingConfig: {
-      thinkingBudget: 500 // Increased for deeper analysis
+      thinkingBudget: 1000 // Increased for deeper analysis and verification
     },
     responseMimeType: 'text/plain',
-    temperature: 0.7, // Balanced for accuracy and creativity
-    maxOutputTokens: 2048 // Increased for detailed responses
+    temperature: 0.4, // Lowered for higher precision
+    maxOutputTokens: 4096 // Increased for detailed output
   },
   tools: [
     {
       googleSearch: {}
     }
   ],
-  datasetContext // Export dataset context for use in API calls
+  datasetContext,
+  analysisPrompt: `
+    Analyze the provided image to identify key visual elements, including buildings and landmarks.
+    Search for accurate geographic coordinates based on visual cues and dataset context.
+    Verify the coordinates by cross-checking with known building patterns and dataset information.
+    Detect similarities with known buildings and confirm the most accurate coordinates.
+    Return the result in the format: 'Coordinates: [latitude, longitude], Verification: [confidence level], Building Similarity: [similarity description]'.
+  `
 };
