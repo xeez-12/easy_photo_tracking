@@ -25,10 +25,10 @@
         }
         .menu-container {
             position: absolute;
-            top: 0;
+            top: 50%;
             left: 0;
             width: 44px;
-            height: 100vh;
+            transform: translateY(-50%);
             background: linear-gradient(180deg, #1e1e1e, #0a0a0a);
             display: flex;
             flex-direction: column;
@@ -36,6 +36,7 @@
             padding: 8px 0;
             z-index: 1000;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.6);
+            border-radius: 0 8px 8px 0;
         }
         .menu-item {
             color: #d1d1d1;
