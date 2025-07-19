@@ -1,16 +1,18 @@
 {
   "name": "mapbox-photo-tracking",
-  "version": "2.0.0",
-  "description": "Mapbox photo tracking app with Gemini API",
+  "version": "2.1.0",
+  "description": "Mapbox photo tracking app with enhanced Gemini API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "axios": "^1.6.7"
+    "axios": "^1.6.7",
+    "fs-extra": "^11.1.0",
+    "dotenv": "^16.0.3"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   }
 }
