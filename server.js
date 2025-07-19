@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs').promises;
+const cv = require('opencv4nodejs');
 const app = express();
 
 const settings = require('./setting.js');
@@ -31,20 +32,55 @@ async function getDatasetContext() {
     }
 }
 
+// Function to preprocess image with OpenCV
+async function preprocessImage(imageData) {
+    try {
+        // Decode base64 image to buffer
+        const buffer = Buffer.from(imageData, 'base64');
+        const img = cv.imdecode(buffer);
+
+        // Extract features (e.g., edge detection, color histogram)
+        const grayImg = img.bgrToGray();
+        const edges = grayImg.canny(100, 200);
+        const edgeCount = edges.countNonZero();
+
+        // Basic color histogram
+        const hist = img.calcHist([256], [0]);
+        const dominantColor = hist.getData().slice(0, 3).join(', ');
+
+        return {
+            edgeCount: edgeCount,
+            dominantColor: dominantColor,
+            width: img.cols,
+            height: img.rows
+        };
+    } catch (error) {
+        console.error('OpenCV preprocessing error:', error.message);
+        return {};
+    }
+}
+
 app.post('/api/gemini', async (req, res) => {
     const { imageData, prompt } = req.body;
     try {
         // Aggregate context from dataset files
         const datasetContext = await getDatasetContext();
 
-        // Enhanced prompt with dataset context for better accuracy
+        // Preprocess image with OpenCV
+        const imageFeatures = await preprocessImage(imageData);
+
+        // Enhanced prompt with dataset context and image features
         const enhancedPrompt = `
             ${prompt}
             Additional Context from Dataset:
             ${datasetContext}
-            Instructions: Use the provided image and dataset context to provide a detailed and accurate response. 
-            If the image contains a building, cross-reference with dataset descriptions to identify unique features 
-            and avoid confusion with similar buildings. Provide specific details where possible.
+            Image Features (from OpenCV analysis):
+            - Edge Count: ${imageFeatures.edgeCount || 'N/A'}
+            - Dominant Color (RGB): ${imageFeatures.dominantColor || 'N/A'}
+            - Image Dimensions: ${imageFeatures.width || 'N/A'}x${imageFeatures.height || 'N/A'}
+            Instructions: Use the provided image, dataset context, and extracted image features to provide a highly accurate identification of the object in the image. 
+            Even if the object is not a landmark, focus on unique visual characteristics (edges, colors, shapes) and cross-reference with dataset descriptions to ensure precise identification. 
+            Provide a detailed response with confidence scores if possible.
         `;
 
         const response = await axios.post(
@@ -63,8 +99,8 @@ app.post('/api/gemini', async (req, res) => {
                 }],
                 generationConfig: {
                     ...settings.generationConfig,
-                    maxOutputTokens: 2048, // Increase token limit for more detailed responses
-                    temperature: 0.7 // Adjust for balanced creativity and accuracy
+                    maxOutputTokens: 4096, // Increased for detailed responses
+                    temperature: 0.5 // Lower temperature for higher precision
                 },
                 tools: settings.tools
             },
