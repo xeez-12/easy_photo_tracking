@@ -50,7 +50,7 @@ app.post('/api/gemini', async (req, res) => {
       },
       {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 15000 // Increased timeout for complex analysis
+        timeout: 30000 // Increased to 30 seconds for initial call
       }
     ).catch(async (error) => {
       if (error.code === 'ECONNABORTED') {
@@ -78,7 +78,7 @@ app.post('/api/gemini', async (req, res) => {
           },
           {
             headers: { 'Content-Type': 'application/json' },
-            timeout: 20000 // Longer timeout for retry
+            timeout: 45000 // Increased to 45 seconds for retry
           }
         );
       }
