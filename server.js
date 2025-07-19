@@ -3,7 +3,7 @@ const axios = require('axios');
 const path = require('path');
 const app = express();
 
-const settings = require('./setting.js');
+let settings = require('./setting');
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -39,6 +39,25 @@ app.post('/api/gemini', async (req, res) => {
     } catch (error) {
         console.error('Gemini API error:', error.message);
         res.status(500).json({ error: 'Error processing Gemini API request' });
+    }
+});
+
+app.post('/api/update-settings', async (req, res) => {
+    const { model, tools } = req.body;
+    try {
+        settings = {
+            model,
+            generationConfig: {
+                thinkingConfig: { thinkingBudget: 0 },
+                responseMimeType: 'text/plain'
+            },
+            tools
+        };
+        require.cache[require.resolve('./setting')] = undefined;
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating settings:', error);
+        res.status(500).json({ error: 'Error updating settings' });
     }
 });
 
